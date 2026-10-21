@@ -1,0 +1,48 @@
+#elab-advisor-settings { border: 1px solid #dcdcde; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.03); }
+#elab-advisor-settings .postbox-header { background: #fff; }
+#elab-advisor-settings .inside { margin: 0; padding: 24px; background: #fff; color: #1d2327; }
+#elab-advisor-settings .inside > .description:first-of-type { max-width: 68ch; margin: 0 0 18px; font-size: 14px; line-height: 1.6; }
+#elab-advisor-settings .form-table { margin: 0 0 28px; }
+#elab-advisor-settings .form-table th { width: 160px; padding-left: 0; }
+#elab-advisor-settings .form-table td { padding-right: 0; }
+#elab-advisor-settings .form-table input, #elab-advisor-settings .form-table select { border-radius: 5px; min-height: 36px; }
+#elab-advisor-settings #elab-timezone-search { margin-bottom: 7px; }
+#elab-advisor-settings h3 { margin: 8px 0; font-size: 18px; }
+#elab-advisor-settings [data-elab-weekly-hours] { margin-top: 18px; border: 1px solid #dcdcde; border-radius: 6px; border-spacing: 0; background: #fff; }
+#elab-advisor-settings [data-elab-weekly-hours] thead th { background: #f6f7f7; color: #50575e; font-size: 12px; font-weight: 600; }
+#elab-advisor-settings [data-elab-weekly-hours] tbody tr { background: #fff; }
+#elab-advisor-settings [data-elab-weekly-hours] tbody th, #elab-advisor-settings [data-elab-weekly-hours] tbody td { padding: 12px 16px; border-top: 1px solid #f0f0f1; }
+#elab-advisor-settings [data-elab-weekly-hours] tbody th { width: 155px; }
+#elab-advisor-settings [data-elab-range] { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+#elab-advisor-settings [data-elab-range] label { display: inline-flex; align-items: center; }
+#elab-advisor-settings [data-elab-range] input { width: 112px; min-height: 34px; border-radius: 5px; font-variant-numeric: tabular-nums; }
+#elab-advisor-settings .elab-range-separator { color: #8c8f94; }
+#elab-advisor-settings [data-elab-add-range] { margin-top: 4px; text-decoration: none; font-size: 12px; }
+#elab-advisor-settings [data-elab-day]:has(input[type="checkbox"]:not(:checked)) td { opacity: .45; }
+#elab-advisor-settings [data-elab-range] .button-link-delete { width: 24px; height: 24px; border-radius: 50%; color: #646970; font-size: 21px; line-height: 21px; text-decoration: none; }
+#elab-advisor-settings [data-elab-range] .button-link-delete:hover { background: #f6f7f7; color: #b32d2e; }
+@media (max-width: 782px) { #elab-advisor-settings .inside { padding: 16px; } #elab-advisor-settings [data-elab-weekly-hours] tbody th { width: 90px; } #elab-advisor-settings [data-elab-weekly-hours] tbody th, #elab-advisor-settings [data-elab-weekly-hours] tbody td { padding: 10px; } }
+#elab-advisor-settings [data-elab-blackouts], .elab-blackouts-page [data-elab-blackouts] { max-width: 980px; margin: 16px 0 26px; }
+#elab-advisor-settings [data-elab-blackouts] table, .elab-blackouts-page [data-elab-blackouts] table { border-radius: 6px; overflow: hidden; }
+#elab-advisor-settings [data-elab-blackouts] th, #elab-advisor-settings [data-elab-blackouts] td, .elab-blackouts-page [data-elab-blackouts] th, .elab-blackouts-page [data-elab-blackouts] td { padding: 9px 10px; vertical-align: middle; }
+#elab-advisor-settings [data-elab-blackouts] input[type="date"], .elab-blackouts-page [data-elab-blackouts] input[type="date"] { width: 155px; }
+#elab-advisor-settings [data-elab-blackouts] input[type="text"], .elab-blackouts-page [data-elab-blackouts] input[type="text"] { width: 100%; min-width: 130px; }
+#elab-advisor-settings [data-elab-blackouts] .button-link-delete, .elab-blackouts-page [data-elab-blackouts] .button-link-delete { font-size: 22px; line-height: 1; text-decoration: none; }
+.elab-google-settings-card { max-width: 760px; padding: 20px 24px; margin-top: 20px; }
+.elab-google-settings-card h2 { margin-top: 0; }
+.elab-google-settings-card .form-table th { width: 145px; }
+.elab-google-settings-card input[readonly] { background: #f6f7f7; cursor: text; }
+.elab-google-settings-page > p { max-width: 760px; }
+.elab-google-settings-card { box-shadow: 0 1px 3px rgba(0, 0, 0, .04); }
+.elab-google-setup-steps { margin: 18px 0 22px 22px; }
+.elab-google-setup-steps li { padding: 0 0 10px 5px; line-height: 1.55; }
+.elab-google-setup-steps li strong { display: block; color: #1d2327; }
+.elab-google-setup-steps code { overflow-wrap: anywhere; }
+.elab-google-settings-card #elab-google-redirect-uri { margin-top: 7px; }
+.elab-google-local-note { padding: 10px 12px; border-left: 3px solid #dba617; background: #fcf9e8; }
+#elab-global-overrides .inside { padding: 16px 20px 20px; }
+#elab-global-overrides .description { max-width: 72ch; line-height: 1.55; }
+.elab-global-overrides-table { max-width: 800px; margin: 14px 0; border-radius: 6px; overflow: hidden; }
+.elab-global-overrides-table th, .elab-global-overrides-table td { padding: 10px 14px; vertical-align: middle; }
+.elab-global-overrides-table th:last-child, .elab-global-overrides-table td:last-child { width: 100px; text-align: center; }
+.elab-global-overrides-table input[type="checkbox"] { margin: 0; }

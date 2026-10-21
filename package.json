@@ -1,0 +1,17 @@
+{
+  "name": "elaltillo-bookacall",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "esbuild": "^0.28.2",
+    "tailwindcss": "^4.3.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "@parcel/watcher"]
+  }
+}

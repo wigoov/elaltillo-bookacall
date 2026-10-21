@@ -1,0 +1,10 @@
+@import "tailwindcss/utilities" source(none);
+@source "../../includes/frontend/templates/booking-form.php";
+
+@theme {
+  --color-primary: #FFFAF7;
+  --color-secondary: #282C33;
+  --color-accent: #FFFD88;
+  --font-primary: "Agrandir Grand";
+  --font-secondary: "Apercu Mono";
+}
