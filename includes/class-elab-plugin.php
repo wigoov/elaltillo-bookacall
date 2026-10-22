@@ -15,6 +15,7 @@ require_once __DIR__ . '/blackouts/class-elab-global-overrides-admin.php';
 require_once __DIR__ . '/advisors/class-elab-advisor-admin.php';
 require_once __DIR__ . '/bookings/class-elab-booking-admin.php';
 require_once __DIR__ . '/bookings/class-elab-availability.php';
+require_once __DIR__ . '/bookings/class-elab-booking-guard.php';
 require_once __DIR__ . '/bookings/class-elab-booking-service.php';
 require_once __DIR__ . '/bookings/class-elab-rest-controller.php';
 require_once __DIR__ . '/files/class-elab-private-attachments.php';

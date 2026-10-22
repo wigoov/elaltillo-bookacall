@@ -38,6 +38,9 @@ final class ELAB_Booking_Admin {
 		if ( 'failed' === get_post_meta( $post->ID, ELAB_Notifications::META_BOOKING_MAIL, true ) ) {
 			echo '<p class="notice notice-warning inline">' . esc_html__( 'The advisor email could not be sent. Check the site email configuration and contact the advisor directly.', 'elaltillo-bookacall' ) . '</p>';
 		}
+		if ( 'failed' === get_post_meta( $post->ID, ELAB_Notifications::META_VISITOR_MAIL, true ) ) {
+			echo '<p class="notice notice-warning inline">' . esc_html__( 'The visitor email could not be sent. Contact the visitor directly.', 'elaltillo-bookacall' ) . '</p>';
+		}
 	}
 
 	private function render_downloads( $booking_id ) {
@@ -71,16 +74,17 @@ final class ELAB_Booking_Admin {
 		if ( in_array( $status, array( 'pending', 'confirmed', 'cancelled' ), true ) ) {
 			$current = get_post_meta( $post_id, '_elab_status', true );
 			$event_id = get_post_meta( $post_id, ELAB_Google_Calendar::META_EVENT, true );
-			if ( 'cancelled' === $current && 'confirmed' === $status && ELAB_Google_Calendar::configured() ) {
+			if ( 'cancelled' === $current && 'cancelled' !== $status ) {
 				return;
 			}
 			if ( 'confirmed' === $status && ! $event_id && ELAB_Google_Calendar::configured() ) {
 				$advisor_id = (int) get_post_meta( $post_id, '_elab_advisor', true );
 				$start = get_post_meta( $post_id, '_elab_start_utc', true );
-				$event = ELAB_Google_Calendar::create_event( $advisor_id, $post_id, new DateTimeImmutable( $start, new DateTimeZone( 'UTC' ) ), max( 15, (int) get_post_meta( $advisor_id, '_elab_duration', true ) ), get_post_meta( $post_id, '_elab_name', true ), get_post_meta( $post_id, '_elab_contact_email', true ), get_post_meta( $post_id, '_elab_sector', true ), get_post_meta( $post_id, '_elab_message', true ) );
+				$event = ELAB_Google_Calendar::create_event( $advisor_id, $post_id, new DateTimeImmutable( $start, new DateTimeZone( 'UTC' ) ), max( 15, (int) get_post_meta( $advisor_id, '_elab_duration', true ) ), get_post_meta( $post_id, '_elab_contact_email', true ) );
 				if ( is_wp_error( $event ) ) {
 					wp_die( esc_html__( 'Google Calendar could not create the event. The booking was not confirmed.', 'elaltillo-bookacall' ), '', array( 'response' => 503 ) );
 				}
+				$event_id = get_post_meta( $post_id, ELAB_Google_Calendar::META_EVENT, true );
 			}
 			if ( 'cancelled' === $status && 'cancelled' !== $current && $event_id ) {
 				$advisor_id = (int) get_post_meta( $post_id, '_elab_advisor', true );
@@ -96,6 +100,9 @@ final class ELAB_Booking_Admin {
 			update_post_meta( $post_id, '_elab_status', $status );
 			if ( $status !== $current ) {
 				ELAB_Notifications::booking_notice( $post_id, $status );
+				if ( ! $event_id && in_array( $status, array( 'confirmed', 'cancelled' ), true ) ) {
+					ELAB_Notifications::visitor_notice( $post_id, $status );
+				}
 			}
 		}
 	}

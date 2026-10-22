@@ -15,6 +15,12 @@ final class ELAB_Booking_Service {
 	}
 
 	public function create( WP_REST_Request $request ) {
+		foreach ( array( 'start', 'name', 'email', 'sector', 'timezone', 'message' ) as $field ) {
+			$value = $request->get_param( $field );
+			if ( null !== $value && ! is_string( $value ) ) {
+				return new WP_Error( 'invalid_booking', __( 'Please check the booking details and try again.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
+			}
+		}
 		$advisor_id = absint( $request->get_param( 'advisor' ) );
 		$advisor = get_post( $advisor_id );
 		$start = sanitize_text_field( $request->get_param( 'start' ) );
@@ -23,7 +29,7 @@ final class ELAB_Booking_Service {
 		$sector = sanitize_text_field( $request->get_param( 'sector' ) );
 		$timezone = sanitize_text_field( $request->get_param( 'timezone' ) );
 		$message = sanitize_textarea_field( $request->get_param( 'message' ) );
-		if ( ! $advisor || ELAB_Post_Types::ADVISOR !== $advisor->post_type || 'publish' !== $advisor->post_status || ! $name || ! is_email( $email ) || ! $start ) {
+		if ( ! $advisor || ELAB_Post_Types::ADVISOR !== $advisor->post_type || 'publish' !== $advisor->post_status || ! $name || ! is_email( $email ) || ! preg_match( '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/', $start ) || strlen( $name ) > 120 || strlen( $email ) > 190 || strlen( $sector ) > 120 || strlen( $message ) > 5000 || strlen( $timezone ) > 100 ) {
 			return new WP_Error( 'invalid_booking', __( 'Please complete all required fields.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
 		}
 		try {
@@ -91,7 +97,7 @@ final class ELAB_Booking_Service {
 		}
 		if ( ELAB_Google_Calendar::configured() ) {
 			$duration = max( 15, (int) get_post_meta( $advisor_id, '_elab_duration', true ) );
-			$event = ELAB_Google_Calendar::create_event( $advisor_id, $booking_id, $start_utc->setTimezone( new DateTimeZone( 'UTC' ) ), $duration, $name, $email, $sector, $message );
+			$event = ELAB_Google_Calendar::create_event( $advisor_id, $booking_id, $start_utc->setTimezone( new DateTimeZone( 'UTC' ) ), $duration, $email );
 			if ( is_wp_error( $event ) ) {
 				$this->attachments->discard( $files );
 				wp_delete_post( $booking_id, true );

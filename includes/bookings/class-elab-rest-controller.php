@@ -35,10 +35,18 @@ final class ELAB_REST_Controller {
 	}
 
 	public function get_slots( WP_REST_Request $request ) {
+		$allowed = ELAB_Booking_Guard::slots();
+		if ( is_wp_error( $allowed ) ) {
+			return $allowed;
+		}
 		return $this->availability->get_slots( $request );
 	}
 
 	public function create_booking( WP_REST_Request $request ) {
+		$allowed = ELAB_Booking_Guard::submission( $request );
+		if ( is_wp_error( $allowed ) ) {
+			return $allowed;
+		}
 		return $this->booking_service->create( $request );
 	}
 }

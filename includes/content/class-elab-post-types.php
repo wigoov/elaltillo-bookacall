@@ -35,6 +35,22 @@ final class ELAB_Post_Types {
 			'show_in_menu'    => 'edit.php?post_type=' . self::ADVISOR,
 			'supports'        => array( 'title' ),
 			'capability_type' => 'post',
+			'capabilities'    => array(
+				'edit_post' => 'manage_options',
+				'read_post' => 'manage_options',
+				'delete_post' => 'manage_options',
+				'edit_posts' => 'manage_options',
+				'edit_others_posts' => 'manage_options',
+				'publish_posts' => 'manage_options',
+				'read_private_posts' => 'manage_options',
+				'delete_posts' => 'manage_options',
+				'delete_private_posts' => 'manage_options',
+				'delete_published_posts' => 'manage_options',
+				'delete_others_posts' => 'manage_options',
+				'edit_private_posts' => 'manage_options',
+				'edit_published_posts' => 'manage_options',
+				'create_posts' => 'manage_options',
+			),
 			'map_meta_cap'    => true,
 		) );
 	}

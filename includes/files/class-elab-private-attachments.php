@@ -6,6 +6,31 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class ELAB_Private_Attachments {
+	/** Store documents beside the WordPress document root, never in public uploads. */
+	private static function storage_dir() {
+		return defined( 'ELAB_PRIVATE_UPLOAD_DIR' ) ? (string) ELAB_PRIVATE_UPLOAD_DIR : dirname( untrailingslashit( ABSPATH ) ) . '/elaltillo-bookacall-private';
+	}
+
+	private static function safe_dir() {
+		$dir = self::storage_dir();
+		if ( ! preg_match( '#^(?:/|[A-Za-z]:/)#', wp_normalize_path( $dir ) ) ) {
+			return false;
+		}
+		if ( ! is_dir( $dir ) && ! wp_mkdir_p( $dir ) ) {
+			return false;
+		}
+		$real = realpath( $dir );
+		$public_roots = array( realpath( ABSPATH ) );
+		if ( ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+			$public_roots[] = realpath( (string) $_SERVER['DOCUMENT_ROOT'] );
+		}
+		foreach ( $public_roots as $root ) {
+			if ( $root && $real && ( $real === $root || 0 === strpos( $real, trailingslashit( $root ) ) ) ) {
+				return false;
+			}
+		}
+		return $real && is_writable( $real ) ? $real : false;
+	}
 	public function __construct() {
 		add_action( 'admin_post_elab_download', array( $this, 'download' ) );
 		add_action( 'before_delete_post', array( $this, 'delete_booking_files' ) );
@@ -21,11 +46,11 @@ final class ELAB_Private_Attachments {
 			return new WP_Error( 'too_many_files', __( 'You can attach up to 3 files.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
 		}
 		$allowed = array( 'pdf' => 'application/pdf', 'doc' => 'application/msword', 'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'xls' => 'application/vnd.ms-excel', 'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' );
-		$dir = trailingslashit( WP_CONTENT_DIR ) . 'uploads/elaltillo-bookacall-private';
-		if ( ! wp_mkdir_p( $dir ) ) {
-			return new WP_Error( 'upload_failed', __( 'Could not store attachments.', 'elaltillo-bookacall' ), array( 'status' => 500 ) );
+		$dir = self::safe_dir();
+		if ( ! $dir ) {
+			return new WP_Error( 'upload_failed', __( 'Private attachment storage is unavailable. Ask the site administrator to configure a directory outside the web root.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
 		}
-		$this->protect_directory( $dir );
+		@chmod( $dir, 0700 );
 		$files = array();
 		for ( $i = 0; $i < $count; $i++ ) {
 			$name = sanitize_file_name( $upload['name'][ $i ] );
@@ -45,18 +70,10 @@ final class ELAB_Private_Attachments {
 				$this->remove_files( $dir, $files );
 				return new WP_Error( 'upload_failed', __( 'Could not store an attachment.', 'elaltillo-bookacall' ), array( 'status' => 500 ) );
 			}
+			@chmod( trailingslashit( $dir ) . $stored_name, 0600 );
 			$files[] = array( 'name' => $name, 'stored' => $stored_name );
 		}
 		return $files;
-	}
-
-	private function protect_directory( $dir ) {
-		if ( file_exists( $dir . '/.htaccess' ) ) {
-			return;
-		}
-		file_put_contents( $dir . '/.htaccess', "Require all denied\nDeny from all\n" );
-		file_put_contents( $dir . '/web.config', '<configuration><system.webServer><security><authorization><remove users="*" roles="" verbs="" /><add accessType="Deny" users="*" /></authorization></security></system.webServer></configuration>' );
-		file_put_contents( $dir . '/index.php', '<?php // Silence is golden.' );
 	}
 
 	private function remove_files( $dir, $files ) {
@@ -68,11 +85,11 @@ final class ELAB_Private_Attachments {
 	}
 
 	public function discard( $files ) {
-		$this->remove_files( trailingslashit( WP_CONTENT_DIR ) . 'uploads/elaltillo-bookacall-private', $files );
+		$this->remove_files( self::storage_dir(), $files );
 	}
 
 	public function download() {
-		if ( ! current_user_can( 'edit_posts' ) ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You are not allowed to download booking attachments.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
 		}
 		$file = isset( $_GET['file'] ) ? sanitize_file_name( wp_unslash( $_GET['file'] ) ) : '';
@@ -83,11 +100,13 @@ final class ELAB_Private_Attachments {
 		if ( ! $file || ! $belongs_to_booking || ! wp_verify_nonce( $nonce, 'elab_download_' . $booking_id . '_' . $file ) ) {
 			wp_die( esc_html__( 'Invalid download link.', 'elaltillo-bookacall' ), '', array( 'response' => 400 ) );
 		}
-		$base = realpath( trailingslashit( WP_CONTENT_DIR ) . 'uploads/elaltillo-bookacall-private' );
-		$path = realpath( trailingslashit( $base ) . $file );
+		$base = realpath( self::storage_dir() );
+		$path = $base ? realpath( trailingslashit( $base ) . $file ) : false;
 		if ( ! $base || ! $path || 0 !== strpos( $path, trailingslashit( $base ) ) || ! is_file( $path ) ) {
 			wp_die( esc_html__( 'Attachment not found.', 'elaltillo-bookacall' ), '', array( 'response' => 404 ) );
 		}
+		nocache_headers();
+		header( 'X-Content-Type-Options: nosniff' );
 		header( 'Content-Type: application/octet-stream' );
 		header( 'Content-Disposition: attachment; filename="' . basename( $file ) . '"' );
 		header( 'Content-Length: ' . filesize( $path ) );
@@ -100,7 +119,7 @@ final class ELAB_Private_Attachments {
 			return;
 		}
 		$files = get_post_meta( $post_id, '_elab_files', true );
-		$base = realpath( trailingslashit( WP_CONTENT_DIR ) . 'uploads/elaltillo-bookacall-private' );
+		$base = realpath( self::storage_dir() );
 		if ( ! $base || ! is_array( $files ) ) {
 			return;
 		}

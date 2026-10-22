@@ -235,10 +235,18 @@ final class ELAB_Google_Calendar {
 			) ),
 		) );
 		$data = is_wp_error( $response ) ? null : json_decode( wp_remote_retrieve_body( $response ), true );
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) || ! is_array( $data ) || ! isset( $data['calendars']['primary']['busy'] ) || ! is_array( $data['calendars']['primary']['busy'] ) || ! empty( $data['calendars']['primary']['errors'] ) ) {
+		$calendar = is_array( $data ) ? self::primary_freebusy( $data ) : null;
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) || ! is_array( $calendar ) || ! isset( $calendar['busy'] ) || ! is_array( $calendar['busy'] ) || ! empty( $calendar['errors'] ) ) {
 			return new WP_Error( 'google_calendar_unavailable', __( 'The connected Google account could not access its primary calendar. Grant Calendar access and try again.', 'elaltillo-bookacall' ) );
 		}
 		return true;
+	}
+
+	private static function primary_freebusy( $data ) {
+		if ( ! isset( $data['calendars'] ) || ! is_array( $data['calendars'] ) || 1 !== count( $data['calendars'] ) ) {
+			return null;
+		}
+		return reset( $data['calendars'] );
 	}
 
 	private static function encrypt( $plaintext ) {
@@ -311,27 +319,35 @@ final class ELAB_Google_Calendar {
 		if ( is_wp_error( $data ) ) {
 			return $data;
 		}
-		$calendar = $data['calendars']['primary'] ?? null;
+		$calendar = self::primary_freebusy( $data );
 		if ( ! is_array( $calendar ) || ! empty( $calendar['errors'] ) || ! isset( $calendar['busy'] ) || ! is_array( $calendar['busy'] ) ) {
 			return new WP_Error( 'google_calendar_failed', __( 'Google Calendar availability is unavailable.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
 		}
 		return $calendar['busy'] ?? array();
 	}
 
-	public static function create_event( $advisor_id, $booking_id, DateTimeImmutable $start, $duration, $name, $email, $sector, $message ) {
+	public static function create_event( $advisor_id, $booking_id, DateTimeImmutable $start, $duration, $email ) {
 		$end = $start->modify( '+' . absint( $duration ) . ' minutes' );
 		$event_id = 'elab' . md5( $booking_id . '|' . wp_salt( 'nonce' ) );
-		$description = sprintf( "Visitor: %s\nEmail: %s\nSector: %s\n\n%s", $name, $email, $sector ?: '-', $message );
 		$event = self::request( $advisor_id, 'POST', '/calendars/primary/events?sendUpdates=all', array(
 			'id' => $event_id,
-			'summary' => sprintf( __( 'Call with %s', 'elaltillo-bookacall' ), $name ),
-			'description' => $description,
+			'summary' => __( 'Private call', 'elaltillo-bookacall' ),
+			'visibility' => 'private',
 			'start' => array( 'dateTime' => $start->format( DATE_RFC3339 ) ),
 			'end' => array( 'dateTime' => $end->format( DATE_RFC3339 ) ),
-			'attendees' => array( array( 'email' => $email, 'displayName' => $name ) ),
+			'attendees' => array( array( 'email' => $email ) ),
 		) );
+		// A timed-out insert can still have created the event. Look up its stable ID before failing.
+		if ( is_wp_error( $event ) || empty( $event['id'] ) ) {
+			$existing = self::request( $advisor_id, 'GET', '/calendars/primary/events/' . rawurlencode( $event_id ) );
+			if ( ! is_wp_error( $existing ) && isset( $existing['id'] ) && $event_id === $existing['id'] ) {
+				$event = $existing;
+			} elseif ( ! is_wp_error( $event ) ) {
+				$event = new WP_Error( 'google_calendar_failed', __( 'Google Calendar did not confirm the new event. Please try again.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
+			}
+		}
 		if ( ! is_wp_error( $event ) ) {
-			update_post_meta( $booking_id, self::META_EVENT, $event['id'] ?? $event_id );
+			update_post_meta( $booking_id, self::META_EVENT, $event['id'] );
 		}
 		return $event;
 	}

@@ -5,6 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <form data-elab-booking enctype="multipart/form-data" class="mx-auto my-8 grid w-full max-w-3xl gap-6 text-secondary">
+	<label class="sr-only" aria-hidden="true">Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
 	<div data-elab-message role="status" aria-live="polite" class="hidden border border-secondary bg-primary p-4 text-secondary"></div>
 	<div data-elab-calendar-actions class="hidden flex flex-wrap gap-4 font-secondary text-sm"></div>
 	<fieldset class="grid gap-4"><legend class="mb-4 font-secondary text-sm"><?php esc_html_e( 'Choose who you would like to speak with', 'elaltillo-bookacall' ); ?></legend>

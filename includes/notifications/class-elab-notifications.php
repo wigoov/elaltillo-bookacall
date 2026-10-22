@@ -7,6 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class ELAB_Notifications {
 	const META_BOOKING_MAIL = '_elab_advisor_mail_status';
+	const META_VISITOR_MAIL = '_elab_visitor_mail_status';
 	const META_SCHEDULE_MAIL = '_elab_schedule_mail_status';
 	private static $schedule_queue = array();
 	private static $schedule_hooked = false;
@@ -114,10 +115,7 @@ final class ELAB_Notifications {
 			sprintf( __( 'When: %s', 'elaltillo-bookacall' ), $local_time ),
 			sprintf( __( 'Visitor: %s', 'elaltillo-bookacall' ), $name ),
 			sprintf( __( 'Visitor email: %s', 'elaltillo-bookacall' ), get_post_meta( $booking_id, '_elab_contact_email', true ) ),
-			sprintf( __( 'Sector: %s', 'elaltillo-bookacall' ), get_post_meta( $booking_id, '_elab_sector', true ) ?: '—' ),
-			'',
-			__( 'Message:', 'elaltillo-bookacall' ),
-			(string) get_post_meta( $booking_id, '_elab_message', true ),
+			__( 'The sector, message and attachments are available to site administrators in the private booking record.', 'elaltillo-bookacall' ),
 		);
 		if ( 'confirmed' === $status && get_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT, true ) ) {
 			$lines[] = '';
@@ -125,6 +123,43 @@ final class ELAB_Notifications {
 		}
 		$sent = wp_mail( $email, $subject, implode( "\n", $lines ) );
 		update_post_meta( $booking_id, self::META_BOOKING_MAIL, $sent ? 'sent' : 'failed' );
+		return $sent;
+	}
+
+	/** Manual requests need their own visitor confirmation; Google sends event updates itself. */
+	public static function visitor_notice( $booking_id, $status ) {
+		$email = sanitize_email( (string) get_post_meta( $booking_id, '_elab_contact_email', true ) );
+		if ( ! is_email( $email ) ) {
+			update_post_meta( $booking_id, self::META_VISITOR_MAIL, 'failed' );
+			return false;
+		}
+		$advisor_id = (int) get_post_meta( $booking_id, '_elab_advisor', true );
+		$timezone = (string) get_post_meta( $booking_id, '_elab_visitor_timezone', true ) ?: 'UTC';
+		try {
+			$zone = new DateTimeZone( $timezone );
+		} catch ( Exception $exception ) {
+			$zone = new DateTimeZone( 'UTC' );
+		}
+		$start = new DateTimeImmutable( (string) get_post_meta( $booking_id, '_elab_start_utc', true ), new DateTimeZone( 'UTC' ) );
+		$when = $start->setTimezone( $zone )->format( 'l, F j, Y g:i A T' );
+		$advisor = get_the_title( $advisor_id );
+		$subject = 'confirmed' === $status ? __( 'Your call is confirmed', 'elaltillo-bookacall' ) : __( 'Your call was cancelled', 'elaltillo-bookacall' );
+		$lines = array(
+			sprintf( __( 'Advisor: %s', 'elaltillo-bookacall' ), $advisor ),
+			sprintf( __( 'When: %s', 'elaltillo-bookacall' ), $when ),
+		);
+		if ( 'confirmed' === $status ) {
+			$end = $start->modify( '+' . max( 15, (int) get_post_meta( $advisor_id, '_elab_duration', true ) ) . ' minutes' );
+			$lines[] = '';
+			$lines[] = __( 'Add this call to Google Calendar:', 'elaltillo-bookacall' );
+			$lines[] = add_query_arg( array(
+				'action' => 'TEMPLATE',
+				'text' => sprintf( __( 'Call with %s', 'elaltillo-bookacall' ), $advisor ),
+				'dates' => $start->format( 'Ymd\\THis\\Z' ) . '/' . $end->format( 'Ymd\\THis\\Z' ),
+			), 'https://calendar.google.com/calendar/render' );
+		}
+		$sent = wp_mail( $email, $subject, implode( "\n", $lines ) );
+		update_post_meta( $booking_id, self::META_VISITOR_MAIL, $sent ? 'sent' : 'failed' );
 		return $sent;
 	}
 }

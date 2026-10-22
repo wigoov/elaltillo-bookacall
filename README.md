@@ -35,7 +35,8 @@ After changing classes or JavaScript, run `pnpm install` and `pnpm build` in thi
 - When Google is configured, each advisor authorizes their own account. The plugin checks `freeBusy`, creates an event in the advisor's calendar, and invites the visitor by email. The visitor can open it in Google Calendar or download an `.ics` file for Apple or Outlook Calendar.
 - Weekly hours are availability rules, not Google Calendar events. After connection and whenever these rules or date exceptions change, the advisor receives an email summary. Each confirmed booking creates a calendar event and sends the advisor a separate email. Email delivery depends on the site's WordPress mail configuration; failures are shown in booking or advisor admin screens.
 - When Google is not configured, the plugin retains the pending email request flow.
-- PDF, Word, and Excel attachments, up to three files of 10 MB each. Files are stored in `wp-content/uploads/elaltillo-bookacall-private` and can be downloaded by authorized admins.
+- PDF, Word, and Excel attachments, up to three files of 10 MB each. New files are stored outside the WordPress web root and can be downloaded only by administrators.
+- Public booking requests have a hidden spam field and basic IP/email rate limits. Slot queries also have an IP rate limit.
 
 Google credentials are not included in the code. A real connection requires the company's OAuth project and authorization from each advisor.
 
@@ -48,18 +49,23 @@ Google credentials are not included in the code. A real connection requires the 
 5. Insert `[elaltillo_bookacall]` into the Appointment page.
 6. Review bookings under **Advisors → Booking requests**. With Google connected, bookings are confirmed when the calendar event is created.
 
-## In-progress and pending phases
+## First production Google trial
 
-1. **In progress — activate Google.** Create the company's Google Cloud project, enable the Calendar API, configure OAuth consent, and create a **Web application** client. Register the production redirect URI shown under **Advisors → Settings**. Save the Client ID and Client Secret there. Each advisor opens **Users → Profile**, selects **Connect Google Calendar**, and authorizes the Google account that matches their advisor profile. Google may reject the `.local` development domain; authorize on a supported HTTPS domain.
-2. **Pending — real advisor data and validation.** Create the real advisor profiles and check at least two time zones, existing busy events, daylight saving changes, event creation and cancellation, invitations, and Google/Apple/Outlook calendar links. Complete Google app verification if it is required before making the OAuth app available to all advisors.
-3. **Pending — enable the form on Appointment.** The local Appointment page still contains a Google Appointment Scheduling iframe. Replace it with `[elaltillo_bookacall]` once Google is connected and reviewed, so current bookings are not interrupted.
-4. **Pending — production preparation.** Configure transactional email, request limits and spam protection, privacy and retention rules, and server-side denial of direct access to private attachments.
+1. Deploy the plugin and activate it on the HTTPS production site. The local **Book a Call Test** page and its two demo advisors live in the local database; they are not part of the plugin package.
+2. Confirm that the server can write to a private directory outside its document root. By default the plugin uses `dirname(ABSPATH) . '/elaltillo-bookacall-private'`. If that location is unavailable, define `ELAB_PRIVATE_UPLOAD_DIR` in `wp-config.php` with an absolute writable path outside the document root. Uploads fail closed when the directory is unavailable or public.
+3. Configure a transactional mail service for WordPress and verify delivery to a real advisor and visitor address. `wp_mail()` returning success confirms submission to the mailer, not inbox delivery.
+4. Create the company's Google Cloud project, enable the Calendar API, configure OAuth consent, and create a **Web application** client. Register the exact production redirect URI shown under **Advisors → Settings**. Save the Client ID and Client Secret there. In an External/Testing app, add each advisor as a test user.
+5. Create real advisor profiles with the exact Google email, time zone, hours and a WordPress account. Each advisor connects their own account under **Users → Profile**. Only connected advisors are offered for online booking while Google is configured.
+6. On a separate production test page, add `[elaltillo_bookacall]`. With two real advisors, check local time conversion, Google busy events, an event invitation, cancellation, and file upload/download. Confirm the invitation in the visitor's inbox and the event in the advisor's calendar. The automated smoke check uses simulated Google responses and does not replace this live check.
+7. Replace the existing Appointment iframe with the shortcode only after the live trial succeeds. Set a privacy notice and retention process for booking records and attachments before inviting real visitors.
+
+Google may reject a `.local` OAuth redirect. External apps in Testing can issue refresh tokens that expire after seven days; plan to move the OAuth app to production and complete any Google verification needed for sustained use.
 
 ### Visitor flow
 
 1. Choose an advisor, date, and time in the visitor's time zone. Sector is optional; documents can be attached.
 2. Before saving, the server checks weekly hours, unavailable dates, existing bookings, and Google Calendar busy periods again.
-3. With Google configured, the event is created in the advisor's calendar and Google sends an invitation to the visitor. The confirmation screen offers Google Calendar and `.ics` options.
+3. With Google configured, the event is created in the advisor's calendar and Google sends an invitation to the visitor. The confirmation screen offers Google Calendar and `.ics` options. The plugin creates a calendar event; it does not currently create a video meeting link.
 
 ### Advisor flow
 
@@ -67,8 +73,14 @@ Google credentials are not included in the code. A real connection requires the 
 2. An administrator assigns a WordPress Subscriber account to the profile. The advisor connects the Google account matching their configured email and chooses any global unavailable dates on which they will work, without permission to edit other profiles. The plugin checks the verified account email and primary calendar. Refresh tokens are encrypted in the WordPress database; access tokens are cached temporarily.
 3. Global closures hide dates except those that the advisor explicitly allows. Personal unavailable dates always take priority. Weekly hours and Google busy events still apply. The advisor receives email summaries when availability changes. New appointments become private booking records and events in the advisor's primary calendar, with a booking email to the advisor.
 
-## Security and deployment
+## Privacy and security
 
-Files are stored outside the public media library. The plugin creates deny rules for Apache/IIS. On Nginx, add a server rule that denies `/wp-content/uploads/elaltillo-bookacall-private/`, because Nginx does not read `.htaccess`. Confirm this protection before accepting real documents. Extension, MIME, and size limits do not replace antivirus scanning.
+Public slot responses contain times only. The public form shows the advisor's title, photo, excerpt and time zone. Booking records, sector, message and attachments require administrator permissions in WordPress. Advisor emails contain the visitor's name, email and meeting time; the sector, message and files stay in the administrator record. Google events are marked private and contain only a generic title, time and the visitor's attendee email. Google invitations inherently reveal the organizer's Google account to the attendee and the attendee's email to the organizer.
 
-The Google Calendar code is implemented but needs OAuth credentials and real authorization for each advisor. Complete the pending phases and verify private file access before production.
+New attachments are stored outside the WordPress web root. If an earlier installation already has files under `wp-content/uploads/elaltillo-bookacall-private`, move those files into the new private directory before upgrading and remove the old public directory. File type and size checks do not scan documents for malware.
+
+The public API limits booking submissions to 12 per IP per 15 minutes and 5 per email per hour, and slot requests to 120 per IP per 10 minutes. A hidden field catches simple automated submissions. These limits are a basic abuse barrier, not a substitute for site-level bot protection.
+
+## Validation
+
+Run `php -l` on the PHP files and `pnpm build` before packaging. On a disposable local site with no Google credentials saved, run `wp eval-file tests/smoke.php`. The smoke check creates temporary advisor, booking and user records; mocks Google and email; checks time zones, daylight saving, date closures, privacy permissions, event creation and cancellation; and cleans up its data. A separate HTTP multipart check is needed to validate uploaded files on the target web server.

@@ -14,6 +14,7 @@ export function initElabBookingForms() {
 		const slot = form.elements.slot;
 		const message = form.querySelector('[data-elab-message]');
 		const calendarActions = form.querySelector('[data-elab-calendar-actions]');
+		const submitButton = form.querySelector('button[type="submit"]');
 		let slotRequest = 0;
 		timezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 		const today = new Date();
@@ -99,6 +100,8 @@ export function initElabBookingForms() {
 
 		form.addEventListener('submit', (event) => {
 			event.preventDefault();
+			if (submitButton.disabled) return;
+			submitButton.disabled = true;
 			calendarActions.classList.add('hidden');
 			setMessage('Sending your request…');
 			const data = new FormData(form);
@@ -120,7 +123,8 @@ export function initElabBookingForms() {
 					setMessage(result.message);
 					if (result.calendar) showCalendarChoices(result.calendar);
 				})
-				.catch((error) => { setMessage(error.message, true); loadSlots(); });
+				.catch((error) => { loadSlots(); setMessage(error.message, true); })
+				.finally(() => { submitButton.disabled = false; });
 		});
 	});
 }
