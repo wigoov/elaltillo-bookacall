@@ -92,6 +92,7 @@ try {
 	$admins = get_users( array( 'role' => 'administrator', 'number' => 1, 'fields' => 'ids' ) );
 	elab_smoke_assert( ! empty( $admins ), 'An administrator is available for admin flow checks' );
 	wp_set_current_user( (int) $admins[0] );
+	elab_smoke_assert( current_user_can( 'manage_options' ), 'Booking capabilities do not block WordPress administrator settings' );
 	$advisor_id = wp_insert_post( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_status' => 'publish', 'post_title' => 'Smoke advisor' ), true );
 	elab_smoke_assert( ! is_wp_error( $advisor_id ), 'Temporary advisor created' );
 	$created[] = $advisor_id;
