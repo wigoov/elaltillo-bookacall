@@ -11,6 +11,7 @@ final class ELAB_Google_Calendar {
 	const META_ACCOUNT_EMAIL = '_elab_google_account_email';
 	const META_ACCOUNT_SUB = '_elab_google_account_sub';
 	const META_EVENT = '_elab_google_event_id';
+	const META_BUSY_VERSION = '_elab_busy_version';
 	const OPTION_CLIENT_ID = 'elab_google_client_id';
 	const OPTION_CLIENT_SECRET = 'elab_google_client_secret';
 	const TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -310,10 +311,26 @@ final class ELAB_Google_Calendar {
 		return is_array( $data ) ? $data : array();
 	}
 
-	public static function busy( $advisor_id, DateTimeImmutable $start, DateTimeImmutable $end ) {
+	/**
+	 * Busy periods from the advisor's primary calendar.
+	 *
+	 * The window is widened to 15-minute boundaries so repeated public requests share a
+	 * short-lived cache entry. Pass $fresh to bypass it right before a booking is saved.
+	 */
+	public static function busy( $advisor_id, DateTimeImmutable $start, DateTimeImmutable $end, $fresh = false ) {
+		$step = 15 * MINUTE_IN_SECONDS;
+		$from = (int) floor( $start->getTimestamp() / $step ) * $step;
+		$to = (int) ceil( $end->getTimestamp() / $step ) * $step;
+		$cache_key = 'elab_busy_' . md5( $advisor_id . '|' . (int) get_post_meta( $advisor_id, self::META_BUSY_VERSION, true ) . '|' . $from . '|' . $to );
+		if ( ! $fresh ) {
+			$cached = get_transient( $cache_key );
+			if ( is_array( $cached ) ) {
+				return $cached;
+			}
+		}
 		$data = self::request( $advisor_id, 'POST', '/freeBusy', array(
-			'timeMin' => $start->format( DATE_RFC3339 ),
-			'timeMax' => $end->format( DATE_RFC3339 ),
+			'timeMin' => gmdate( 'Y-m-d\TH:i:s\Z', $from ),
+			'timeMax' => gmdate( 'Y-m-d\TH:i:s\Z', $to ),
 			'items' => array( array( 'id' => 'primary' ) ),
 		) );
 		if ( is_wp_error( $data ) ) {
@@ -323,7 +340,14 @@ final class ELAB_Google_Calendar {
 		if ( ! is_array( $calendar ) || ! empty( $calendar['errors'] ) || ! isset( $calendar['busy'] ) || ! is_array( $calendar['busy'] ) ) {
 			return new WP_Error( 'google_calendar_failed', __( 'Google Calendar availability is unavailable.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
 		}
-		return $calendar['busy'] ?? array();
+		$busy = array_values( array_filter( $calendar['busy'], 'is_array' ) );
+		set_transient( $cache_key, $busy, 2 * MINUTE_IN_SECONDS );
+		return $busy;
+	}
+
+	/** Invalidate cached busy periods after this site changes the advisor's calendar. */
+	public static function flush_busy_cache( $advisor_id ) {
+		update_post_meta( $advisor_id, self::META_BUSY_VERSION, (int) get_post_meta( $advisor_id, self::META_BUSY_VERSION, true ) + 1 );
 	}
 
 	public static function create_event( $advisor_id, $booking_id, DateTimeImmutable $start, $duration, $email ) {
@@ -348,11 +372,16 @@ final class ELAB_Google_Calendar {
 		}
 		if ( ! is_wp_error( $event ) ) {
 			update_post_meta( $booking_id, self::META_EVENT, $event['id'] );
+			self::flush_busy_cache( $advisor_id );
 		}
 		return $event;
 	}
 
 	public static function delete_event( $advisor_id, $event_id ) {
-		return self::request( $advisor_id, 'DELETE', '/calendars/primary/events/' . rawurlencode( $event_id ) . '?sendUpdates=all' );
+		$result = self::request( $advisor_id, 'DELETE', '/calendars/primary/events/' . rawurlencode( $event_id ) . '?sendUpdates=all' );
+		if ( ! is_wp_error( $result ) ) {
+			self::flush_busy_cache( $advisor_id );
+		}
+		return $result;
 	}
 }

@@ -38,7 +38,8 @@ final class ELAB_Notifications {
 			return false;
 		}
 		$timezone = (string) get_post_meta( $advisor_id, '_elab_timezone', true ) ?: 'UTC';
-		$duration = (int) get_post_meta( $advisor_id, '_elab_duration', true ) ?: 30;
+		$rules = ELAB_Availability::rules( $advisor_id );
+		$duration = $rules['duration'];
 		$availability = json_decode( (string) get_post_meta( $advisor_id, '_elab_availability', true ), true );
 		$availability = is_array( $availability ) ? $availability : array();
 		$days = array(
@@ -50,6 +51,10 @@ final class ELAB_Notifications {
 			'',
 			sprintf( __( 'Time zone: %s', 'elaltillo-bookacall' ), $timezone ),
 			sprintf( __( 'Meeting length: %d minutes', 'elaltillo-bookacall' ), $duration ),
+			sprintf( __( 'Minimum notice: %d hours', 'elaltillo-bookacall' ), $rules['notice'] ),
+			sprintf( __( 'Bookable up to: %d days ahead', 'elaltillo-bookacall' ), $rules['horizon'] ),
+			sprintf( __( 'Break between calls: %d minutes', 'elaltillo-bookacall' ), $rules['buffer'] ),
+			sprintf( __( 'Start times every: %d minutes', 'elaltillo-bookacall' ), $rules['interval'] ?: $duration ),
 			'',
 		);
 		foreach ( $days as $number => $day ) {
@@ -113,6 +118,7 @@ final class ELAB_Notifications {
 			sprintf( __( 'Advisor: %s', 'elaltillo-bookacall' ), get_the_title( $advisor_id ) ),
 			sprintf( __( 'Status: %s', 'elaltillo-bookacall' ), ucfirst( $status ) ),
 			sprintf( __( 'When: %s', 'elaltillo-bookacall' ), $local_time ),
+			sprintf( __( 'Meeting language: %s', 'elaltillo-bookacall' ), ELAB_Booking_Service::language_label( get_post_meta( $booking_id, '_elab_language', true ) ?: ELAB_Booking_Service::DEFAULT_LANGUAGE ) ),
 			sprintf( __( 'Visitor: %s', 'elaltillo-bookacall' ), $name ),
 			sprintf( __( 'Visitor email: %s', 'elaltillo-bookacall' ), get_post_meta( $booking_id, '_elab_contact_email', true ) ),
 			__( 'The sector, message and attachments are available to site administrators in the private booking record.', 'elaltillo-bookacall' ),
@@ -149,7 +155,7 @@ final class ELAB_Notifications {
 			sprintf( __( 'When: %s', 'elaltillo-bookacall' ), $when ),
 		);
 		if ( 'confirmed' === $status ) {
-			$end = $start->modify( '+' . max( 15, (int) get_post_meta( $advisor_id, '_elab_duration', true ) ) . ' minutes' );
+			$end = $start->modify( '+' . ELAB_Booking_Admin::duration( $booking_id ) . ' minutes' );
 			$lines[] = '';
 			$lines[] = __( 'Add this call to Google Calendar:', 'elaltillo-bookacall' );
 			$lines[] = add_query_arg( array(

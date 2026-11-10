@@ -31,6 +31,11 @@ final class ELAB_Private_Attachments {
 		}
 		return $real && is_writable( $real ) ? $real : false;
 	}
+	/** Absolute private storage path when it is usable, or false. */
+	public static function storage_ready() {
+		return self::safe_dir();
+	}
+
 	public function __construct() {
 		add_action( 'admin_post_elab_download', array( $this, 'download' ) );
 		add_action( 'before_delete_post', array( $this, 'delete_booking_files' ) );

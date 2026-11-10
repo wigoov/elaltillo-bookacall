@@ -28,7 +28,18 @@ After changing classes or JavaScript, run `pnpm install` and `pnpm build` in thi
 - Unlimited advisor profiles in WordPress. Visitors may enter a sector on each booking.
 - Weekly availability per advisor in an IANA time zone, such as `Europe/Lisbon`.
 - Visual daily hours editor, searchable time zones, and global or advisor unavailable dates, including ranges and annual single-day holidays. An advisor or administrator can allow that advisor to work on selected global unavailable dates.
-- Appointment times converted to the visitor's browser time zone.
+- Appointment times converted to the visitor's browser time zone; visitors can switch time zone.
+- Booking rules: call length, minimum notice, booking window and an optional break between calls. Site defaults live under **Advisors → Settings → Booking defaults** (30 min, 12 hours, 60 days, 0 min break); an advisor field left empty follows the default, a filled one overrides it. Overlap checks use each booking's stored length, so changing the call length never double-books an existing call. Overlapping weekly ranges are merged on save.
+- Administrator-only management: only users with `manage_options` can create, edit or delete advisor profiles; bookings cannot be added by hand. Only Subscriber accounts not linked to another advisor can be linked to a profile (filter `elab_advisor_account_roles`).
+- The advisor screen shows whether the advisor is bookable and why not, and after saving lists every correction made (invalid or reversed ranges, merged overlaps, out-of-range values, invalid dates or email).
+- Advisors list has a **Booking calendar** column (Bookable / Hidden with the reason). Each advisor screen previews the next 7 days of bookable times exactly as the public calendar computes them.
+- **Booking requests** lists when (advisor and visitor local time), visitor, advisor, status and language; filters by Upcoming/Past/All, status and advisor; upcoming calls are sorted soonest first. Quick Edit is removed. The booking screen shows advisor, visitor and UTC times and asks for confirmation before a cancellation.
+- **Start times every** (site default or per advisor): 0 offers one start per call length; e.g. 15 offers 9:00, 9:15, 9:30… for 30-minute calls without overlapping bookings.
+- **Advisors → System status** checks HTTPS, the booking page, proxy/rate-limit IPs, WP-Cron, mail delivery (with a test email button), failed booking emails, Google credentials and redirect URI (with a live calendar test), each advisor's bookability, private storage, retention and the privacy policy page.
+- **Privacy:** **Settings → Privacy and retention** deletes bookings and their documents a set number of months after the call (daily WP-Cron; 0 keeps them). The WordPress **Export/Erase Personal Data** tools include bookings; an upcoming call still in Google Calendar is kept until it is cancelled. Suggested privacy policy text is added to the WordPress policy guide.
+- Meeting language chosen by the visitor (Spanish by default; filter `elab_meeting_languages`), stored on the booking and sent to the advisor.
+- Visual booking calendar: a month view highlights days with open times; picking a day lists its times grouped by morning, afternoon and evening. Times from every bookable advisor are combined. When several advisors are free at the same time, the visitor can pick one or leave **First available**, which assigns the advisor with the fewest upcoming calls.
+- Google free/busy responses are cached for two minutes and invalidated when the plugin creates or cancels an event; every booking re-checks Google live, inside a per-advisor lock, before it is saved.
 - OAuth credentials saved under **Advisors → Settings**, with a Google Calendar API setup guide. Both fields are masked; the Client Secret is encrypted before it is stored in WordPress options. Leaving either field blank when editing keeps its saved value.
 - The advisor's verified Google account email must match **Advisor Google email**. The plugin checks access to the primary calendar before marking it connected. Existing connections from earlier versions must be authorized again so the account can be verified.
 - Google OAuth requests `openid`, `email`, `calendar.events`, and `calendar.freebusy`. It does not request access to the advisor's Gmail mailbox. Advisor emails are sent by WordPress through `wp_mail()`.
@@ -63,7 +74,7 @@ Google may reject a `.local` OAuth redirect. External apps in Testing can issue 
 
 ### Visitor flow
 
-1. Choose an advisor, date, and time in the visitor's time zone. Sector is optional; documents can be attached.
+1. Pick a highlighted day and a time in the visitor's time zone, optionally a preferred advisor, then enter name and email. Sector, message and documents are optional.
 2. Before saving, the server checks weekly hours, unavailable dates, existing bookings, and Google Calendar busy periods again.
 3. With Google configured, the event is created in the advisor's calendar and Google sends an invitation to the visitor. The confirmation screen offers Google Calendar and `.ics` options. The plugin creates a calendar event; it does not currently create a video meeting link.
 
@@ -78,6 +89,8 @@ Google may reject a `.local` OAuth redirect. External apps in Testing can issue 
 Public slot responses contain times only. The public form shows the advisor's title, photo, excerpt and time zone. Booking records, sector, message and attachments require administrator permissions in WordPress. Advisor emails contain the visitor's name, email and meeting time; the sector, message and files stay in the administrator record. Google events are marked private and contain only a generic title, time and the visitor's attendee email. Google invitations inherently reveal the organizer's Google account to the attendee and the attendee's email to the organizer.
 
 New attachments are stored outside the WordPress web root. If an earlier installation already has files under `wp-content/uploads/elaltillo-bookacall-private`, move those files into the new private directory before upgrading and remove the old public directory. File type and size checks do not scan documents for malware.
+
+Public endpoints: `GET /wp-json/elab/v1/availability?month=YYYY-MM&timezone=…` (open-time count per day), `GET /wp-json/elab/v1/slots?date=YYYY-MM-DD&timezone=…` (times with the advisors free at each) and `POST /wp-json/elab/v1/bookings` (`advisor` is optional). `advisor` can also narrow both GET endpoints to one advisor. Responses list advisor names and call lengths, never emails or calendar details.
 
 The public API limits booking submissions to 12 per IP per 15 minutes and 5 per email per hour, and slot requests to 120 per IP per 10 minutes. A hidden field catches simple automated submissions. These limits are a basic abuse barrier, not a substitute for site-level bot protection.
 

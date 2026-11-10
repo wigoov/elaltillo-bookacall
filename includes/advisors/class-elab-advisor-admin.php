@@ -14,6 +14,82 @@ final class ELAB_Advisor_Admin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_filter( 'manage_' . ELAB_Post_Types::ADVISOR . '_posts_columns', array( $this, 'columns' ) );
 		add_action( 'manage_' . ELAB_Post_Types::ADVISOR . '_posts_custom_column', array( $this, 'render_column' ), 10, 2 );
+		add_action( 'admin_notices', array( $this, 'render_save_notices' ) );
+	}
+
+	/** Roles that may be linked to an advisor profile. Administrators never qualify. */
+	public static function account_roles() {
+		return (array) apply_filters( 'elab_advisor_account_roles', array( 'subscriber' ) );
+	}
+
+	/** Users already linked to another advisor profile. */
+	private static function assigned_users( $except_advisor ) {
+		$ids = get_posts( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids', 'exclude' => array( (int) $except_advisor ), 'meta_key' => '_elab_wp_user', 'meta_compare' => 'EXISTS' ) );
+		$users = array();
+		foreach ( $ids as $id ) {
+			$user = (int) get_post_meta( $id, '_elab_wp_user', true );
+			if ( $user ) {
+				$users[ $user ] = $id;
+			}
+		}
+		return $users;
+	}
+
+	/** Why an account cannot be linked to this advisor, or '' when it can. */
+	public static function account_problem( $user_id, $advisor_id ) {
+		$user = get_user_by( 'id', $user_id );
+		if ( ! $user ) {
+			return __( 'The selected account no longer exists.', 'elaltillo-bookacall' );
+		}
+		if ( user_can( $user, 'manage_options' ) || ! array_intersect( self::account_roles(), (array) $user->roles ) ) {
+			return __( 'Only Subscriber accounts can be linked to an advisor. Administrators connect Google directly from this screen.', 'elaltillo-bookacall' );
+		}
+		$assigned = self::assigned_users( $advisor_id );
+		if ( isset( $assigned[ $user_id ] ) ) {
+			return sprintf( __( 'That account is already linked to %s.', 'elaltillo-bookacall' ), get_the_title( $assigned[ $user_id ] ) );
+		}
+		return '';
+	}
+
+	/** What keeps this advisor out of the public calendar right now. */
+	public static function booking_issues( $advisor_id ) {
+		$issues = array();
+		if ( 'publish' !== get_post_status( $advisor_id ) ) {
+			$issues[] = __( 'The profile is not published.', 'elaltillo-bookacall' );
+		}
+		if ( ! ELAB_Notifications::advisor_email( $advisor_id ) ) {
+			$issues[] = __( 'No valid advisor email is set.', 'elaltillo-bookacall' );
+		}
+		if ( ! array_filter( ELAB_Availability::rules( $advisor_id )['weekly'] ) ) {
+			$issues[] = __( 'No weekly hours are turned on.', 'elaltillo-bookacall' );
+		}
+		if ( ELAB_Google_Calendar::configured() && ! ELAB_Google_Calendar::connected( $advisor_id ) ) {
+			$issues[] = __( 'Google Calendar is not connected.', 'elaltillo-bookacall' );
+		}
+		return $issues;
+	}
+
+	private static function notice_key( $post_id ) {
+		return 'elab_advisor_saved_' . get_current_user_id() . '_' . (int) $post_id;
+	}
+
+	/** Corrections made while saving, shown once on the next screen load. */
+	public function render_save_notices() {
+		$screen = get_current_screen();
+		$post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
+		if ( ! $screen || ELAB_Post_Types::ADVISOR !== $screen->post_type || 'post' !== $screen->base || ! $post_id ) {
+			return;
+		}
+		$messages = get_transient( self::notice_key( $post_id ) );
+		if ( ! is_array( $messages ) || ! $messages ) {
+			return;
+		}
+		delete_transient( self::notice_key( $post_id ) );
+		echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__( 'Some advisor settings were adjusted when saving:', 'elaltillo-bookacall' ) . '</strong></p><ul class="ul-disc">';
+		foreach ( $messages as $message ) {
+			echo '<li>' . esc_html( $message ) . '</li>';
+		}
+		echo '</ul></div>';
 	}
 
 	public function columns( $columns ) {
@@ -22,11 +98,21 @@ final class ELAB_Advisor_Admin {
 			'title' => __( 'Advisor', 'elaltillo-bookacall' ),
 			'elab_timezone' => __( 'Time zone', 'elaltillo-bookacall' ),
 			'elab_google' => __( 'Google Calendar', 'elaltillo-bookacall' ),
+			'elab_bookable' => __( 'Booking calendar', 'elaltillo-bookacall' ),
 			'date' => $columns['date'] ?? __( 'Date', 'elaltillo-bookacall' ),
 		);
 	}
 
 	public function render_column( $column, $post_id ) {
+		if ( 'elab_bookable' === $column ) {
+			$issues = self::booking_issues( $post_id );
+			if ( ! $issues ) {
+				echo '<span class="elab-status elab-status--confirmed">' . esc_html__( 'Bookable', 'elaltillo-bookacall' ) . '</span>';
+			} else {
+				echo '<span class="elab-status elab-status--pending">' . esc_html__( 'Hidden', 'elaltillo-bookacall' ) . '</span><br><span class="description">' . esc_html( implode( ' ', $issues ) ) . '</span>';
+			}
+			return;
+		}
 		if ( 'elab_timezone' === $column ) {
 			echo esc_html( get_post_meta( $post_id, '_elab_timezone', true ) ?: '—' );
 		} elseif ( 'elab_google' === $column ) {
@@ -42,21 +128,73 @@ final class ELAB_Advisor_Admin {
 
 	public function register_meta_box() {
 		add_meta_box( 'elab-advisor-settings', __( 'Advisor availability', 'elaltillo-bookacall' ), array( $this, 'render' ), ELAB_Post_Types::ADVISOR, 'normal', 'high' );
+		add_meta_box( 'elab-advisor-preview', __( 'What visitors see: next 7 days', 'elaltillo-bookacall' ), array( $this, 'render_preview' ), ELAB_Post_Types::ADVISOR, 'normal', 'default' );
 	}
 
 	public function enqueue_assets( $hook ) {
 		$screen = get_current_screen();
+		if ( $screen && ELAB_Post_Types::ADVISOR === $screen->post_type && 'edit.php' === $hook ) {
+			wp_enqueue_style( 'elab-advisor-admin', plugins_url( 'assets/css/advisor-admin.css', ELAB_FILE ), array(), ELAB_VERSION );
+		}
 		if ( $screen && ELAB_Post_Types::ADVISOR === $screen->post_type && in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
 			wp_enqueue_style( 'elab-advisor-admin', plugins_url( 'assets/css/advisor-admin.css', ELAB_FILE ), array(), ELAB_VERSION );
 			wp_enqueue_script( 'elab-advisor-admin', plugins_url( 'assets/js/advisor-admin.min.js', ELAB_FILE ), array(), ELAB_VERSION, true );
 		}
 	}
 
+	/**
+	 * Saved availability for the next seven days, computed exactly as the public calendar does
+	 * (notice, window, closures, bookings, break and Google busy times), in the advisor's zone.
+	 */
+	public function render_preview( $post ) {
+		if ( 'auto-draft' === $post->post_status ) {
+			echo '<p class="description">' . esc_html__( 'Save the advisor to preview their times.', 'elaltillo-bookacall' ) . '</p>';
+			return;
+		}
+		$rules = ELAB_Availability::rules( $post->ID );
+		$zone = $rules['timezone'];
+		$first_day = ( new DateTimeImmutable( 'now', $zone ) )->setTime( 0, 0 );
+		$starts = ELAB_Availability::advisor_starts( $post->ID, time(), $first_day->modify( '+7 days' )->getTimestamp() );
+		echo '<p class="description">' . esc_html( sprintf( __( 'Shown in the advisor’s time zone (%1$s), %2$d-minute calls. Visitors see the same times converted to their own zone. Reflects the last saved settings.', 'elaltillo-bookacall' ), str_replace( '_', ' ', $zone->getName() ), $rules['duration'] ) ) . '</p>';
+		if ( self::booking_issues( $post->ID ) ) {
+			echo '<p class="notice notice-warning inline">' . esc_html__( 'Visitors do not see these times until the issues listed above are fixed.', 'elaltillo-bookacall' ) . '</p>';
+		}
+		if ( is_wp_error( $starts ) ) {
+			echo '<p class="notice notice-error inline">' . esc_html( $starts->get_error_message() ) . '</p>';
+			return;
+		}
+		$days = array();
+		foreach ( $starts as $start ) {
+			$days[ wp_date( 'Y-m-d', $start, $zone ) ][] = $start;
+		}
+		echo '<table class="widefat striped elab-preview"><tbody>';
+		for ( $offset = 0; $offset < 7; $offset++ ) {
+			$day = $first_day->modify( '+' . $offset . ' days' );
+			$day_ts = $day->getTimestamp();
+			$key = $day->format( 'Y-m-d' );
+			echo '<tr><th scope="row">' . esc_html( wp_date( 'D j M', $day_ts, $zone ) ) . '</th><td>';
+			if ( empty( $days[ $key ] ) ) {
+				echo '<span class="description">' . esc_html__( 'No times', 'elaltillo-bookacall' ) . '</span>';
+			} else {
+				foreach ( $days[ $key ] as $start ) {
+					echo '<span class="elab-preview-time">' . esc_html( wp_date( get_option( 'time_format' ), $start, $zone ) ) . '</span>';
+				}
+			}
+			echo '</td></tr>';
+		}
+		echo '</tbody></table>';
+	}
+
 	public function render( $post ) {
 		wp_nonce_field( self::NONCE_ACTION, 'elab_nonce' );
 		$email = get_post_meta( $post->ID, '_elab_email', true );
 		$timezone = get_post_meta( $post->ID, '_elab_timezone', true ) ?: 'Europe/Lisbon';
-		$duration = (int) ( get_post_meta( $post->ID, '_elab_duration', true ) ?: 30 );
+		$defaults = ELAB_Booking_Defaults::get();
+		$own = array();
+		foreach ( ELAB_Booking_Defaults::fields() as $rule => $field ) {
+			$own[ $rule ] = ELAB_Booking_Defaults::inherits( $post->ID, $rule ) ? '' : ELAB_Booking_Defaults::clamp( $rule, get_post_meta( $post->ID, $field[4], true ) );
+		}
+		$issues = 'auto-draft' === $post->post_status ? array() : self::booking_issues( $post->ID );
 		$stored = get_post_meta( $post->ID, '_elab_availability', true );
 		$availability = $stored ? json_decode( $stored, true ) : array_fill_keys( range( 1, 5 ), array( array( '09:00', '17:00' ) ) );
 		$availability = is_array( $availability ) ? $availability : array();
@@ -67,15 +205,44 @@ final class ELAB_Advisor_Admin {
 			7 => __( 'Sunday', 'elaltillo-bookacall' ),
 		);
 		?>
+		<?php if ( 'auto-draft' !== $post->post_status ) : ?>
+			<?php if ( $issues ) : ?>
+				<div class="notice notice-warning inline elab-advisor-status"><p><strong><?php esc_html_e( 'Not shown in the booking calendar yet:', 'elaltillo-bookacall' ); ?></strong></p><ul class="ul-disc"><?php foreach ( $issues as $issue ) : ?><li><?php echo esc_html( $issue ); ?></li><?php endforeach; ?></ul></div>
+			<?php else : ?>
+				<div class="notice notice-success inline elab-advisor-status"><p><?php esc_html_e( 'Bookable: this advisor’s times appear in the booking calendar.', 'elaltillo-bookacall' ); ?></p></div>
+			<?php endif; ?>
+		<?php endif; ?>
 		<p class="description"><?php esc_html_e( 'Set the hours when this advisor can receive calls. Visitors will see these times in their own time zone.', 'elaltillo-bookacall' ); ?></p>
 		<table class="form-table" role="presentation"><tbody>
 		<tr><th scope="row"><label for="elab-email"><?php esc_html_e( 'Advisor Google email', 'elaltillo-bookacall' ); ?></label></th><td><input class="regular-text" type="email" id="elab-email" name="elab_email" value="<?php echo esc_attr( $email ); ?>" autocomplete="email" required><p class="description"><?php esc_html_e( 'Enter the Google account that this advisor will authorize. The account must match during connection; booking and schedule emails are sent here.', 'elaltillo-bookacall' ); ?></p></td></tr>
-		<?php if ( current_user_can( 'manage_options' ) ) : ?><tr><th scope="row"><label for="elab-user-id"><?php esc_html_e( 'Advisor WordPress account', 'elaltillo-bookacall' ); ?></label></th><td><?php wp_dropdown_users( array( 'name' => 'elab_user_id', 'id' => 'elab-user-id', 'selected' => (int) get_post_meta( $post->ID, '_elab_wp_user', true ), 'show_option_none' => __( 'Select an account', 'elaltillo-bookacall' ), 'option_none_value' => '0' ) ); ?><p class="description"><?php esc_html_e( 'This account may connect its own Google Calendar from its WordPress profile. It cannot edit the advisor profile.', 'elaltillo-bookacall' ); ?></p></td></tr><?php endif; ?>
+		<?php if ( current_user_can( 'manage_options' ) ) :
+			$linked = (int) get_post_meta( $post->ID, '_elab_wp_user', true );
+			$taken = self::assigned_users( $post->ID );
+			$accounts = get_users( array( 'role__in' => self::account_roles(), 'orderby' => 'display_name', 'fields' => array( 'ID', 'display_name', 'user_email' ) ) );
+			$listed = wp_list_pluck( $accounts, 'ID' );
+			?>
+			<tr><th scope="row"><label for="elab-user-id"><?php esc_html_e( 'Advisor WordPress account', 'elaltillo-bookacall' ); ?></label></th><td><select id="elab-user-id" name="elab_user_id"><option value="0"><?php esc_html_e( 'No account', 'elaltillo-bookacall' ); ?></option>
+			<?php if ( $linked && ! in_array( (string) $linked, array_map( 'strval', $listed ), true ) && ( $current = get_user_by( 'id', $linked ) ) ) : ?>
+				<option value="<?php echo esc_attr( $linked ); ?>" selected><?php echo esc_html( sprintf( __( '%s (not a Subscriber, reassign)', 'elaltillo-bookacall' ), $current->display_name ) ); ?></option>
+			<?php endif; ?>
+			<?php foreach ( $accounts as $account ) : ?>
+				<option value="<?php echo esc_attr( $account->ID ); ?>" <?php selected( $linked, (int) $account->ID ); ?> <?php disabled( isset( $taken[ (int) $account->ID ] ) ); ?>><?php echo esc_html( $account->display_name . ' — ' . $account->user_email . ( isset( $taken[ (int) $account->ID ] ) ? ' · ' . sprintf( __( 'linked to %s', 'elaltillo-bookacall' ), get_the_title( $taken[ (int) $account->ID ] ) ) : '' ) ); ?></option>
+			<?php endforeach; ?>
+			</select><p class="description"><?php esc_html_e( 'Only Subscriber accounts that are not linked to another advisor can be chosen. This account connects its own Google Calendar from its profile and cannot edit this advisor profile.', 'elaltillo-bookacall' ); ?></p></td></tr>
+		<?php endif; ?>
 		<tr><th scope="row"><label for="elab-timezone"><?php esc_html_e( 'Advisor time zone', 'elaltillo-bookacall' ); ?></label></th><td><label class="screen-reader-text" for="elab-timezone-search"><?php esc_html_e( 'Search time zones', 'elaltillo-bookacall' ); ?></label><input type="search" id="elab-timezone-search" class="regular-text" placeholder="<?php esc_attr_e( 'Search by city or region', 'elaltillo-bookacall' ); ?>" autocomplete="off"><br><select id="elab-timezone" name="elab_timezone" class="regular-text" required><?php echo wp_timezone_choice( $timezone ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core returns escaped options. ?></select><p class="description"><?php esc_html_e( 'Choose the city where the advisor works. Seasonal time changes are automatic.', 'elaltillo-bookacall' ); ?></p></td></tr>
-		<tr><th scope="row"><label for="elab-duration"><?php esc_html_e( 'Call duration', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="15" max="180" step="5" id="elab-duration" name="elab_duration" value="<?php echo esc_attr( $duration ); ?>" class="small-text"> <?php esc_html_e( 'minutes', 'elaltillo-bookacall' ); ?></td></tr>
+		<tr><th scope="row"><label for="elab-duration"><?php esc_html_e( 'Call duration', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="15" max="180" step="5" id="elab-duration" name="elab_duration" value="<?php echo esc_attr( $own['duration'] ); ?>" placeholder="<?php echo esc_attr( $defaults['duration'] ); ?>" class="small-text"> <?php esc_html_e( 'minutes', 'elaltillo-bookacall' ); ?><p class="description"><?php echo esc_html( sprintf( __( 'Leave empty to use the site default (%d). Times start every call length inside each range; existing bookings keep their length.', 'elaltillo-bookacall' ), $defaults['duration'] ) ); ?></p></td></tr>
+		</tbody></table>
+		<h3><?php esc_html_e( 'Booking rules', 'elaltillo-bookacall' ); ?></h3>
+		<p class="description"><?php echo wp_kses( sprintf( __( 'Empty fields follow the <a href="%s">site booking defaults</a>.', 'elaltillo-bookacall' ), esc_url( add_query_arg( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'page' => 'elab-google-settings' ), admin_url( 'edit.php' ) ) ) ), array( 'a' => array( 'href' => true ) ) ); ?></p>
+		<table class="form-table" role="presentation"><tbody>
+		<tr><th scope="row"><label for="elab-notice"><?php esc_html_e( 'Minimum notice', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="0" max="720" step="1" id="elab-notice" name="elab_notice_hours" value="<?php echo esc_attr( $own['notice'] ); ?>" placeholder="<?php echo esc_attr( $defaults['notice'] ); ?>" class="small-text"> <?php esc_html_e( 'hours', 'elaltillo-bookacall' ); ?><p class="description"><?php echo esc_html( sprintf( __( 'Visitors cannot book a call that starts sooner than this. Leave empty to use the site default (%d).', 'elaltillo-bookacall' ), $defaults['notice'] ) ); ?></p></td></tr>
+		<tr><th scope="row"><label for="elab-horizon"><?php esc_html_e( 'Booking window', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="1" max="365" step="1" id="elab-horizon" name="elab_horizon_days" value="<?php echo esc_attr( $own['horizon'] ); ?>" placeholder="<?php echo esc_attr( $defaults['horizon'] ); ?>" class="small-text"> <?php esc_html_e( 'days ahead', 'elaltillo-bookacall' ); ?><p class="description"><?php echo esc_html( sprintf( __( 'How far into the future visitors can book. Leave empty to use the site default (%d).', 'elaltillo-bookacall' ), $defaults['horizon'] ) ); ?></p></td></tr>
+		<tr><th scope="row"><label for="elab-interval"><?php esc_html_e( 'Start times every', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="0" max="120" step="5" id="elab-interval" name="elab_slot_interval" value="<?php echo esc_attr( $own['interval'] ); ?>" placeholder="<?php echo esc_attr( $defaults['interval'] ); ?>" class="small-text"> <?php esc_html_e( 'minutes', 'elaltillo-bookacall' ); ?><p class="description"><?php echo esc_html( sprintf( __( '0 offers a start every call length; 15 offers 9:00, 9:15, 9:30… with the same call length. Leave empty to use the site default (%d).', 'elaltillo-bookacall' ), $defaults['interval'] ) ); ?></p></td></tr>
+		<tr><th scope="row"><label for="elab-buffer"><?php esc_html_e( 'Break between calls', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="0" max="120" step="5" id="elab-buffer" name="elab_buffer_minutes" value="<?php echo esc_attr( $own['buffer'] ); ?>" placeholder="<?php echo esc_attr( $defaults['buffer'] ); ?>" class="small-text"> <?php esc_html_e( 'minutes', 'elaltillo-bookacall' ); ?><p class="description"><?php echo esc_html( sprintf( __( 'Free time kept before and after each booking and each busy Google Calendar event. Leave empty to use the site default (%d).', 'elaltillo-bookacall' ), $defaults['buffer'] ) ); ?></p></td></tr>
 		</tbody></table>
 		<h3><?php esc_html_e( 'Weekly hours', 'elaltillo-bookacall' ); ?></h3>
-		<p class="description"><?php esc_html_e( 'Turn on each working day. Add separate time ranges for breaks.', 'elaltillo-bookacall' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Turn on each working day. Add separate time ranges for breaks. Overlapping ranges are merged when you save.', 'elaltillo-bookacall' ); ?></p>
 		<table class="widefat striped" data-elab-weekly-hours><thead><tr><th scope="col"><?php esc_html_e( 'Day', 'elaltillo-bookacall' ); ?></th><th scope="col"><?php esc_html_e( 'Available hours', 'elaltillo-bookacall' ); ?></th></tr></thead><tbody>
 		<?php foreach ( $days as $day => $label ) :
 			$ranges = isset( $availability[ $day ] ) && is_array( $availability[ $day ] ) ? $availability[ $day ] : array();
@@ -121,24 +288,73 @@ final class ELAB_Advisor_Admin {
 		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
+		$notes = array();
 		$previous = array(
 			'email' => get_post_meta( $post_id, '_elab_email', true ),
 			'timezone' => get_post_meta( $post_id, '_elab_timezone', true ),
-			'duration' => (int) get_post_meta( $post_id, '_elab_duration', true ),
 			'availability' => get_post_meta( $post_id, '_elab_availability', true ),
 			'blackouts' => get_post_meta( $post_id, ELAB_Blackouts::META, true ),
+			'rules' => array_diff_key( ELAB_Availability::rules( $post_id ), array_flip( array( 'timezone', 'weekly' ) ) ),
 		);
-		$email = isset( $_POST['elab_email'] ) ? sanitize_email( wp_unslash( $_POST['elab_email'] ) ) : '';
+
+		$raw_email = isset( $_POST['elab_email'] ) ? trim( (string) wp_unslash( $_POST['elab_email'] ) ) : '';
+		$email = sanitize_email( $raw_email );
+		if ( '' !== $raw_email && ! is_email( $email ) ) {
+			$email = '';
+			$notes[] = __( 'The advisor email was not a valid address and was cleared.', 'elaltillo-bookacall' );
+		}
+		update_post_meta( $post_id, '_elab_email', $email );
+
+		if ( current_user_can( 'manage_options' ) && isset( $_POST['elab_user_id'] ) ) {
+			$user_id = absint( $_POST['elab_user_id'] );
+			$current = (int) get_post_meta( $post_id, '_elab_wp_user', true );
+			if ( ! $user_id ) {
+				update_post_meta( $post_id, '_elab_wp_user', 0 );
+			} elseif ( $user_id !== $current ) {
+				$problem = self::account_problem( $user_id, $post_id );
+				if ( $problem ) {
+					$notes[] = $problem . ' ' . __( 'The previous account link was kept.', 'elaltillo-bookacall' );
+				} else {
+					update_post_meta( $post_id, '_elab_wp_user', $user_id );
+				}
+			}
+		}
+
 		$timezone = isset( $_POST['elab_timezone'] ) ? sanitize_text_field( wp_unslash( $_POST['elab_timezone'] ) ) : 'UTC';
-		$duration = isset( $_POST['elab_duration'] ) ? absint( $_POST['elab_duration'] ) : 30;
-		$submitted = isset( $_POST['elab_availability'] ) && is_array( $_POST['elab_availability'] ) ? wp_unslash( $_POST['elab_availability'] ) : array();
-		$active = isset( $_POST['elab_day_active'] ) && is_array( $_POST['elab_day_active'] ) ? wp_unslash( $_POST['elab_day_active'] ) : array();
 		try {
 			new DateTimeZone( $timezone );
 		} catch ( Exception $exception ) {
+			$notes[] = sprintf( __( 'The time zone “%s” is not recognised; UTC was used.', 'elaltillo-bookacall' ), $timezone );
 			$timezone = 'UTC';
 		}
+		update_post_meta( $post_id, '_elab_timezone', $timezone );
+
+		foreach ( ELAB_Booking_Defaults::fields() as $rule => $field ) {
+			$input = array( 'duration' => 'elab_duration', 'notice' => 'elab_notice_hours', 'horizon' => 'elab_horizon_days', 'buffer' => 'elab_buffer_minutes', 'interval' => 'elab_slot_interval' )[ $rule ];
+			if ( ! isset( $_POST[ $input ] ) ) {
+				continue;
+			}
+			$value = trim( (string) wp_unslash( $_POST[ $input ] ) );
+			if ( '' === $value ) {
+				delete_post_meta( $post_id, $field[4] );
+				continue;
+			}
+			if ( ! is_numeric( $value ) ) {
+				$notes[] = sprintf( __( '%s was not a number; the site default is used.', 'elaltillo-bookacall' ), ELAB_Booking_Defaults_Admin::labels()[ $rule ][0] );
+				delete_post_meta( $post_id, $field[4] );
+				continue;
+			}
+			$clamped = ELAB_Booking_Defaults::clamp( $rule, $value );
+			if ( (string) $clamped !== (string) (int) $value || (float) $value !== (float) (int) $value ) {
+				$notes[] = sprintf( __( '%1$s must be between %2$d and %3$d; it was set to %4$d.', 'elaltillo-bookacall' ), ELAB_Booking_Defaults_Admin::labels()[ $rule ][0], $field[1], $field[2], $clamped );
+			}
+			update_post_meta( $post_id, $field[4], $clamped );
+		}
+
+		$submitted = isset( $_POST['elab_availability'] ) && is_array( $_POST['elab_availability'] ) ? wp_unslash( $_POST['elab_availability'] ) : array();
+		$active = isset( $_POST['elab_day_active'] ) && is_array( $_POST['elab_day_active'] ) ? wp_unslash( $_POST['elab_day_active'] ) : array();
 		$availability = array();
+		$dropped = 0;
 		foreach ( $active as $day => $enabled ) {
 			$day = absint( $day );
 			if ( $day < 1 || $day > 7 || ! isset( $submitted[ $day ] ) || ! is_array( $submitted[ $day ] ) ) {
@@ -152,23 +368,40 @@ final class ELAB_Advisor_Admin {
 				$end = isset( $range['end'] ) && is_string( $range['end'] ) ? $range['end'] : '';
 				if ( preg_match( '/^([01]\d|2[0-3]):[0-5]\d$/', $start ) && preg_match( '/^([01]\d|2[0-3]):[0-5]\d$/', $end ) && $start < $end ) {
 					$availability[ $day ][] = array( $start, $end );
+				} elseif ( '' !== $start || '' !== $end ) {
+					$dropped++;
 				}
 			}
 		}
-		update_post_meta( $post_id, '_elab_email', $email );
-		if ( current_user_can( 'manage_options' ) && isset( $_POST['elab_user_id'] ) ) {
-			$user_id = absint( $_POST['elab_user_id'] );
-			update_post_meta( $post_id, '_elab_wp_user', $user_id && get_user_by( 'id', $user_id ) ? $user_id : 0 );
+		if ( $dropped ) {
+			$notes[] = sprintf( _n( '%d time range was removed because it ended before it started or was incomplete.', '%d time ranges were removed because they ended before they started or were incomplete.', $dropped, 'elaltillo-bookacall' ), $dropped );
 		}
-		update_post_meta( $post_id, '_elab_timezone', $timezone );
-		$duration = min( 180, max( 15, $duration ) );
-		$encoded_availability = wp_json_encode( $this->sanitize_availability( $availability ) );
-		update_post_meta( $post_id, '_elab_duration', $duration );
+		$clean = $this->sanitize_availability( $availability );
+		$merged_days = array();
+		foreach ( $availability as $day => $ranges ) {
+			if ( isset( $clean[ $day ] ) && count( $clean[ $day ] ) < count( $ranges ) ) {
+				$merged_days[] = date_i18n( 'l', strtotime( 'Sunday +' . $day . ' days' ) );
+			}
+		}
+		if ( $merged_days ) {
+			$notes[] = sprintf( __( 'Overlapping ranges were merged on: %s.', 'elaltillo-bookacall' ), implode( ', ', $merged_days ) );
+		}
+		$encoded_availability = wp_json_encode( $clean );
 		update_post_meta( $post_id, '_elab_availability', $encoded_availability );
+
 		$blackouts = isset( $_POST['elab_blackouts'] ) && is_array( $_POST['elab_blackouts'] ) ? wp_unslash( $_POST['elab_blackouts'] ) : array();
 		$clean_blackouts = ELAB_Blackouts::sanitize( $blackouts );
+		$filled = count( array_filter( $blackouts, static function ( $row ) { return is_array( $row ) && ! empty( $row['start'] ); } ) );
+		if ( $filled > count( $clean_blackouts ) ) {
+			$notes[] = sprintf( _n( '%d unavailable date was ignored because its dates were invalid.', '%d unavailable dates were ignored because their dates were invalid.', $filled - count( $clean_blackouts ), 'elaltillo-bookacall' ), $filled - count( $clean_blackouts ) );
+		}
 		update_post_meta( $post_id, ELAB_Blackouts::META, $clean_blackouts );
-		if ( 'publish' === get_post_status( $post_id ) && ELAB_Google_Calendar::connected( $post_id ) && ( $previous['email'] !== $email || $previous['timezone'] !== $timezone || $previous['duration'] !== $duration || $previous['availability'] !== $encoded_availability || $previous['blackouts'] !== $clean_blackouts ) ) {
+
+		if ( $notes ) {
+			set_transient( self::notice_key( $post_id ), $notes, 5 * MINUTE_IN_SECONDS );
+		}
+		$rules = array_diff_key( ELAB_Availability::rules( $post_id ), array_flip( array( 'timezone', 'weekly' ) ) );
+		if ( 'publish' === get_post_status( $post_id ) && ELAB_Google_Calendar::connected( $post_id ) && ( $previous['email'] !== $email || $previous['timezone'] !== $timezone || $previous['availability'] !== $encoded_availability || $previous['blackouts'] !== $clean_blackouts || $previous['rules'] !== $rules ) ) {
 			ELAB_Notifications::queue_schedule_summary( $post_id );
 		}
 	}
@@ -187,6 +420,20 @@ final class ELAB_Advisor_Admin {
 				$clean[ $day ][] = array( $range[0], $range[1] );
 			}
 		}
+		foreach ( $clean as $day => $ranges ) {
+			usort( $ranges, static function ( $a, $b ) { return strcmp( $a[0], $b[0] ); } );
+			$merged = array();
+			foreach ( $ranges as $range ) {
+				$last = count( $merged ) - 1;
+				if ( $last >= 0 && $range[0] <= $merged[ $last ][1] ) {
+					$merged[ $last ][1] = max( $merged[ $last ][1], $range[1] );
+				} else {
+					$merged[] = $range;
+				}
+			}
+			$clean[ $day ] = $merged;
+		}
+		ksort( $clean );
 		return $clean;
 	}
 }

@@ -46,3 +46,37 @@
 .elab-global-overrides-table th, .elab-global-overrides-table td { padding: 10px 14px; vertical-align: middle; }
 .elab-global-overrides-table th:last-child, .elab-global-overrides-table td:last-child { width: 100px; text-align: center; }
 .elab-global-overrides-table input[type="checkbox"] { margin: 0; }
+
+.elab-status { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 20px; white-space: nowrap; }
+.elab-status--pending { background: #fcf0d6; color: #7a5300; }
+.elab-status--confirmed { background: #dcf2e3; color: #135e2b; }
+.elab-status--cancelled { background: #f0f0f1; color: #50575e; text-decoration: line-through; }
+.column-elab_when { width: 22%; }
+.column-elab_status, .column-elab_language { width: 10%; }
+.column-elab_bookable { width: 24%; }
+.elab-booking-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 4px 0 16px; }
+.elab-booking-when { margin: 0; font-size: 18px; font-weight: 600; color: #1d2327; }
+.elab-booking-details { display: grid; grid-template-columns: minmax(140px, max-content) 1fr; gap: 10px 24px; margin: 0 0 20px; }
+.elab-booking-details dt { color: #50575e; font-weight: 600; }
+.elab-booking-details dd { margin: 0; }
+.elab-status-control select { min-width: 160px; }
+#elab-advisor-preview .elab-preview th { width: 110px; padding: 10px 12px; font-weight: 600; }
+#elab-advisor-preview .elab-preview td { padding: 8px 12px; }
+.elab-preview-time { display: inline-block; margin: 2px 4px 2px 0; padding: 2px 8px; border: 1px solid #dcdcde; border-radius: 6px; background: #fff; font-variant-numeric: tabular-nums; }
+.elab-advisor-status { margin: 0 0 18px !important; }
+.elab-advisor-status ul { margin: 0 0 8px 18px; }
+
+.elab-status-page .elab-status-summary { max-width: 760px; font-size: 15px; }
+.elab-status-page h2 { margin-top: 28px; }
+.elab-status-table { max-width: 1100px; }
+.elab-status-table th { width: 220px; padding: 12px; font-weight: 600; }
+.elab-status-table td { padding: 12px; vertical-align: middle; }
+.elab-status-table .elab-status-state { width: 90px; }
+.elab-status-table .elab-status-action { width: 200px; text-align: right; }
+.elab-inline-form { display: inline; margin: 0; }
+.elab-check { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; line-height: 20px; }
+.elab-check--ok { background: #dcf2e3; color: #135e2b; }
+.elab-check--warn { background: #fcf0d6; color: #7a5300; }
+.elab-check--error { background: #fbe3e4; color: #8a1f24; }
+.elab-check--info { background: #f0f0f1; color: #50575e; }
+@media (max-width: 782px) { .elab-status-table th, .elab-status-table .elab-status-state, .elab-status-table .elab-status-action { width: auto; text-align: left; } }

@@ -17,7 +17,7 @@ final class ELAB_Google_Settings_Admin {
 	public function register_page() {
 		$this->hook_suffix = add_submenu_page(
 			'edit.php?post_type=' . ELAB_Post_Types::ADVISOR,
-			__( 'Google Calendar Settings', 'elaltillo-bookacall' ),
+			__( 'Booking settings', 'elaltillo-bookacall' ),
 			__( 'Settings', 'elaltillo-bookacall' ),
 			'manage_options',
 			'elab-google-settings',
@@ -43,7 +43,9 @@ final class ELAB_Google_Settings_Admin {
 		$local_redirect = is_string( $redirect_host ) && preg_match( '/\.(local|test)$/i', $redirect_host );
 		?>
 		<div class="wrap elab-google-settings-page">
-			<h1><?php esc_html_e( 'Google Calendar Settings', 'elaltillo-bookacall' ); ?></h1>
+			<h1><?php esc_html_e( 'Booking settings', 'elaltillo-bookacall' ); ?></h1>
+			<?php do_action( 'elab_settings_before' ); ?>
+			<h2><?php esc_html_e( 'Google Calendar', 'elaltillo-bookacall' ); ?></h2>
 			<p><?php esc_html_e( 'Set up one Google Cloud OAuth client for this site. Each advisor then connects their own Google account from their WordPress profile.', 'elaltillo-bookacall' ); ?></p>
 			<?php if ( 'saved' === $status ) : ?>
 				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Google credentials saved.', 'elaltillo-bookacall' ); ?></p></div>
