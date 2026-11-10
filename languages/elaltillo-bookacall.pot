@@ -1,0 +1,2195 @@
+# Copyright (C) 2026 
+# This file is distributed under the same license as the El Altillo Book a Call plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: El Altillo Book a Call 0.4.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/elaltillo-bookacall\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-10T15:51:22+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: elaltillo-bookacall\n"
+
+#. Plugin Name of the plugin
+#: elaltillo-bookacall.php
+#: includes/privacy/class-elab-privacy.php:163
+msgid "El Altillo Book a Call"
+msgstr ""
+
+#. Description of the plugin
+#: elaltillo-bookacall.php
+msgid "Book calls with advisors across time zones and connect their Google Calendars."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:42
+msgid "The selected account no longer exists."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:45
+msgid "Only Subscriber accounts can be linked to an advisor. Administrators connect Google directly from this screen."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:49
+#, php-format
+msgid "That account is already linked to %s."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:58
+msgid "The profile is not published."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:61
+msgid "No valid advisor email is set."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:64
+msgid "No weekly hours are turned on."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:67
+msgid "Google Calendar is not connected."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:88
+msgid "Some advisor settings were adjusted when saving:"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:98
+#: includes/bookings/class-elab-booking-admin.php:43
+#: includes/bookings/class-elab-booking-list-admin.php:65
+#: includes/content/class-elab-post-types.php:37
+#: includes/privacy/class-elab-privacy.php:108
+msgid "Advisor"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:99
+#: includes/privacy/class-elab-privacy.php:115
+msgid "Time zone"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:100
+#: includes/advisors/class-elab-advisor-admin.php:262
+#: includes/google/class-elab-google-settings-admin.php:48
+#: includes/system/class-elab-system-status.php:127
+msgid "Google Calendar"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:101
+#: includes/system/class-elab-system-status.php:106
+msgid "Booking calendar"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:102
+msgid "Date"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:110
+msgid "Bookable"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:112
+msgid "Hidden"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:120
+#: includes/advisors/class-elab-advisor-admin.php:270
+#: includes/google/class-elab-google-calendar.php:54
+#, php-format
+msgid "Connected as %s"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:122
+msgid "Reconnect required"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:124
+msgid "Not connected"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:130
+msgid "Advisor availability"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:131
+msgid "What visitors see: next 7 days"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:151
+msgid "Save the advisor to preview their times."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:158
+#, php-format
+msgid "Shown in the advisor’s time zone (%1$s), %2$d-minute calls. Visitors see the same times converted to their own zone. Reflects the last saved settings."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:160
+msgid "Visitors do not see these times until the issues listed above are fixed."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:177
+msgid "No times"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:202
+msgid "Monday"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:202
+msgid "Tuesday"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:203
+msgid "Wednesday"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:203
+msgid "Thursday"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:204
+msgid "Friday"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:204
+msgid "Saturday"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:205
+msgid "Sunday"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:210
+msgid "Not shown in the booking calendar yet:"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:212
+msgid "Bookable: this advisor’s times appear in the booking calendar."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:215
+msgid "Set the hours when this advisor can receive calls. Visitors will see these times in their own time zone."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:217
+msgid "Advisor Google email"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:217
+msgid "Enter the Google account that this advisor will authorize. The account must match during connection; booking and schedule emails are sent here."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:224
+msgid "Advisor WordPress account"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:224
+msgid "No account"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:226
+#, php-format
+msgid "%s (not a Subscriber, reassign)"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:229
+#, php-format
+msgid "linked to %s"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:231
+msgid "Only Subscriber accounts that are not linked to another advisor can be chosen. This account connects its own Google Calendar from its profile and cannot edit this advisor profile."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:233
+msgid "Advisor time zone"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:233
+#: includes/frontend/templates/booking-form.php:64
+msgid "Search time zones"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:233
+msgid "Search by city or region"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:233
+msgid "Choose the city where the advisor works. Seasonal time changes are automatic."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:234
+#: includes/bookings/class-elab-booking-defaults-admin.php:18
+msgid "Call duration"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:234
+#: includes/advisors/class-elab-advisor-admin.php:241
+#: includes/advisors/class-elab-advisor-admin.php:242
+#: includes/bookings/class-elab-booking-defaults-admin.php:18
+#: includes/bookings/class-elab-booking-defaults-admin.php:21
+#: includes/bookings/class-elab-booking-defaults-admin.php:22
+msgid "minutes"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:234
+#, php-format
+msgid "Leave empty to use the site default (%d). Times start every call length inside each range; existing bookings keep their length."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:236
+msgid "Booking rules"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:237
+#, php-format
+msgid "Empty fields follow the <a href=\"%s\">site booking defaults</a>."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:239
+#: includes/bookings/class-elab-booking-defaults-admin.php:19
+msgid "Minimum notice"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:239
+#: includes/bookings/class-elab-booking-defaults-admin.php:19
+msgid "hours"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:239
+#, php-format
+msgid "Visitors cannot book a call that starts sooner than this. Leave empty to use the site default (%d)."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:240
+#: includes/bookings/class-elab-booking-defaults-admin.php:20
+msgid "Booking window"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:240
+#: includes/bookings/class-elab-booking-defaults-admin.php:20
+msgid "days ahead"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:240
+#, php-format
+msgid "How far into the future visitors can book. Leave empty to use the site default (%d)."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:241
+#: includes/bookings/class-elab-booking-defaults-admin.php:21
+msgid "Start times every"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:241
+#, php-format
+msgid "0 offers a start every call length; 15 offers 9:00, 9:15, 9:30… with the same call length. Leave empty to use the site default (%d)."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:242
+#: includes/bookings/class-elab-booking-defaults-admin.php:22
+msgid "Break between calls"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:242
+#, php-format
+msgid "Free time kept before and after each booking and each busy Google Calendar event. Leave empty to use the site default (%d)."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:244
+msgid "Weekly hours"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:245
+msgid "Turn on each working day. Add separate time ranges for breaks. Overlapping ranges are merged when you save."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:246
+msgid "Day"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:246
+msgid "Available hours"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:254
+#: includes/blackouts/class-elab-blackouts.php:124
+msgid "From"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:254
+#, php-format
+msgid "%s start time"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:254
+#: includes/blackouts/class-elab-blackouts.php:124
+msgid "To"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:254
+#, php-format
+msgid "%s end time"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:254
+msgid "Remove time range"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:256
+msgid "Add another interval"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:259
+msgid "Unavailable dates for this advisor"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:260
+msgid "Use this for vacations, personal holidays or specific days off. Global unavailable dates also apply."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:264
+msgid "The assigned advisor connects Google Calendar from their WordPress profile."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:266
+msgid "To connect this advisor, save the Google credentials in Advisors → Settings."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:270
+msgid "Disconnect"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:274
+msgid "The previous Google connection no longer matches this advisor email or OAuth client. Reconnect the correct account."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:275
+#: includes/google/class-elab-google-calendar.php:58
+msgid "Connect Google Calendar"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:277
+msgid "Each advisor authorizes their own Google account. Existing meetings block available times; confirmed bookings send a calendar invitation to the visitor."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:278
+msgid "Weekly hours are booking availability, not calendar events. The advisor receives a schedule email when they connect or when these hours change. Confirmed calls are added to Google Calendar and emailed to the advisor."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:279
+msgid "The last schedule email could not be sent. Check the site email configuration."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:280
+msgid "Save the advisor to publish these hours."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:304
+msgid "The advisor email was not a valid address and was cleared."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:316
+msgid "The previous account link was kept."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:327
+#, php-format
+msgid "The time zone “%s” is not recognised; UTC was used."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:343
+#, php-format
+msgid "%s was not a number; the site default is used."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:349
+#, php-format
+msgid "%1$s must be between %2$d and %3$d; it was set to %4$d."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:377
+#, php-format
+msgid "%d time range was removed because it ended before it started or was incomplete."
+msgid_plural "%d time ranges were removed because they ended before they started or were incomplete."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/advisors/class-elab-advisor-admin.php:387
+#, php-format
+msgid "Overlapping ranges were merged on: %s."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:396
+#, php-format
+msgid "%d unavailable date was ignored because its dates were invalid."
+msgid_plural "%d unavailable dates were ignored because their dates were invalid."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/blackouts/class-elab-blackouts-admin.php:20
+#: includes/blackouts/class-elab-blackouts-admin.php:21
+msgid "Unavailable dates"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts-admin.php:41
+msgid "Unavailable dates for all advisors"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts-admin.php:42
+msgid "Block holidays, closures and other dates for every advisor. Each advisor can choose to work on a global date from their profile; personal unavailable dates still take priority."
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts-admin.php:43
+msgid "Unavailable dates saved."
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts-admin.php:48
+msgid "Save unavailable dates"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts-admin.php:55
+msgid "You cannot change global unavailable dates."
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:98
+msgid "No global unavailable dates have been configured."
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:104
+msgid "Select the global dates when this advisor will work. Regular weekly hours still apply. Personal time off and busy Google Calendar events still block slots. If global rules overlap, select every matching rule."
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:105
+msgid "Global date"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:105
+msgid "Reason"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:105
+msgid "Work that day"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:110
+msgid "every year"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:113
+#, php-format
+msgid "Work during %s"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:124
+msgid "Reason (optional)"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:124
+msgid "Every year"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:124
+msgid "Remove"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:126
+msgid "First unavailable date"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:126
+msgid "Last unavailable date"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:126
+msgid "Holiday, vacation…"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:126
+msgid "Repeat annually"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:126
+msgid "Remove unavailable date"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:129
+msgid "Add unavailable date"
+msgstr ""
+
+#: includes/blackouts/class-elab-blackouts.php:130
+msgid "Leave the end date empty for one day. “Every year” applies only to a single day. Dates use each advisor’s local time zone."
+msgstr ""
+
+#: includes/blackouts/class-elab-global-overrides-admin.php:28
+msgid "Work on global unavailable dates"
+msgstr ""
+
+#: includes/blackouts/class-elab-global-overrides-admin.php:62
+msgid "Availability on global unavailable dates"
+msgstr ""
+
+#: includes/bookings/class-elab-availability.php:189
+msgid "Availability could not be loaded. Please try again shortly."
+msgstr ""
+
+#: includes/bookings/class-elab-availability.php:206
+msgid "Invalid time zone."
+msgstr ""
+
+#: includes/bookings/class-elab-availability.php:212
+#: includes/bookings/class-elab-booking-service.php:72
+msgid "This advisor is not available for online booking."
+msgstr ""
+
+#: includes/bookings/class-elab-availability.php:228
+msgid "Invalid month."
+msgstr ""
+
+#: includes/bookings/class-elab-availability.php:265
+msgid "Invalid advisor or date."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:21
+msgid "Cancel this call? The visitor is notified and, if connected, the event is removed from the advisor’s Google Calendar. This cannot be undone."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:32
+msgid "Request details"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:44
+#: includes/bookings/class-elab-booking-list-admin.php:64
+msgid "Visitor"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:45
+msgid "Visitor’s local time"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:46
+msgid "UTC"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:47
+msgid "Length"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:47
+#, php-format
+msgid "%d minutes"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:48
+#: includes/frontend/templates/booking-form.php:115
+#: includes/privacy/class-elab-privacy.php:114
+msgid "Meeting language"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:49
+#: includes/frontend/templates/booking-form.php:122
+#: includes/privacy/class-elab-privacy.php:112
+msgid "Sector"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:50
+#: includes/privacy/class-elab-privacy.php:113
+msgid "Message"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:51
+#: includes/bookings/class-elab-booking-list-admin.php:68
+#: includes/privacy/class-elab-privacy.php:117
+msgid "Received"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:52
+#: includes/google/class-elab-google-settings-admin.php:89
+msgid "Video call"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:53
+#: includes/bookings/class-elab-booking-list-admin.php:28
+#: includes/frontend/templates/manage-booking.php:27
+msgid "Cancelled"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:53
+#, php-format
+msgid "By the visitor, %s UTC"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:53
+#, php-format
+msgid "By an administrator, %s UTC"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:54
+msgid "Privacy consent"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:54
+#, php-format
+msgid "Accepted %s UTC"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:63
+msgid "This booking is linked to the advisor’s Google Calendar. Cancelling it will remove the event and notify the visitor."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:66
+msgid "The advisor email could not be sent. Check the site email configuration and contact the advisor directly."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:69
+msgid "The visitor email could not be sent. Contact the visitor directly."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:78
+#: includes/privacy/class-elab-privacy.php:116
+msgid "Attachments"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:88
+msgid "Update status"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:92
+msgid "Cancelled calls cannot be reopened."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:92
+msgid "Choose a status and select Update."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:111
+msgid "Google Calendar could not create the event. The booking was not confirmed."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-admin.php:119
+msgid "Google Calendar could not cancel the event. The booking was not changed."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-defaults-admin.php:18
+msgid "Length of each call. Times start every call length inside the advisor’s hours."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-defaults-admin.php:19
+msgid "Visitors cannot book a call that starts sooner than this."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-defaults-admin.php:20
+msgid "How far into the future visitors can book."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-defaults-admin.php:21
+msgid "0 offers a new start time every call length (9:00, 9:30… for 30-minute calls). 15 offers 9:00, 9:15, 9:30… while each call keeps its length."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-defaults-admin.php:22
+msgid "Optional free time kept before and after each booking and each busy Google Calendar event. 0 means calls can be back to back."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-defaults-admin.php:34
+msgid "Booking defaults saved. Advisors without their own values now use them."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-defaults-admin.php:37
+msgid "Booking defaults"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-defaults-admin.php:38
+msgid "These values apply to every advisor whose profile leaves the field empty. An advisor’s own value always wins."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-defaults-admin.php:49
+msgid "Save booking defaults"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-defaults-admin.php:57
+msgid "You cannot change booking defaults."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-guard.php:11
+msgid "Your request could not be submitted."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-guard.php:49
+msgid "Too many requests. Please wait and try again."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:26
+msgid "Pending"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:27
+#: includes/frontend/templates/manage-booking.php:27
+msgid "Confirmed"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:63
+msgid "When"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:66
+#: includes/privacy/class-elab-privacy.php:109
+msgid "Status"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:67
+msgid "Language"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:86
+#: includes/notifications/class-elab-notifications.php:122
+#, php-format
+msgid "Visitor: %s"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:90
+msgid "(no name)"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:130
+msgid "Filter by date"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:131
+msgid "Upcoming"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:131
+msgid "Past"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:131
+msgid "All dates"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:134
+msgid "Filter by status"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:134
+msgid "All statuses"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:138
+msgid "Filter by advisor"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-list-admin.php:138
+msgid "All advisors"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-manage.php:77
+msgid "This call can no longer be cancelled online."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-manage.php:84
+msgid "We could not cancel the calendar event right now. Please try again in a few minutes or reply to your invitation."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-manage.php:125
+msgid "This booking link is not valid."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-service.php:41
+msgid "Please check the booking details and try again."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-service.php:52
+msgid "Please accept the privacy policy to book a call."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-service.php:56
+msgid "Please choose a meeting language."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-service.php:59
+msgid "Please complete all required fields."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-service.php:65
+msgid "Invalid meeting time or time zone."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-service.php:124
+#: includes/frontend/class-elab-booking-form.php:97
+msgid "That time was just taken. Please choose another."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-service.php:197
+msgid "A Google Calendar invitation is on its way to your email."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-service.php:202
+#: includes/notifications/class-elab-notifications.php:209
+#, php-format
+msgid "Call with %s"
+msgstr ""
+
+#: includes/bookings/class-elab-booking-service.php:214
+msgid "We will confirm this time by email shortly."
+msgstr ""
+
+#: includes/content/class-elab-post-types.php:34
+#: includes/content/class-elab-post-types.php:36
+#: includes/system/class-elab-system-status.php:128
+msgid "Advisors"
+msgstr ""
+
+#: includes/content/class-elab-post-types.php:38
+msgid "Add advisor"
+msgstr ""
+
+#: includes/content/class-elab-post-types.php:39
+msgid "Edit advisor"
+msgstr ""
+
+#: includes/content/class-elab-post-types.php:54
+msgid "Booking requests"
+msgstr ""
+
+#: includes/content/class-elab-post-types.php:55
+msgid "Booking request"
+msgstr ""
+
+#: includes/files/class-elab-private-attachments.php:56
+#: includes/files/class-elab-private-attachments.php:123
+msgid "One of the files could not be accepted. Please send a different file."
+msgstr ""
+
+#: includes/files/class-elab-private-attachments.php:60
+msgid "Documents cannot be checked right now. Please try again later or book without attachments."
+msgstr ""
+
+#: includes/files/class-elab-private-attachments.php:83
+msgid "One of the files was flagged by our virus scanner and was not accepted."
+msgstr ""
+
+#: includes/files/class-elab-private-attachments.php:98
+msgid "You can attach up to 3 files."
+msgstr ""
+
+#: includes/files/class-elab-private-attachments.php:103
+msgid "Private attachment storage is unavailable. Ask the site administrator to configure a directory outside the web root."
+msgstr ""
+
+#: includes/files/class-elab-private-attachments.php:112
+msgid "Each attachment must be no larger than 10 MB."
+msgstr ""
+
+#: includes/files/class-elab-private-attachments.php:118
+msgid "Only PDF, Word and Excel files are allowed."
+msgstr ""
+
+#: includes/files/class-elab-private-attachments.php:128
+msgid "Could not store an attachment."
+msgstr ""
+
+#: includes/files/class-elab-private-attachments.php:150
+msgid "You are not allowed to download booking attachments."
+msgstr ""
+
+#: includes/files/class-elab-private-attachments.php:158
+msgid "Invalid download link."
+msgstr ""
+
+#: includes/files/class-elab-private-attachments.php:163
+msgid "Attachment not found."
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:71
+#: includes/frontend/templates/booking-form.php:46
+msgid "Previous month"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:72
+#: includes/frontend/templates/booking-form.php:47
+msgid "Next month"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:73
+#, php-format
+msgid "%s, times available"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:74
+#, php-format
+msgid "%s, no times available"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:75
+msgid "Loading times…"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:76
+msgid "Pick a highlighted day to see its times."
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:77
+msgid "No times left on this day. Try another one."
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:78
+msgid "No openings this month."
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:79
+#: includes/frontend/templates/booking-form.php:28
+msgid "There are no openings right now. Please check back soon."
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:80
+msgid "Availability could not be loaded. Please try again."
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:81
+msgid "Try again"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:82
+#, php-format
+msgid "Times in %s"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:83
+#: includes/frontend/templates/booking-form.php:72
+msgid "Morning"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:84
+#: includes/frontend/templates/booking-form.php:72
+msgid "Afternoon"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:85
+#: includes/frontend/templates/booking-form.php:72
+msgid "Evening"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:86
+msgid "No time zones match your search."
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:87
+#, php-format
+msgid "Use my location · %s"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:88
+#: includes/frontend/templates/booking-form.php:61
+msgid "Change"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:89
+#, php-format
+msgid "%d times"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:90
+#: includes/frontend/templates/manage-booking.php:40
+#, php-format
+msgid "%d min"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:91
+#, php-format
+msgid "%1$d-minute call with %2$s"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:92
+#, php-format
+msgid "%d-minute call with the first available advisor"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:93
+#: includes/frontend/templates/booking-form.php:86
+msgid "Prefer someone?"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:94
+msgid "First available"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:95
+msgid "Booking your call…"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:95
+msgid "Sending your request…"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:96
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:98
+#: includes/notifications/class-elab-notifications.php:196
+msgid "Your call is booked"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:98
+msgid "Request received"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:99
+#: includes/frontend/templates/manage-booking.php:39
+#, php-format
+msgid "with %s"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:100
+msgid "Open in Google Calendar"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:101
+msgid "Apple, Outlook or other calendar"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:102
+msgid "Please complete the security check."
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:103
+#: includes/frontend/templates/manage-booking.php:47
+msgid "Join with Google Meet"
+msgstr ""
+
+#: includes/frontend/class-elab-booking-form.php:104
+#, php-format
+msgid "%d files selected"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:23
+msgid "(optional)"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:30
+msgid "Booking steps"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:31
+msgid "Time"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:33
+msgid "Details"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:35
+msgid "Booked"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:35
+msgid "Sent"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:41
+msgid "Choose a time"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:54
+msgid "Days with open times"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:63
+msgid "Your time zone"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:65
+msgid "Search a city or region"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:67
+msgid "Time zones"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:80
+msgid "Pick a time"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:83
+msgid "with"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:92
+msgid "Continue"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:100
+#: includes/frontend/templates/manage-booking.php:36
+msgid "Your call"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:105
+msgid "Change time"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:108
+msgid "Tell us about you"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:111
+#: includes/privacy/class-elab-privacy.php:110
+msgid "Name"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:112
+#: includes/privacy/class-elab-privacy.php:111
+#: includes/system/class-elab-system-status.php:126
+msgid "Email"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:122
+msgid "e.g. architecture, education"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:123
+msgid "Your project"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:123
+msgid "What would you like to talk about?"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:125
+msgid "Attach files"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:126
+msgid "PDF, Word or Excel · up to 3 files, 10 MB each"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:135
+#, php-format
+msgid "I agree that my details are used to arrange this call, as described in the <a href=\"%s\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline decoration-secondary/40 underline-offset-2 hover:decoration-secondary\">privacy policy</a>."
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:137
+msgid "I agree that my details are used to arrange this call."
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:144
+msgid "Confirm call"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:144
+msgid "Request call"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:145
+msgid "You will receive a calendar invitation by email."
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:145
+msgid "We confirm the time by email after review."
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:160
+msgid "Need to cancel? Manage your booking"
+msgstr ""
+
+#: includes/frontend/templates/booking-form.php:161
+#: includes/frontend/templates/manage-booking.php:62
+msgid "Book another call"
+msgstr ""
+
+#: includes/frontend/templates/manage-booking.php:19
+msgid "This link is not valid"
+msgstr ""
+
+#: includes/frontend/templates/manage-booking.php:20
+msgid "The booking may have been removed, or the link was copied incompletely. Check the email we sent you."
+msgstr ""
+
+#: includes/frontend/templates/manage-booking.php:21
+msgid "Book a call"
+msgstr ""
+
+#: includes/frontend/templates/manage-booking.php:27
+msgid "Waiting for confirmation"
+msgstr ""
+
+#: includes/frontend/templates/manage-booking.php:31
+msgid "Your call was cancelled. The advisor has been told."
+msgstr ""
+
+#: includes/frontend/templates/manage-booking.php:33
+msgid "The call could not be cancelled right now. Please try again in a few minutes."
+msgstr ""
+
+#: includes/frontend/templates/manage-booking.php:57
+msgid "Yes, cancel this call. I can book a new time afterwards."
+msgstr ""
+
+#: includes/frontend/templates/manage-booking.php:59
+msgid "Cancel call"
+msgstr ""
+
+#: includes/frontend/templates/manage-booking.php:62
+msgid "Book a new time"
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:40
+msgid "Your advisor calendars"
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:42
+msgid "Your Google Calendar is connected and its account and primary calendar were verified."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:44
+msgid "Connect the Google account shown for your advisor profile. We verify the account email and primary calendar before enabling bookings. Your weekly availability is emailed to you; only confirmed calls become calendar events."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:52
+msgid "Ask an administrator to set your Google email in the advisor profile."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:54
+#, php-format
+msgid "Expected Google account: %s"
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:56
+msgid "The previous connection needs to be authorized again."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:58
+msgid "Disconnect Google Calendar"
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:60
+msgid "Google Calendar is awaiting site configuration."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:63
+msgid "Your availability email could not be sent. Ask an administrator to check the site mail settings."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:91
+msgid "Could not encrypt the Google Client Secret on this server."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:118
+msgid "Google Calendar is not configured or you cannot edit this advisor."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:140
+msgid "Invalid or expired Google authorization."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:144
+msgid "Google authorization was cancelled."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:148
+msgid "Google did not provide a refresh token. Reconnect the advisor and grant calendar access."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:153
+msgid "Grant both requested Google Calendar permissions and try again."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:161
+#, php-format
+msgid "You connected %1$s, but this advisor expects %2$s. Choose the correct Google account or ask an administrator to update the advisor email."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:169
+msgid "Could not protect the Google credentials on this server."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:186
+msgid "You cannot edit this advisor."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:199
+msgid "Google Calendar is not configured."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:203
+msgid "Google Calendar authorization failed."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:206
+msgid "Invalid Google Calendar response."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:211
+msgid "Google did not return an access token."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:218
+msgid "The Google account could not be verified. Please try connecting again."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:222
+msgid "Google did not return a verified account email."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:241
+msgid "The connected Google account could not access its primary calendar. Grant Calendar access and try again."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:276
+#: includes/google/class-elab-google-calendar.php:284
+msgid "This advisor has not connected Google Calendar."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:288
+msgid "Google Calendar needs to be reconnected."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:309
+msgid "Google Calendar could not complete this action. Please try again."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:342
+msgid "Google Calendar availability is unavailable."
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:364
+msgid "Private call"
+msgstr ""
+
+#: includes/google/class-elab-google-calendar.php:383
+msgid "Google Calendar did not confirm the new event. Please try again."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:20
+#: includes/google/class-elab-google-settings-admin.php:46
+msgid "Booking settings"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:21
+#: includes/system/class-elab-system-status.php:60
+#: includes/system/class-elab-system-status.php:62
+#: includes/system/class-elab-system-status.php:64
+#: includes/system/class-elab-system-status.php:86
+#: includes/system/class-elab-system-status.php:113
+msgid "Settings"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:49
+msgid "Set up one Google Cloud OAuth client for this site. Each advisor then connects their own Google account from their WordPress profile."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:51
+msgid "Google credentials saved."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:53
+msgid "Enter the Google Client ID before saving."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:55
+msgid "Enter the Client Secret for the new OAuth client."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:57
+msgid "The Client Secret could not be encrypted on this server. No changes were saved."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:60
+msgid "Connect the Google Calendar API"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:62
+msgid "Create or select a Google Cloud project."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:62
+msgid "Open Google Cloud Console with the account that will own this integration."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:62
+msgid "Open Google Cloud Console"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:63
+msgid "Enable the Google Calendar API."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:63
+msgid "In APIs & Services, find Google Calendar API and select Enable."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:64
+msgid "Configure the OAuth consent screen."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:64
+msgid "In Google Auth Platform, complete Branding, Audience, and Data Access. Choose Internal only when every advisor belongs to the same Google Workspace organization; otherwise choose External. For an External app in Testing, add each advisor as a test user."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:65
+msgid "Add the required scopes."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:65
+msgid "In Data Access, add the Calendar scopes used by this plugin:"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:65
+msgid "and"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:65
+msgid "The connection also requests openid and email to verify which Google account was connected; it does not request Gmail mailbox access."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:66
+msgid "Create an OAuth client."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:66
+msgid "In Google Auth Platform → Clients, create a client with application type Web application. Add the exact URI below to Authorized redirect URIs."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:68
+msgid "Authorized redirect URI"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:71
+msgid "This is a local development address. Google generally requires a public domain with HTTPS for this redirect URI. Complete advisor authorization on the production site, where this field will show the production URI."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:74
+msgid "Save the client credentials below."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:74
+msgid "Copy the Client ID and Client Secret from Google Cloud into this page."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:75
+msgid "Connect each advisor."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:75
+msgid "Set Advisor Google email and assign a WordPress account in the advisor profile. The advisor opens Users → Profile, selects Connect Google Calendar, chooses that exact Google account, and grants access. The plugin checks the email and primary calendar before completing the connection."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:77
+msgid "External apps in Testing can issue authorizations that expire after seven days. Before relying on recurring bookings, move the OAuth app to production and complete any verification Google requires."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:77
+msgid "About app audiences and testing"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:78
+msgid "Google documentation:"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:78
+msgid "OAuth web server flow"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:78
+msgid "Calendar API scopes"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:79
+msgid "Weekly hours stay in this plugin as availability rules. They are checked against Google busy times; only confirmed bookings create Google Calendar events. Advisors receive their hours by email after connecting or changing availability."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:82
+#: includes/system/class-elab-system-status.php:86
+msgid "OAuth credentials"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:87
+msgid "Client ID"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:87
+#: includes/google/class-elab-google-settings-admin.php:88
+#: includes/security/class-elab-security.php:188
+msgid "Saved; leave blank to keep it"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:87
+msgid "Paste the Client ID"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:87
+msgid "Client ID saved."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:87
+msgid "No Client ID saved yet."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:88
+msgid "Client Secret"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:88
+msgid "Paste the Client Secret"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:88
+msgid "Client Secret encrypted and saved. It is never displayed again."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:88
+msgid "No Client Secret saved yet."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:89
+msgid "Add a Google Meet link to every confirmed call"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:89
+msgid "The link appears in the Google invitation, on the confirmation screen and in the visitor’s private booking page."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:91
+msgid "Save settings"
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:95
+msgid "Ready to connect advisors."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:95
+msgid "If you change the OAuth client, each advisor must authorize their calendar again."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:97
+msgid "Save both credentials to enable calendar connections."
+msgstr ""
+
+#: includes/google/class-elab-google-settings-admin.php:105
+msgid "You cannot change Google Calendar settings."
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:50
+#, php-format
+msgid "Your call availability for %s is:"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:52
+#, php-format
+msgid "Time zone: %s"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:53
+#, php-format
+msgid "Meeting length: %d minutes"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:54
+#, php-format
+msgid "Minimum notice: %d hours"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:55
+#, php-format
+msgid "Bookable up to: %d days ahead"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:56
+#, php-format
+msgid "Break between calls: %d minutes"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:57
+#, php-format
+msgid "Start times every: %d minutes"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:67
+msgid "Unavailable"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:72
+msgid "Global closure exceptions:"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:81
+#: includes/notifications/class-elab-notifications.php:91
+msgid "None"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:85
+msgid "Personal unavailable dates:"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:94
+msgid "These hours represent available booking times. They are not calendar events. Confirmed calls are added to your connected Google Calendar automatically."
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:95
+msgid "Your call availability has been updated"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:116
+msgid "New confirmed call"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:116
+msgid "Call cancelled"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:116
+msgid "New call request"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:118
+#: includes/notifications/class-elab-notifications.php:158
+#, php-format
+msgid "Advisor: %s"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:119
+#, php-format
+msgid "Status: %s"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:120
+#: includes/notifications/class-elab-notifications.php:157
+#, php-format
+msgid "When: %s"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:121
+#: includes/notifications/class-elab-notifications.php:160
+#, php-format
+msgid "Meeting language: %s"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:123
+#, php-format
+msgid "Visitor email: %s"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:124
+msgid "The sector, message and attachments are available to site administrators in the private booking record."
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:127
+msgid "The visitor cancelled this call from their private booking link."
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:131
+#: includes/notifications/class-elab-notifications.php:164
+#, php-format
+msgid "Video call: %s"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:135
+msgid "This booking is already in your connected Google Calendar."
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:159
+#, php-format
+msgid "Length: %d minutes"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:171
+msgid "Need to cancel? Use your private link:"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:189
+msgid "Your call is booked."
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:189
+msgid "We received your call request and will confirm it by email."
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:194
+msgid "Google Calendar also sends you an invitation for this call."
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:196
+msgid "We received your call request"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:206
+msgid "Add this call to Google Calendar:"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:214
+msgid "Your call is confirmed"
+msgstr ""
+
+#: includes/notifications/class-elab-notifications.php:214
+msgid "Your call was cancelled"
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:87
+#: includes/privacy/class-elab-privacy.php:95
+#: includes/privacy/class-elab-privacy.php:126
+msgid "Call bookings"
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:107
+msgid "Call time (UTC)"
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:118
+msgid "Privacy consent (UTC)"
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:148
+#, php-format
+msgid "An upcoming call on %s was kept. Cancel it under Advisors → Booking requests, then erase again."
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:160
+msgid "When you book a call we store your name, email address, time zone, chosen meeting language, the call time and advisor, and anything you add: sector, message and documents. Documents are kept in private storage that only site administrators can download."
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:161
+msgid "The advisor receives your name, email and call time. When the advisor uses Google Calendar, a private event with your email as the attendee is created in their calendar and Google sends you the invitation."
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:162
+msgid "Booking records and their documents are deleted automatically after the retention period set by the site, and you can ask us to export or erase them at any time."
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:175
+msgid "Privacy settings saved."
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:178
+msgid "Privacy and retention"
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:183
+msgid "Delete bookings after"
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:183
+msgid "months after the call"
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:183
+msgid "Booking records and their documents are permanently deleted once a day after this period. 0 keeps them until you delete them by hand."
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:184
+#, php-format
+msgid "Last clean-up: %1$s, %2$d records deleted."
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:186
+#, php-format
+msgid "Visitors’ requests to export or erase their data are handled with the WordPress tools under <a href=\"%1$s\">Tools → Export Personal Data</a> and <a href=\"%2$s\">Erase Personal Data</a>. Suggested wording for your privacy policy is available in <a href=\"%3$s\">Settings → Privacy</a>."
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:187
+msgid "Save privacy settings"
+msgstr ""
+
+#: includes/privacy/class-elab-privacy.php:195
+msgid "You cannot change privacy settings."
+msgstr ""
+
+#: includes/security/class-elab-security.php:63
+msgid "Please complete the security check and try again."
+msgstr ""
+
+#: includes/security/class-elab-security.php:69
+#: includes/security/class-elab-security.php:77
+msgid "The security check is not available right now. Please try again later."
+msgstr ""
+
+#: includes/security/class-elab-security.php:175
+msgid "Security settings saved."
+msgstr ""
+
+#: includes/security/class-elab-security.php:177
+msgid "The Turnstile secret could not be encrypted on this server. No changes were saved."
+msgstr ""
+
+#: includes/security/class-elab-security.php:180
+msgid "Security"
+msgstr ""
+
+#: includes/security/class-elab-security.php:184
+msgid "Bot protection (Cloudflare Turnstile)"
+msgstr ""
+
+#: includes/security/class-elab-security.php:185
+#, php-format
+msgid "Every booking sends a calendar invitation from the advisor’s account, so bots must be stopped. Create a free widget in <a href=\"%s\" target=\"_blank\" rel=\"noopener noreferrer\">Cloudflare → Turnstile</a> for this domain (mode: Managed) and paste its keys. Leave both empty to turn the check off."
+msgstr ""
+
+#: includes/security/class-elab-security.php:187
+msgid "Site key"
+msgstr ""
+
+#: includes/security/class-elab-security.php:188
+msgid "Secret key"
+msgstr ""
+
+#: includes/security/class-elab-security.php:188
+msgid "Paste the secret key"
+msgstr ""
+
+#: includes/security/class-elab-security.php:189
+msgid "Remove saved keys"
+msgstr ""
+
+#: includes/security/class-elab-security.php:190
+msgid "Turnstile is on: bookings need a passed check."
+msgstr ""
+
+#: includes/security/class-elab-security.php:190
+msgid "Turnstile is off."
+msgstr ""
+
+#: includes/security/class-elab-security.php:192
+msgid "Visitor IP behind a proxy"
+msgstr ""
+
+#: includes/security/class-elab-security.php:193
+msgid "Booking limits count requests per visitor address. Behind a CDN or load balancer every request seems to come from the proxy, so tell the plugin which proxy to trust."
+msgstr ""
+
+#: includes/security/class-elab-security.php:195
+msgid "Requests arrive"
+msgstr ""
+
+#: includes/security/class-elab-security.php:196
+msgid "Directly (no proxy)"
+msgstr ""
+
+#: includes/security/class-elab-security.php:197
+msgid "Through Cloudflare (uses CF-Connecting-IP from Cloudflare addresses only)"
+msgstr ""
+
+#: includes/security/class-elab-security.php:198
+msgid "Through my own proxy or load balancer"
+msgstr ""
+
+#: includes/security/class-elab-security.php:200
+msgid "Trusted proxy addresses"
+msgstr ""
+
+#: includes/security/class-elab-security.php:200
+msgid "Only for “my own proxy”. One IP or CIDR range per line."
+msgstr ""
+
+#: includes/security/class-elab-security.php:201
+msgid "Header"
+msgstr ""
+
+#: includes/security/class-elab-security.php:202
+msgid "Your address as seen now"
+msgstr ""
+
+#: includes/security/class-elab-security.php:202
+#, php-format
+msgid "(connection from %s)"
+msgstr ""
+
+#: includes/security/class-elab-security.php:204
+msgid "Save security settings"
+msgstr ""
+
+#: includes/security/class-elab-security.php:212
+msgid "You cannot change security settings."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:27
+#: includes/system/class-elab-system-status.php:137
+msgid "System status"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:53
+msgid "HTTPS"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:53
+msgid "Site and admin use HTTPS."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:53
+msgid "Google sign-in and visitor data need HTTPS on the whole site."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:56
+msgid "Booking page"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:56
+#, php-format
+msgid "The calendar is published on “%s”."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:56
+msgid "No published page contains the [elaltillo_bookacall] shortcode yet."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:56
+msgid "View page"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:60
+#: includes/system/class-elab-system-status.php:62
+msgid "Visitor IP for rate limits"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:60
+msgid "This request came through a proxy or CDN, but the plugin is set to “directly”. All visitors may share one booking limit. Choose your proxy under Settings → Security."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:60
+msgid "Requests reach WordPress directly; limits use each visitor’s address."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:62
+#, php-format
+msgid "Trusting %1$s. Your address is detected as %2$s."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:62
+msgid "your proxy list"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:64
+msgid "Bot protection"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:64
+msgid "Cloudflare Turnstile checks every booking."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:64
+msgid "Turnstile is off: bots can create bookings and make Google send invitations from advisor accounts."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:67
+msgid "Scheduled tasks"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:67
+msgid "WP-Cron is disabled. Make sure a server cron job calls wp-cron.php, or retention clean-up will not run."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:67
+#, php-format
+msgid "Next retention clean-up: %s."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:67
+msgid "Retention clean-up will be scheduled on the next page load."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:72
+msgid "Mail delivery service"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:72
+msgid "A plugin customises how WordPress sends email."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:72
+msgid "WordPress uses the server’s default mail function, which often lands in spam. Use a transactional mail service before launch."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:74
+#, php-format
+msgid "Test sent to %1$s on %2$s. Check that it arrived in the inbox, not spam."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:74
+#, php-format
+msgid "The test to %1$s on %2$s could not be handed to the mailer."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:77
+msgid "No test email has been sent from this page yet."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:80
+msgid "Test email"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:80
+msgid "Send test email to me"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:82
+msgid "Booking emails"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:82
+#, php-format
+msgid "%d booking has an email that could not be sent."
+msgid_plural "%d or more bookings have emails that could not be sent."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/system/class-elab-system-status.php:82
+msgid "No failed booking emails recorded."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:82
+msgid "Open booking"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:86
+msgid "Client ID and encrypted Client Secret are saved."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:86
+msgid "Not configured: bookings stay as requests that you confirm by hand."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:89
+msgid "Redirect URI"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:89
+#, php-format
+msgid "%s is a local address; Google only accepts it for testing. Connect advisors on the production site."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:91
+msgid "Live connection test"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:91
+#, php-format
+msgid "%1$d of %2$d connected calendars answered on %3$s."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:91
+msgid "Asks Google for each connected advisor’s busy times, as a booking would."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:91
+msgid "Test Google now"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:100
+#, php-format
+msgid "Google test failed: %s"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:103
+msgid "Bookable."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:103
+msgid "Edit"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:106
+msgid "No advisor is bookable, so visitors see no times."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:111
+msgid "Private document storage"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:111
+msgid "Uploads are stored outside the public web folder."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:111
+msgid "No writable folder outside the web root. Visitors cannot attach files until ELAB_PRIVATE_UPLOAD_DIR is set."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:113
+msgid "Retention"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:113
+#, php-format
+msgid "Bookings are deleted %d month after the call."
+msgid_plural "Bookings are deleted %d months after the call."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/system/class-elab-system-status.php:113
+msgid "Bookings are kept forever. Set a retention period to comply with data minimisation."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:116
+msgid "Privacy policy page"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:116
+#, php-format
+msgid "“%s” is published. Add the booking section from Settings → Privacy → Policy guide."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:116
+msgid "No published privacy policy page is set."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:116
+msgid "Privacy settings"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:125
+msgid "Site"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:129
+msgid "Privacy and documents"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:131
+msgid "Ready"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:131
+msgid "Review"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:131
+msgid "Fix"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:131
+msgid "Optional"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:139
+msgid "Test email handed to the mailer. Check your inbox."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:139
+msgid "WordPress could not send the test email."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:139
+msgid "Google connection test finished."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:142
+msgid "Everything is ready for real bookings."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:142
+#, php-format
+msgid "%1$d to fix, %2$d to review before launch."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:163
+#: includes/system/class-elab-system-status.php:175
+msgid "You cannot run this test."
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:167
+msgid "Book a Call: test email"
+msgstr ""
+
+#: includes/system/class-elab-system-status.php:167
+msgid "This is a test from El Altillo Book a Call. If it reached your inbox, advisors and visitors will receive booking emails too."
+msgstr ""

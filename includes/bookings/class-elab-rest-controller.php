@@ -13,6 +13,15 @@ final class ELAB_REST_Controller {
 		$this->availability = new ELAB_Availability();
 		$this->booking_service = new ELAB_Booking_Service( new ELAB_Private_Attachments() );
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
+		add_filter( 'rest_post_dispatch', array( $this, 'no_store' ), 10, 3 );
+	}
+
+	/** Availability changes minute to minute and bookings carry personal data: never cache. */
+	public function no_store( $response, $server, $request ) {
+		if ( $response instanceof WP_HTTP_Response && 0 === strpos( $request->get_route(), '/elab/v1/' ) ) {
+			$response->header( 'Cache-Control', 'no-store, max-age=0' );
+		}
+		return $response;
 	}
 
 	public function register_routes() {

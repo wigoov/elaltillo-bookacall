@@ -36,6 +36,53 @@ final class ELAB_Private_Attachments {
 		return self::safe_dir();
 	}
 
+	/**
+	 * Malware check before a file is kept. Uses ClamAV when ELAB_CLAMD_SOCKET is defined
+	 * (a Unix socket path or host:port of clamd) and always lets other code decide through
+	 * the `elab_scan_attachment` filter (return true to accept, false or WP_Error to reject).
+	 * A configured scanner that cannot be reached rejects the file.
+	 *
+	 * @return true|WP_Error
+	 */
+	public static function scan( $path, $name ) {
+		$result = true;
+		if ( defined( 'ELAB_CLAMD_SOCKET' ) && ELAB_CLAMD_SOCKET ) {
+			$result = self::clamd_scan( $path, (string) ELAB_CLAMD_SOCKET );
+		}
+		$result = apply_filters( 'elab_scan_attachment', $result, $path, $name );
+		if ( true === $result ) {
+			return true;
+		}
+		return is_wp_error( $result ) ? $result : new WP_Error( 'file_rejected', __( 'One of the files could not be accepted. Please send a different file.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
+	}
+
+	private static function clamd_scan( $path, $socket ) {
+		$unavailable = new WP_Error( 'scan_unavailable', __( 'Documents cannot be checked right now. Please try again later or book without attachments.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
+		$target = 0 === strpos( $socket, '/' ) ? 'unix://' . $socket : 'tcp://' . $socket;
+		$stream = @stream_socket_client( $target, $errno, $error, 5 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Failure handled below.
+		$file = @fopen( $path, 'rb' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+		if ( ! $stream || ! $file ) {
+			return $unavailable;
+		}
+		stream_set_timeout( $stream, 30 );
+		fwrite( $stream, "zINSTREAM\0" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+		while ( ! feof( $file ) ) {
+			$chunk = fread( $file, 8192 ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread
+			if ( '' === $chunk || false === $chunk ) {
+				break;
+			}
+			fwrite( $stream, pack( 'N', strlen( $chunk ) ) . $chunk ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+		}
+		fwrite( $stream, pack( 'N', 0 ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+		$reply = trim( (string) stream_get_contents( $stream ), "\0\r\n " );
+		fclose( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+		fclose( $stream ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+		if ( preg_match( '/: OK$/', $reply ) ) {
+			return true;
+		}
+		return false !== strpos( $reply, 'FOUND' ) ? new WP_Error( 'file_infected', __( 'One of the files was flagged by our virus scanner and was not accepted.', 'elaltillo-bookacall' ), array( 'status' => 400 ) ) : $unavailable;
+	}
+
 	public function __construct() {
 		add_action( 'admin_post_elab_download', array( $this, 'download' ) );
 		add_action( 'before_delete_post', array( $this, 'delete_booking_files' ) );
@@ -69,6 +116,11 @@ final class ELAB_Private_Attachments {
 			if ( ! isset( $allowed[ $extension ] ) || empty( $detected['type'] ) || $detected['type'] !== $allowed[ $extension ] ) {
 				$this->remove_files( $dir, $files );
 				return new WP_Error( 'invalid_file_type', __( 'Only PDF, Word and Excel files are allowed.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
+			}
+			$scan = self::scan( $tmp, $name );
+			if ( true !== $scan ) {
+				$this->remove_files( $dir, $files );
+				return is_wp_error( $scan ) ? $scan : new WP_Error( 'file_rejected', __( 'One of the files could not be accepted. Please send a different file.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
 			}
 			$stored_name = wp_unique_filename( $dir, wp_generate_password( 20, false ) . '.' . $extension );
 			if ( ! move_uploaded_file( $tmp, trailingslashit( $dir ) . $stored_name ) ) {

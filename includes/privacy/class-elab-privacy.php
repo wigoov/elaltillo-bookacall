@@ -115,6 +115,7 @@ final class ELAB_Privacy {
 				__( 'Time zone', 'elaltillo-bookacall' ) => get_post_meta( $id, '_elab_visitor_timezone', true ),
 				__( 'Attachments', 'elaltillo-bookacall' ) => is_array( $files ) ? implode( ', ', wp_list_pluck( $files, 'name' ) ) : '',
 				__( 'Received', 'elaltillo-bookacall' ) => get_post_field( 'post_date_gmt', $id ),
+				__( 'Privacy consent (UTC)', 'elaltillo-bookacall' ) => get_post_meta( $id, '_elab_consent_at', true ),
 			);
 			$data = array();
 			foreach ( $fields as $name => $value ) {

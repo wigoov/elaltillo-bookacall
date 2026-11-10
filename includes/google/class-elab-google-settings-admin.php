@@ -86,6 +86,7 @@ final class ELAB_Google_Settings_Admin {
 					<table class="form-table" role="presentation"><tbody>
 						<tr><th scope="row"><label for="elab-google-client-id"><?php esc_html_e( 'Client ID', 'elaltillo-bookacall' ); ?></label></th><td><input id="elab-google-client-id" name="elab_google_client_id" type="password" class="regular-text" maxlength="512" autocomplete="new-password" placeholder="<?php echo esc_attr( $client_id_saved ? __( 'Saved; leave blank to keep it', 'elaltillo-bookacall' ) : __( 'Paste the Client ID', 'elaltillo-bookacall' ) ); ?>"><p class="description"><?php echo esc_html( $client_id_saved ? __( 'Client ID saved.', 'elaltillo-bookacall' ) : __( 'No Client ID saved yet.', 'elaltillo-bookacall' ) ); ?></p></td></tr>
 						<tr><th scope="row"><label for="elab-google-client-secret"><?php esc_html_e( 'Client Secret', 'elaltillo-bookacall' ); ?></label></th><td><input id="elab-google-client-secret" name="elab_google_client_secret" type="password" class="regular-text" maxlength="512" autocomplete="new-password" placeholder="<?php echo esc_attr( $secret_saved ? __( 'Saved; leave blank to keep it', 'elaltillo-bookacall' ) : __( 'Paste the Client Secret', 'elaltillo-bookacall' ) ); ?>"><p class="description"><?php echo esc_html( $secret_saved ? __( 'Client Secret encrypted and saved. It is never displayed again.', 'elaltillo-bookacall' ) : __( 'No Client Secret saved yet.', 'elaltillo-bookacall' ) ); ?></p></td></tr>
+						<tr><th scope="row"><?php esc_html_e( 'Video call', 'elaltillo-bookacall' ); ?></th><td><input type="hidden" name="elab_google_meet" value="0"><label><input type="checkbox" name="elab_google_meet" value="1" <?php checked( ELAB_Google_Calendar::meet_enabled() ); ?>> <?php esc_html_e( 'Add a Google Meet link to every confirmed call', 'elaltillo-bookacall' ); ?></label><p class="description"><?php esc_html_e( 'The link appears in the Google invitation, on the confirmation screen and in the visitor’s private booking page.', 'elaltillo-bookacall' ); ?></p></td></tr>
 					</tbody></table>
 					<?php submit_button( __( 'Save settings', 'elaltillo-bookacall' ) ); ?>
 				</form>
@@ -104,6 +105,7 @@ final class ELAB_Google_Settings_Admin {
 			wp_die( esc_html__( 'You cannot change Google Calendar settings.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
 		}
 		check_admin_referer( 'elab_save_google_settings' );
+		update_option( 'elab_google_meet', isset( $_POST['elab_google_meet'] ) && '1' === $_POST['elab_google_meet'] ? '1' : '0', false );
 		$submitted_id = isset( $_POST['elab_google_client_id'] ) && is_string( $_POST['elab_google_client_id'] ) ? sanitize_text_field( wp_unslash( $_POST['elab_google_client_id'] ) ) : '';
 		$submitted_secret = isset( $_POST['elab_google_client_secret'] ) && is_string( $_POST['elab_google_client_secret'] ) ? sanitize_text_field( wp_unslash( $_POST['elab_google_client_secret'] ) ) : '';
 		$current_id = ELAB_Google_Calendar::client_id();

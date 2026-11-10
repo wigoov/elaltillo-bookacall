@@ -41,7 +41,7 @@ $elab_step_dot = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full
 		<h2 id="<?php echo esc_attr( $elab_uid ); ?>-time" class="sr-only" tabindex="-1"><?php esc_html_e( 'Choose a time', 'elaltillo-bookacall' ); ?></h2>
 		<div class="grid content-start gap-6 p-5 sm:p-8 md:border-r md:border-secondary/10">
 			<div class="flex items-center justify-between gap-4">
-				<p data-elab-month class="translate-y-[0.1em] whitespace-nowrap font-primary text-2xl leading-none capitalize lg:text-3xl" aria-live="polite">&nbsp;</p>
+				<p data-elab-month class="translate-y-[0.1em] whitespace-nowrap font-primary text-2xl leading-none first-letter:uppercase" aria-live="polite">&nbsp;</p>
 				<div class="flex gap-2">
 					<button type="button" data-elab-prev class="<?php echo esc_attr( $elab_nav ); ?>"><span aria-hidden="true">←</span><span class="sr-only"><?php esc_html_e( 'Previous month', 'elaltillo-bookacall' ); ?></span></button>
 					<button type="button" data-elab-next class="<?php echo esc_attr( $elab_nav ); ?>"><span aria-hidden="true">→</span><span class="sr-only"><?php esc_html_e( 'Next month', 'elaltillo-bookacall' ); ?></span></button>
@@ -126,6 +126,19 @@ $elab_step_dot = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full
 				<span data-elab-files class="font-primary text-sm text-secondary/70"><?php esc_html_e( 'PDF, Word or Excel · up to 3 files, 10 MB each', 'elaltillo-bookacall' ); ?></span>
 				<input type="file" name="attachments[]" accept=".pdf,.doc,.docx,.xls,.xlsx" multiple class="sr-only">
 			</label>
+			<label class="flex cursor-pointer items-start gap-3 font-secondary text-xs leading-relaxed text-secondary/70">
+				<input type="checkbox" name="consent" value="1" required class="peer sr-only">
+				<span aria-hidden="true" class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-secondary/40 bg-white/70 text-[0.7rem] text-transparent transition-[background-color,border-color,color] duration-200 peer-checked:border-secondary peer-checked:bg-secondary peer-checked:text-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-secondary">✓</span>
+				<span><?php
+				$elab_policy = get_privacy_policy_url();
+				if ( $elab_policy ) {
+					echo wp_kses( sprintf( __( 'I agree that my details are used to arrange this call, as described in the <a href="%s" target="_blank" rel="noopener noreferrer" class="underline decoration-secondary/40 underline-offset-2 hover:decoration-secondary">privacy policy</a>.', 'elaltillo-bookacall' ), esc_url( $elab_policy ) ), array( 'a' => array( 'href' => true, 'target' => true, 'rel' => true, 'class' => true ) ) );
+				} else {
+					esc_html_e( 'I agree that my details are used to arrange this call.', 'elaltillo-bookacall' );
+				}
+				?></span>
+			</label>
+			<div data-elab-turnstile class="empty:hidden"></div>
 			<p data-elab-error role="alert" hidden class="rounded-xl bg-secondary px-4 py-3 font-secondary text-sm text-primary"></p>
 			<div class="flex flex-wrap items-center gap-4 pt-1">
 				<button type="submit" class="<?php echo esc_attr( $elab_primary ); ?>"><?php echo esc_html( $confirm_mode ? __( 'Confirm call', 'elaltillo-bookacall' ) : __( 'Request call', 'elaltillo-bookacall' ) ); ?></button>
@@ -143,7 +156,10 @@ $elab_step_dot = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full
 		</div>
 		<p data-elab-done-message class="max-w-md font-primary text-base text-secondary/80"></p>
 		<div data-elab-calendar-actions class="flex flex-wrap justify-center gap-3 font-secondary text-sm empty:hidden"></div>
-		<button type="button" data-elab-again class="<?php echo esc_attr( $elab_link ); ?>"><?php esc_html_e( 'Book another call', 'elaltillo-bookacall' ); ?></button>
+		<div class="flex flex-wrap justify-center gap-x-6 gap-y-3">
+			<a data-elab-manage hidden href="#" class="<?php echo esc_attr( $elab_link ); ?>"><?php esc_html_e( 'Need to cancel? Manage your booking', 'elaltillo-bookacall' ); ?></a>
+			<button type="button" data-elab-again class="<?php echo esc_attr( $elab_link ); ?>"><?php esc_html_e( 'Book another call', 'elaltillo-bookacall' ); ?></button>
+		</div>
 	</section>
 	</div>
 <?php endif; ?>

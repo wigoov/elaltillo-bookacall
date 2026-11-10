@@ -49,6 +49,9 @@ final class ELAB_Booking_Admin {
 			__( 'Sector', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_sector', true ) ?: '—',
 			__( 'Message', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_message', true ) ?: '—',
 			__( 'Received', 'elaltillo-bookacall' ) => get_the_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $post ),
+			__( 'Video call', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_meet_url', true ) ?: '—',
+			__( 'Cancelled', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_cancelled_at', true ) ? sprintf( 'visitor' === get_post_meta( $post->ID, '_elab_cancelled_by', true ) ? __( 'By the visitor, %s UTC', 'elaltillo-bookacall' ) : __( 'By an administrator, %s UTC', 'elaltillo-bookacall' ), get_post_meta( $post->ID, '_elab_cancelled_at', true ) ) : '—',
+			__( 'Privacy consent', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_consent_at', true ) ? sprintf( __( 'Accepted %s UTC', 'elaltillo-bookacall' ), get_post_meta( $post->ID, '_elab_consent_at', true ) ) : '—',
 		);
 		echo '<dl class="elab-booking-details">';
 		foreach ( $fields as $label => $value ) {
@@ -121,6 +124,10 @@ final class ELAB_Booking_Admin {
 				return;
 			}
 			update_post_meta( $post_id, '_elab_status', $status );
+			if ( 'cancelled' === $status && 'cancelled' !== $current ) {
+				update_post_meta( $post_id, '_elab_cancelled_by', 'admin' );
+				update_post_meta( $post_id, '_elab_cancelled_at', gmdate( 'Y-m-d H:i:s' ) );
+			}
 			if ( $status !== $current ) {
 				ELAB_Notifications::booking_notice( $post_id, $status );
 				if ( ! $event_id && in_array( $status, array( 'confirmed', 'cancelled' ), true ) ) {

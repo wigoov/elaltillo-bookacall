@@ -1,6 +1,6 @@
 @import "tailwindcss/theme";
 @import "tailwindcss/utilities" source(none);
-@source "../../includes/frontend/templates/booking-form.php";
+@source "../../includes/frontend/templates/*.php";
 @source "../js/booking.js";
 
 @theme {

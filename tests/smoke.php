@@ -20,6 +20,8 @@ if ( false !== $saved_id || false !== $saved_secret ) {
 $saved_globals = get_option( ELAB_Blackouts::OPTION, false );
 $saved_defaults = get_option( ELAB_Booking_Defaults::OPTION, false );
 $saved_retention = get_option( ELAB_Privacy::OPTION_RETENTION, false );
+$saved_security = get_option( ELAB_Security::OPTION, false );
+$event_path = '';
 $original_user = get_current_user_id();
 $original_post = $_POST;
 $original_ip = $_SERVER['REMOTE_ADDR'] ?? null;
@@ -36,7 +38,7 @@ $email_filter = static function ( $preempt, $mail ) use ( &$mail_log ) {
 	$mail_log[] = $mail;
 	return true;
 };
-$http_filter = static function ( $preempt, $args, $url ) use ( &$http_calls, &$event_body, &$busy_periods ) {
+$http_filter = static function ( $preempt, $args, $url ) use ( &$http_calls, &$event_body, &$busy_periods, &$event_path ) {
 	$http_calls[] = $url;
 	$data = array();
 	$code = 200;
@@ -46,9 +48,16 @@ $http_filter = static function ( $preempt, $args, $url ) use ( &$http_calls, &$e
 		$data = array( 'sub' => 'smoke-sub', 'email' => 'advisor@example.test', 'email_verified' => true );
 	} elseif ( false !== strpos( $url, '/freeBusy' ) ) {
 		$data = array( 'calendars' => array( 'primary' => array( 'busy' => $busy_periods ) ) );
+	} elseif ( false !== strpos( $url, 'challenges.cloudflare.com/turnstile' ) ) {
+		$good = isset( $args['body']['response'] ) && 'smoke-good-token' === $args['body']['response'] && 'smoke-turnstile-secret' === $args['body']['secret'];
+		$data = array( 'success' => $good, 'hostname' => wp_parse_url( home_url(), PHP_URL_HOST ) );
 	} elseif ( false !== strpos( $url, '/events?sendUpdates=all' ) ) {
 		$event_body = json_decode( $args['body'], true );
+		$event_path = $url;
 		$data = array( 'id' => $event_body['id'], 'iCalUID' => 'smoke-event@example.test', 'htmlLink' => 'https://calendar.google.com/calendar/event?eid=smoke' );
+		if ( ! empty( $event_body['conferenceData']['createRequest'] ) ) {
+			$data['hangoutLink'] = 'https://meet.google.com/smk-test-call';
+		}
 	} elseif ( false !== strpos( $url, '/events/' ) && 'DELETE' === $args['method'] ) {
 		$code = 204;
 	} elseif ( false !== strpos( $url, '/events/' ) ) {
@@ -61,7 +70,7 @@ $http_filter = static function ( $preempt, $args, $url ) use ( &$http_calls, &$e
 	return array( 'response' => array( 'code' => $code, 'message' => 'OK' ), 'body' => wp_json_encode( $data ), 'headers' => array(), 'cookies' => array() );
 };
 
-$cleanup = static function () use ( &$created, &$created_user, &$advisor_id, &$second_id, $saved_globals, $saved_defaults, $saved_retention, $original_post, $original_ip, $original_user, $email_filter, $http_filter ) {
+$cleanup = static function () use ( &$created, &$created_user, &$advisor_id, &$second_id, $saved_globals, $saved_defaults, $saved_retention, $saved_security, $original_post, $original_ip, $original_user, $email_filter, $http_filter ) {
 	foreach ( array_filter( array( $advisor_id, $second_id ) ) as $owner ) {
 		$linked = get_posts( array( 'post_type' => ELAB_Post_Types::BOOKING, 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids', 'meta_key' => '_elab_advisor', 'meta_value' => $owner ) );
 		$created = array_merge( $created, $linked );
@@ -80,6 +89,7 @@ $cleanup = static function () use ( &$created, &$created_user, &$advisor_id, &$s
 	}
 	if ( false === $saved_globals ) { delete_option( ELAB_Blackouts::OPTION ); } else { update_option( ELAB_Blackouts::OPTION, $saved_globals ); }
 	if ( false === $saved_defaults ) { delete_option( ELAB_Booking_Defaults::OPTION ); } else { update_option( ELAB_Booking_Defaults::OPTION, $saved_defaults ); }
+	if ( false === $saved_security ) { delete_option( ELAB_Security::OPTION ); } else { update_option( ELAB_Security::OPTION, $saved_security ); }
 	if ( false === $saved_retention ) { delete_option( ELAB_Privacy::OPTION_RETENTION ); } else { update_option( ELAB_Privacy::OPTION_RETENTION, $saved_retention ); }
 	$_POST = $original_post;
 	if ( null === $original_ip ) { unset( $_SERVER['REMOTE_ADDR'] ); } else { $_SERVER['REMOTE_ADDR'] = $original_ip; }
@@ -171,7 +181,7 @@ try {
 	$booking_request = static function ( $start, $name, $advisor = null ) use ( &$advisor_id, $visitor_email ) {
 		$request = new WP_REST_Request( 'POST', '/elab/v1/bookings' );
 		$email = str_replace( '@', '+' . strtolower( wp_generate_password( 6, false, false ) ) . '@', $visitor_email );
-		$request->set_body_params( array( 'advisor' => null === $advisor ? $advisor_id : $advisor, 'start' => $start, 'name' => $name, 'email' => $email, 'sector' => 'Private sector', 'timezone' => 'America/Bogota', 'message' => 'Private message', 'website' => '' ) );
+		$request->set_body_params( array( 'advisor' => null === $advisor ? $advisor_id : $advisor, 'start' => $start, 'name' => $name, 'email' => $email, 'sector' => 'Private sector', 'timezone' => 'America/Bogota', 'message' => 'Private message', 'website' => '', 'consent' => '1' ) );
 		return rest_do_request( $request );
 	};
 	$slot_values = static function () use ( $slots_request ) {
@@ -183,10 +193,21 @@ try {
 	$manual_id = (int) $manual_ids[0];
 	$created[] = $manual_id;
 	elab_smoke_assert( 'pending' === get_post_meta( $manual_id, '_elab_status', true ), 'Manual request is private and pending' );
+	elab_smoke_assert( (bool) get_post_meta( $manual_id, '_elab_consent_at', true ), 'Booking records when privacy consent was given' );
+	$no_consent = new WP_REST_Request( 'POST', '/elab/v1/bookings' );
+	$no_consent->set_body_params( array( 'advisor' => $advisor_id, 'start' => $slots[3]['value'], 'name' => 'No consent', 'email' => 'consent-' . $visitor_email, 'timezone' => 'America/Bogota' ) );
+	elab_smoke_assert( 400 === rest_do_request( $no_consent )->get_status(), 'Bookings without privacy consent are rejected' );
+	$manage_url = ELAB_Booking_Manage::url( $manual_id );
+	parse_str( (string) wp_parse_url( $manage_url, PHP_URL_QUERY ), $manage_args );
+	elab_smoke_assert( ! empty( $manage_args['elab_token'] ) && ELAB_Booking_Manage::verify( $manual_id, $manage_args['elab_token'] ) && ! ELAB_Booking_Manage::verify( $manual_id, 'wrong-token' ) && ! ELAB_Booking_Manage::verify( $manual_id + 1, $manage_args['elab_token'] ), 'Private booking links verify only their own token' );
+	$visitor_mails = array_filter( $mail_log, static function ( $mail ) use ( $visitor_email ) { return false !== strpos( (string) ( is_array( $mail['to'] ) ? implode( ',', $mail['to'] ) : $mail['to'] ), 'visitor+' ) && false !== strpos( $mail['message'], 'elab_token=' ); } );
+	elab_smoke_assert( (bool) $visitor_mails, 'The visitor receives a booking email with a private cancel link' );
+	$no_store = apply_filters( 'rest_post_dispatch', new WP_REST_Response( array() ), rest_get_server(), $slots_request );
+	elab_smoke_assert( 'no-store, max-age=0' === ( $no_store->get_headers()['Cache-Control'] ?? '' ), 'Availability responses are never cached' );
 	elab_smoke_assert( 30 === (int) get_post_meta( $manual_id, '_elab_duration', true ), 'Booking stores its own call length' );
 	elab_smoke_assert( ELAB_Booking_Service::DEFAULT_LANGUAGE === get_post_meta( $manual_id, '_elab_language', true ) && 'es' === ELAB_Booking_Service::DEFAULT_LANGUAGE, 'Meeting language defaults to Spanish' );
 	$bad_language = new WP_REST_Request( 'POST', '/elab/v1/bookings' );
-	$bad_language->set_body_params( array( 'advisor' => $advisor_id, 'start' => $slots[2]['value'], 'name' => 'Language visitor', 'email' => 'lang-' . $visitor_email, 'timezone' => 'America/Bogota', 'language' => 'xx' ) );
+	$bad_language->set_body_params( array( 'advisor' => $advisor_id, 'start' => $slots[2]['value'], 'name' => 'Language visitor', 'email' => 'lang-' . $visitor_email, 'timezone' => 'America/Bogota', 'language' => 'xx', 'consent' => '1' ) );
 	elab_smoke_assert( 400 === rest_do_request( $bad_language )->get_status(), 'Unknown meeting languages are rejected' );
 	elab_smoke_assert( ! in_array( $slots[0]['value'], $slot_values(), true ), 'A booked time is no longer offered' );
 	elab_smoke_assert( 409 === $booking_request( $slots[0]['value'], 'Double booking' )->get_status(), 'The same time cannot be booked twice' );
@@ -268,6 +289,7 @@ try {
 	$created[] = $google_id;
 	elab_smoke_assert( 'confirmed' === get_post_meta( $google_id, '_elab_status', true ) && get_post_meta( $google_id, ELAB_Google_Calendar::META_EVENT, true ), 'Private booking stores the confirmed Google event ID' );
 	elab_smoke_assert( 'private' === $event_body['visibility'] && 'Private call' === $event_body['summary'] && ! isset( $event_body['description'] ) && ! isset( $event_body['attendees'][0]['displayName'] ), 'Calendar event excludes private booking details' );
+	elab_smoke_assert( false !== strpos( $event_path, 'conferenceDataVersion=1' ) && 'hangoutsMeet' === $event_body['conferenceData']['createRequest']['conferenceSolutionKey']['type'] && 'https://meet.google.com/smk-test-call' === get_post_meta( $google_id, '_elab_meet_url', true ), 'Confirmed calls get a Google Meet link' );
 	$_POST = array( 'elab_booking_nonce' => wp_create_nonce( 'elab_booking_meta' ), 'elab_status' => 'cancelled' );
 	( new ELAB_Booking_Admin() )->save( $google_id );
 	elab_smoke_assert( 'cancelled' === get_post_meta( $google_id, '_elab_status', true ) && ! get_post_meta( $google_id, ELAB_Google_Calendar::META_EVENT, true ), 'Cancellation removes the Google event and releases the booking' );
@@ -295,6 +317,12 @@ try {
 	sort( $assigned );
 	elab_smoke_assert( 201 === $first_auto->get_status() && 201 === $second_auto->get_status() && array( 'Smoke advisor', 'Smoke advisor two' ) === $assigned, 'First available assigns each advisor once on a shared time' );
 	elab_smoke_assert( 409 === $third_auto->get_status(), 'A shared time closes once every advisor is booked' );
+	$auto_ids = get_posts( array( 'post_type' => ELAB_Post_Types::BOOKING, 'post_status' => 'private', 'numberposts' => 1, 'fields' => 'ids', 'meta_key' => '_elab_name', 'meta_value' => 'Auto one' ) );
+	$auto_id = (int) $auto_ids[0];
+	$deletes_before = count( array_filter( $http_calls, static function ( $url ) { return false !== strpos( $url, '/events/' ); } ) );
+	elab_smoke_assert( ELAB_Booking_Manage::can_cancel( $auto_id ) && true === ELAB_Booking_Manage::cancel( $auto_id, 'visitor' ), 'A visitor can cancel an upcoming call from the private link' );
+	elab_smoke_assert( 'cancelled' === get_post_meta( $auto_id, '_elab_status', true ) && 'visitor' === get_post_meta( $auto_id, '_elab_cancelled_by', true ) && ! get_post_meta( $auto_id, ELAB_Google_Calendar::META_EVENT, true ) && count( array_filter( $http_calls, static function ( $url ) { return false !== strpos( $url, '/events/' ); } ) ) > $deletes_before, 'Visitor cancellation removes the Google event and records who cancelled' );
+	elab_smoke_assert( ! ELAB_Booking_Manage::can_cancel( $auto_id ) && is_wp_error( ELAB_Booking_Manage::cancel( $auto_id ) ), 'A cancelled call cannot be cancelled twice' );
 	update_post_meta( $second_id, '_elab_wp_user', $created_user );
 	elab_smoke_assert( false !== strpos( ELAB_Advisor_Admin::account_problem( $created_user, $advisor_id ), 'Smoke advisor two' ), 'An account linked to one advisor cannot be linked to another' );
 	delete_post_meta( $second_id, '_elab_wp_user' );
@@ -384,6 +412,31 @@ try {
 	elab_smoke_assert( ! array_diff( array( 'site', 'email', 'google', 'advisors', 'privacy' ), $sections ) && ! array_diff( array_unique( array_column( $status_checks, 2 ) ), array( 'ok', 'warn', 'error', 'info' ) ), 'System status covers site, email, Google, advisors and privacy' );
 	$advisor_rows = array_filter( $status_checks, static function ( $check ) { return 'advisors' === $check[0] && 'Smoke advisor' === $check[1]; } );
 	elab_smoke_assert( 1 === count( $advisor_rows ), 'System status lists each advisor' );
+
+	$scan_reject = static function () { return false; };
+	add_filter( 'elab_scan_attachment', $scan_reject );
+	$scan = ELAB_Private_Attachments::scan( __FILE__, 'smoke.pdf' );
+	remove_filter( 'elab_scan_attachment', $scan_reject );
+	elab_smoke_assert( is_wp_error( $scan ) && true === ELAB_Private_Attachments::scan( __FILE__, 'smoke.pdf' ), 'Attachment scanners can reject files through elab_scan_attachment' );
+
+	update_option( ELAB_Security::OPTION, array( 'proxy' => 'direct' ) );
+	elab_smoke_assert( '203.0.113.9' === ELAB_Security::visitor_ip( array( 'REMOTE_ADDR' => '203.0.113.9', 'HTTP_X_FORWARDED_FOR' => '1.1.1.1', 'HTTP_CF_CONNECTING_IP' => '1.1.1.1' ) ), 'Direct mode ignores forwarded headers' );
+	update_option( ELAB_Security::OPTION, array( 'proxy' => 'cloudflare' ) );
+	elab_smoke_assert( '198.51.100.4' === ELAB_Security::visitor_ip( array( 'REMOTE_ADDR' => '173.245.48.10', 'HTTP_CF_CONNECTING_IP' => '198.51.100.4' ) ) && '203.0.113.9' === ELAB_Security::visitor_ip( array( 'REMOTE_ADDR' => '203.0.113.9', 'HTTP_CF_CONNECTING_IP' => '198.51.100.4' ) ), 'Cloudflare mode trusts CF-Connecting-IP only from Cloudflare addresses' );
+	elab_smoke_assert( ELAB_Security::ip_in_range( '2606:4700::1111', '2606:4700::/32' ) && ! ELAB_Security::ip_in_range( '2001:db8::1', '2606:4700::/32' ), 'IPv6 ranges are matched correctly' );
+	update_option( ELAB_Security::OPTION, array( 'proxy' => 'custom', 'proxy_ips' => array( '10.0.0.0/8' ), 'header' => 'HTTP_X_FORWARDED_FOR' ) );
+	elab_smoke_assert( '198.51.100.7' === ELAB_Security::visitor_ip( array( 'REMOTE_ADDR' => '10.0.0.1', 'HTTP_X_FORWARDED_FOR' => '198.51.100.7, 10.0.0.2' ) ) && '198.51.100.8' === ELAB_Security::visitor_ip( array( 'REMOTE_ADDR' => '10.0.0.1', 'HTTP_X_FORWARDED_FOR' => '6.6.6.6, 198.51.100.8' ) ), 'A spoofed X-Forwarded-For cannot replace the address the proxy saw' );
+	update_option( ELAB_Security::OPTION, array( 'proxy' => 'direct', 'site_key' => 'smoke-site-key', 'secret' => ELAB_Google_Calendar::encrypt( 'smoke-turnstile-secret' ) ) );
+	$_SERVER['REMOTE_ADDR'] = '127.' . random_int( 1, 254 ) . '.' . random_int( 1, 254 ) . '.' . random_int( 1, 254 );
+	$human = new WP_REST_Request( 'POST', '/elab/v1/bookings' );
+	elab_smoke_assert( is_wp_error( ELAB_Booking_Guard::submission( $human ) ), 'With Turnstile on, a booking without a token is rejected' );
+	$human->set_param( 'cf-turnstile-response', 'smoke-bad-token' );
+	elab_smoke_assert( is_wp_error( ELAB_Booking_Guard::submission( $human ) ), 'A failed Turnstile check is rejected' );
+	$human->set_param( 'cf-turnstile-response', 'smoke-good-token' );
+	elab_smoke_assert( true === ELAB_Booking_Guard::submission( $human ), 'A passed Turnstile check is accepted' );
+	$bot_rows = array_filter( ELAB_System_Status::checks(), static function ( $check ) { return 'Bot protection' === $check[1]; } );
+	elab_smoke_assert( 'ok' === reset( $bot_rows )[2], 'System status reports Turnstile as on' );
+	update_option( ELAB_Security::OPTION, array( 'proxy' => 'direct' ) );
 
 	$bot = new WP_REST_Request( 'POST', '/elab/v1/bookings' );
 	$bot->set_body_params( array( 'website' => 'spam' ) );

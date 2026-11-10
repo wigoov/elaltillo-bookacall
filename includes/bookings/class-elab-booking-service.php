@@ -48,6 +48,9 @@ final class ELAB_Booking_Service {
 		$sector = sanitize_text_field( (string) $request->get_param( 'sector' ) );
 		$timezone = sanitize_text_field( (string) $request->get_param( 'timezone' ) );
 		$message = sanitize_textarea_field( (string) $request->get_param( 'message' ) );
+		if ( '1' !== (string) $request->get_param( 'consent' ) ) {
+			return new WP_Error( 'consent_required', __( 'Please accept the privacy policy to book a call.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
+		}
 		$language = sanitize_key( (string) ( $request->get_param( 'language' ) ?? self::DEFAULT_LANGUAGE ) );
 		if ( ! array_key_exists( $language, self::languages() ) ) {
 			return new WP_Error( 'invalid_booking', __( 'Please choose a meeting language.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
@@ -103,7 +106,7 @@ final class ELAB_Booking_Service {
 				if ( ! $available ) {
 					continue;
 				}
-				$result = $this->save( $candidate, $start_utc, compact( 'name', 'email', 'sector', 'timezone', 'message', 'language', 'files' ) );
+				$result = $this->save( $candidate, $start_utc, array_merge( compact( 'name', 'email', 'sector', 'timezone', 'message', 'language', 'files' ), array( 'page' => absint( $request->get_param( 'page' ) ) ) ) );
 				if ( is_wp_error( $result ) ) {
 					$last_error = $result;
 					continue;
@@ -159,11 +162,18 @@ final class ELAB_Booking_Service {
 			'_elab_visitor_timezone' => $visitor['timezone'],
 			'_elab_message'          => $visitor['message'],
 			'_elab_language'         => $visitor['language'],
+			'_elab_consent_at'       => gmdate( 'Y-m-d H:i:s' ),
+			'_elab_consent_policy'   => esc_url_raw( get_privacy_policy_url() ),
 			'_elab_files'            => $visitor['files'],
 		);
 		foreach ( $values as $key => $value ) {
 			update_post_meta( $booking_id, $key, $value );
 		}
+		$page = absint( $visitor['page'] ?? 0 );
+		if ( $page && 'publish' === get_post_status( $page ) && has_shortcode( (string) get_post_field( 'post_content', $page ), 'elaltillo_bookacall' ) ) {
+			update_post_meta( $booking_id, ELAB_Booking_Manage::META_PAGE, $page );
+		}
+		ELAB_Booking_Manage::issue_token( $booking_id );
 		$summary = array(
 			'advisor'  => get_the_title( $advisor_id ),
 			'start'    => $start_utc->format( 'Y-m-d\TH:i:s\Z' ),
@@ -181,10 +191,13 @@ final class ELAB_Booking_Service {
 			}
 			update_post_meta( $booking_id, '_elab_status', 'confirmed' );
 			ELAB_Notifications::booking_notice( $booking_id, 'confirmed' );
+			ELAB_Notifications::visitor_booked( $booking_id );
 			return new WP_REST_Response( array(
 				'status'   => 'confirmed',
 				'message'  => __( 'A Google Calendar invitation is on its way to your email.', 'elaltillo-bookacall' ),
 				'booking'  => $summary,
+				'manage'   => ELAB_Booking_Manage::url( $booking_id ),
+				'meet'     => (string) get_post_meta( $booking_id, '_elab_meet_url', true ),
 				'calendar' => array(
 					'title' => sprintf( __( 'Call with %s', 'elaltillo-bookacall' ), $summary['advisor'] ),
 					'start' => $summary['start'],
@@ -195,10 +208,12 @@ final class ELAB_Booking_Service {
 			), 201 );
 		}
 		ELAB_Notifications::booking_notice( $booking_id, 'pending' );
+		ELAB_Notifications::visitor_booked( $booking_id );
 		return new WP_REST_Response( array(
 			'status'  => 'pending',
 			'message' => __( 'We will confirm this time by email shortly.', 'elaltillo-bookacall' ),
 			'booking' => $summary,
+			'manage'  => ELAB_Booking_Manage::url( $booking_id ),
 		), 201 );
 	}
 }

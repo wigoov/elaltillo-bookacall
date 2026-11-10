@@ -15,7 +15,19 @@ final class ELAB_Booking_Guard {
 			return $limited;
 		}
 		$email = sanitize_email( (string) $request->get_param( 'email' ) );
-		return $email ? self::limit( 'booking_email', strtolower( $email ), 5, HOUR_IN_SECONDS ) : true;
+		if ( $email ) {
+			$limited = self::limit( 'booking_email', strtolower( $email ), 5, HOUR_IN_SECONDS );
+			if ( is_wp_error( $limited ) ) {
+				return $limited;
+			}
+		}
+		// Checked after the cheap limits so floods cannot make the site call Cloudflare.
+		return ELAB_Security::verify_turnstile( $request->get_param( 'cf-turnstile-response' ) );
+	}
+
+	/** Attempts to cancel through private links, per visitor address. */
+	public static function cancellation() {
+		return self::limit( 'cancel_ip', self::visitor_ip(), 20, HOUR_IN_SECONDS );
 	}
 
 	public static function slots() {
@@ -23,8 +35,7 @@ final class ELAB_Booking_Guard {
 	}
 
 	private static function visitor_ip() {
-		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : '';
-		return filter_var( $ip, FILTER_VALIDATE_IP ) ? $ip : 'unknown';
+		return ELAB_Security::visitor_ip();
 	}
 
 	private static function limit( $kind, $identity, $maximum, $window ) {

@@ -101,6 +101,11 @@ function todayIn(timezone) {
 	return `${get('year')}-${get('month')}-${get('day')}`;
 }
 
+// Turnstile calls this when its script has loaded; widgets requested earlier render now.
+window.elabTurnstileReady = () => {
+	(window.elabTurnstileQueue || []).splice(0).forEach((render) => render());
+};
+
 export function initElabBookingForms() {
 	const config = window.elabBooking;
 	if (!config) return;
@@ -157,7 +162,25 @@ function createCalendar(root, config) {
 		doneMessage: $('[data-elab-done-message]'),
 		calendarActions: $('[data-elab-calendar-actions]'),
 		again: $('[data-elab-again]'),
+		turnstile: $('[data-elab-turnstile]'),
+		manage: $('[data-elab-manage]'),
 	};
+	let turnstileWidget = null;
+
+	/** Render the Turnstile check once, when the details step is first shown. */
+	function renderTurnstile() {
+		if (!config.turnstile || turnstileWidget !== null || !ui.turnstile) return;
+		const render = () => {
+			if (turnstileWidget !== null || !window.turnstile) return;
+			turnstileWidget = window.turnstile.render(ui.turnstile, { sitekey: config.turnstile, action: 'booking', theme: 'light', appearance: 'interaction-only', 'response-field-name': 'cf-turnstile-response' });
+		};
+		if (window.turnstile) render();
+		else (window.elabTurnstileQueue = window.elabTurnstileQueue || []).push(render);
+	}
+
+	function resetTurnstile() {
+		if (turnstileWidget !== null && window.turnstile) window.turnstile.reset(turnstileWidget);
+	}
 	const filesHint = ui.files.textContent;
 	const pickTime = ui.choiceWhen.textContent;
 	const state = {
@@ -182,14 +205,21 @@ function createCalendar(root, config) {
 	const dateFormat = (options) => new Intl.DateTimeFormat(locale, { timeZone: 'UTC', ...options });
 	const longDate = (date) => dateFormat({ weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${date}T12:00:00Z`));
 	const shortDate = (date) => dateFormat({ weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(`${date}T12:00:00Z`));
-	const timeLabel = (iso) => new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', timeZone: state.timezone }).format(new Date(iso));
+	// Compact day period so "4:00 a. m." (es) fits the time buttons as "4:00 am"; 24-hour locales are untouched.
+	const timeLabel = (iso) => new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit', timeZone: state.timezone })
+		.formatToParts(new Date(iso))
+		.map((part) => (part.type === 'dayPeriod' ? part.value.replace(/[.\s\u00a0\u202f]/g, '') : part.value))
+		.join('')
+		.replace(/[\s\u00a0\u202f]+$/, '')
+		.replace(/[\u00a0\u202f]/g, ' ');
 	const hourOf = (iso) => parseInt(new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: state.timezone }).format(new Date(iso)), 10);
 	const periodOf = (iso) => { const hour = hourOf(iso); return hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'; };
 	const tzName = () => state.timezone.replace(/_/g, ' ');
 	const announce = (text) => { ui.live.textContent = text; };
 
 	async function api(path, options = {}) {
-		const response = await fetch(`${config.api}${path}`, { credentials: 'same-origin', ...options, headers: { 'X-WP-Nonce': config.nonce, ...(options.headers || {}) } });
+		// Anonymous on purpose: no cookies and no nonce, so cached pages never hold stale auth.
+		const response = await fetch(`${config.api}${path}`, { credentials: 'omit', ...options });
 		let data = null;
 		try {
 			data = await response.json();
@@ -708,15 +738,26 @@ function createCalendar(root, config) {
 		play(ui.error, [{ opacity: 0, transform: 'translateY(-4px)' }, { opacity: 1, transform: 'none' }], { duration: 220 });
 	}
 
-	function showCalendarChoices(calendar) {
+	function showCalendarChoices(calendar, meet, manage) {
 		ui.calendarActions.replaceChildren();
+		ui.manage.hidden = !(manage && /^https?:\/\//.test(manage));
+		if (!ui.manage.hidden) ui.manage.href = manage;
+		if (meet && /^https:\/\/meet\.google\.com\//.test(meet)) {
+			const join = document.createElement('a');
+			join.href = meet;
+			join.target = '_blank';
+			join.rel = 'noopener noreferrer';
+			join.className = ACTION_PRIMARY;
+			join.textContent = t('joinMeet');
+			ui.calendarActions.appendChild(join);
+		}
 		if (!calendar) return;
 		if (calendar.url && /^https:\/\/(www\.)?(calendar\.)?google\.com\//.test(calendar.url)) {
 			const google = document.createElement('a');
 			google.href = calendar.url;
 			google.target = '_blank';
 			google.rel = 'noopener noreferrer';
-			google.className = ACTION_PRIMARY;
+			google.className = meet ? ACTION_SECONDARY : ACTION_PRIMARY;
 			google.textContent = t('addGoogle');
 			ui.calendarActions.appendChild(google);
 		}
@@ -741,9 +782,14 @@ function createCalendar(root, config) {
 			return;
 		}
 		const data = new FormData(ui.form);
+		if (config.turnstile && !data.get('cf-turnstile-response')) {
+			showError(t('botCheck'));
+			return;
+		}
 		data.set('start', state.slot.value);
 		data.set('timezone', state.timezone);
 		data.set('advisor', state.advisor);
+		data.set('page', String(config.page || ''));
 		ui.submit.disabled = true;
 		const label = ui.submit.textContent;
 		ui.submit.textContent = t('sending');
@@ -755,7 +801,7 @@ function createCalendar(root, config) {
 			ui.doneWhen.textContent = `${longDate(state.date)} · ${timeLabel(state.slot.value)}`;
 			ui.doneMeta.textContent = [booking.advisor ? t('withAdvisor', booking.advisor) : '', booking.language, tzName()].filter(Boolean).join(' · ');
 			ui.doneMessage.textContent = result.message || '';
-			showCalendarChoices(result.calendar);
+			showCalendarChoices(result.calendar, result.meet, result.manage);
 			await goTo('done');
 			ui.form.reset();
 			ui.files.textContent = filesHint;
@@ -772,6 +818,7 @@ function createCalendar(root, config) {
 		} finally {
 			ui.submit.disabled = false;
 			ui.submit.textContent = label;
+			resetTurnstile();
 		}
 	}
 
@@ -843,7 +890,7 @@ function createCalendar(root, config) {
 		if (!state.slot) return;
 		fillSummary();
 		showError('');
-		goTo('details');
+		goTo('details').then(renderTurnstile);
 	});
 	ui.back.addEventListener('click', () => goTo('time'));
 	ui.form.addEventListener('submit', submit);

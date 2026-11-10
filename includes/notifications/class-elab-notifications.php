@@ -123,6 +123,13 @@ final class ELAB_Notifications {
 			sprintf( __( 'Visitor email: %s', 'elaltillo-bookacall' ), get_post_meta( $booking_id, '_elab_contact_email', true ) ),
 			__( 'The sector, message and attachments are available to site administrators in the private booking record.', 'elaltillo-bookacall' ),
 		);
+		if ( 'cancelled' === $status && 'visitor' === get_post_meta( $booking_id, '_elab_cancelled_by', true ) ) {
+			$lines[] = __( 'The visitor cancelled this call from their private booking link.', 'elaltillo-bookacall' );
+		}
+		$meet = (string) get_post_meta( $booking_id, '_elab_meet_url', true );
+		if ( $meet && 'cancelled' !== $status ) {
+			$lines[] = sprintf( __( 'Video call: %s', 'elaltillo-bookacall' ), $meet );
+		}
 		if ( 'confirmed' === $status && get_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT, true ) ) {
 			$lines[] = '';
 			$lines[] = __( 'This booking is already in your connected Google Calendar.', 'elaltillo-bookacall' );
@@ -132,40 +139,78 @@ final class ELAB_Notifications {
 		return $sent;
 	}
 
-	/** Manual requests need their own visitor confirmation; Google sends event updates itself. */
-	public static function visitor_notice( $booking_id, $status ) {
-		$email = sanitize_email( (string) get_post_meta( $booking_id, '_elab_contact_email', true ) );
-		if ( ! is_email( $email ) ) {
-			update_post_meta( $booking_id, self::META_VISITOR_MAIL, 'failed' );
-			return false;
-		}
-		$advisor_id = (int) get_post_meta( $booking_id, '_elab_advisor', true );
+	/** Call time in the visitor's zone, in the site's language. */
+	private static function visitor_when( $booking_id ) {
 		$timezone = (string) get_post_meta( $booking_id, '_elab_visitor_timezone', true ) ?: 'UTC';
 		try {
 			$zone = new DateTimeZone( $timezone );
 		} catch ( Exception $exception ) {
 			$zone = new DateTimeZone( 'UTC' );
 		}
-		$start = new DateTimeImmutable( (string) get_post_meta( $booking_id, '_elab_start_utc', true ), new DateTimeZone( 'UTC' ) );
-		$when = $start->setTimezone( $zone )->format( 'l, F j, Y g:i A T' );
-		$advisor = get_the_title( $advisor_id );
-		$subject = 'confirmed' === $status ? __( 'Your call is confirmed', 'elaltillo-bookacall' ) : __( 'Your call was cancelled', 'elaltillo-bookacall' );
+		$start = strtotime( (string) get_post_meta( $booking_id, '_elab_start_utc', true ) . ' UTC' );
+		return wp_date( 'l j F Y, ' . get_option( 'time_format' ) . ' T', $start, $zone ) . ' (' . str_replace( '_', ' ', $zone->getName() ) . ')';
+	}
+
+	private static function visitor_lines( $booking_id ) {
+		$advisor_id = (int) get_post_meta( $booking_id, '_elab_advisor', true );
 		$lines = array(
-			sprintf( __( 'Advisor: %s', 'elaltillo-bookacall' ), $advisor ),
-			sprintf( __( 'When: %s', 'elaltillo-bookacall' ), $when ),
+			sprintf( __( 'When: %s', 'elaltillo-bookacall' ), self::visitor_when( $booking_id ) ),
+			sprintf( __( 'Advisor: %s', 'elaltillo-bookacall' ), get_the_title( $advisor_id ) ),
+			sprintf( __( 'Length: %d minutes', 'elaltillo-bookacall' ), ELAB_Booking_Admin::duration( $booking_id ) ),
+			sprintf( __( 'Meeting language: %s', 'elaltillo-bookacall' ), ELAB_Booking_Service::language_label( get_post_meta( $booking_id, '_elab_language', true ) ?: ELAB_Booking_Service::DEFAULT_LANGUAGE ) ),
 		);
+		$meet = (string) get_post_meta( $booking_id, '_elab_meet_url', true );
+		if ( $meet ) {
+			$lines[] = sprintf( __( 'Video call: %s', 'elaltillo-bookacall' ), $meet );
+		}
+		return $lines;
+	}
+
+	private static function manage_lines( $booking_id ) {
+		$url = ELAB_Booking_Manage::url( $booking_id );
+		return $url ? array( '', __( 'Need to cancel? Use your private link:', 'elaltillo-bookacall' ), $url ) : array();
+	}
+
+	private static function send_visitor( $booking_id, $subject, $lines ) {
+		$email = sanitize_email( (string) get_post_meta( $booking_id, '_elab_contact_email', true ) );
+		if ( ! is_email( $email ) ) {
+			update_post_meta( $booking_id, self::META_VISITOR_MAIL, 'failed' );
+			return false;
+		}
+		$sent = wp_mail( $email, $subject, implode( "\n", $lines ) );
+		update_post_meta( $booking_id, self::META_VISITOR_MAIL, $sent ? 'sent' : 'failed' );
+		return $sent;
+	}
+
+	/** Sent right after booking: what was booked and the private link to cancel. */
+	public static function visitor_booked( $booking_id ) {
+		$confirmed = 'confirmed' === get_post_meta( $booking_id, '_elab_status', true );
+		$lines = array_merge(
+			array( $confirmed ? __( 'Your call is booked.', 'elaltillo-bookacall' ) : __( 'We received your call request and will confirm it by email.', 'elaltillo-bookacall' ), '' ),
+			self::visitor_lines( $booking_id )
+		);
+		if ( $confirmed && get_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT, true ) ) {
+			$lines[] = '';
+			$lines[] = __( 'Google Calendar also sends you an invitation for this call.', 'elaltillo-bookacall' );
+		}
+		return self::send_visitor( $booking_id, $confirmed ? __( 'Your call is booked', 'elaltillo-bookacall' ) : __( 'We received your call request', 'elaltillo-bookacall' ), array_merge( $lines, self::manage_lines( $booking_id ) ) );
+	}
+
+	/** Manual requests need their own visitor confirmation; Google sends event updates itself. */
+	public static function visitor_notice( $booking_id, $status ) {
+		$lines = self::visitor_lines( $booking_id );
 		if ( 'confirmed' === $status ) {
+			$start = new DateTimeImmutable( (string) get_post_meta( $booking_id, '_elab_start_utc', true ), new DateTimeZone( 'UTC' ) );
 			$end = $start->modify( '+' . ELAB_Booking_Admin::duration( $booking_id ) . ' minutes' );
 			$lines[] = '';
 			$lines[] = __( 'Add this call to Google Calendar:', 'elaltillo-bookacall' );
 			$lines[] = add_query_arg( array(
 				'action' => 'TEMPLATE',
-				'text' => sprintf( __( 'Call with %s', 'elaltillo-bookacall' ), $advisor ),
+				'text' => sprintf( __( 'Call with %s', 'elaltillo-bookacall' ), get_the_title( (int) get_post_meta( $booking_id, '_elab_advisor', true ) ) ),
 				'dates' => $start->format( 'Ymd\\THis\\Z' ) . '/' . $end->format( 'Ymd\\THis\\Z' ),
 			), 'https://calendar.google.com/calendar/render' );
+			$lines = array_merge( $lines, self::manage_lines( $booking_id ) );
 		}
-		$sent = wp_mail( $email, $subject, implode( "\n", $lines ) );
-		update_post_meta( $booking_id, self::META_VISITOR_MAIL, $sent ? 'sent' : 'failed' );
-		return $sent;
+		return self::send_visitor( $booking_id, 'confirmed' === $status ? __( 'Your call is confirmed', 'elaltillo-bookacall' ) : __( 'Your call was cancelled', 'elaltillo-bookacall' ), $lines );
 	}
 }

@@ -250,7 +250,8 @@ final class ELAB_Google_Calendar {
 		return reset( $data['calendars'] );
 	}
 
-	private static function encrypt( $plaintext ) {
+	/** AES-256-GCM with a key derived from the site auth salt; shared by modules that store secrets. */
+	public static function encrypt( $plaintext ) {
 		if ( ! function_exists( 'openssl_encrypt' ) ) {
 			return false;
 		}
@@ -259,7 +260,7 @@ final class ELAB_Google_Calendar {
 		return false === $cipher ? false : base64_encode( $iv . $tag . $cipher );
 	}
 
-	private static function decrypt( $encoded ) {
+	public static function decrypt( $encoded ) {
 		if ( ! function_exists( 'openssl_decrypt' ) ) {
 			return false;
 		}
@@ -350,17 +351,29 @@ final class ELAB_Google_Calendar {
 		update_post_meta( $advisor_id, self::META_BUSY_VERSION, (int) get_post_meta( $advisor_id, self::META_BUSY_VERSION, true ) + 1 );
 	}
 
+	/** Whether confirmed calls get a Google Meet link (on unless an administrator turns it off). */
+	public static function meet_enabled() {
+		return '0' !== (string) get_option( 'elab_google_meet', '1' );
+	}
+
 	public static function create_event( $advisor_id, $booking_id, DateTimeImmutable $start, $duration, $email ) {
 		$end = $start->modify( '+' . absint( $duration ) . ' minutes' );
 		$event_id = 'elab' . md5( $booking_id . '|' . wp_salt( 'nonce' ) );
-		$event = self::request( $advisor_id, 'POST', '/calendars/primary/events?sendUpdates=all', array(
+		$body = array(
 			'id' => $event_id,
 			'summary' => __( 'Private call', 'elaltillo-bookacall' ),
 			'visibility' => 'private',
 			'start' => array( 'dateTime' => $start->format( DATE_RFC3339 ) ),
 			'end' => array( 'dateTime' => $end->format( DATE_RFC3339 ) ),
 			'attendees' => array( array( 'email' => $email ) ),
-		) );
+		);
+		$path = '/calendars/primary/events?sendUpdates=all';
+		if ( self::meet_enabled() ) {
+			// The event ID doubles as the idempotent request ID, so a retried insert reuses the same Meet.
+			$body['conferenceData'] = array( 'createRequest' => array( 'requestId' => $event_id, 'conferenceSolutionKey' => array( 'type' => 'hangoutsMeet' ) ) );
+			$path .= '&conferenceDataVersion=1';
+		}
+		$event = self::request( $advisor_id, 'POST', $path, $body );
 		// A timed-out insert can still have created the event. Look up its stable ID before failing.
 		if ( is_wp_error( $event ) || empty( $event['id'] ) ) {
 			$existing = self::request( $advisor_id, 'GET', '/calendars/primary/events/' . rawurlencode( $event_id ) );
@@ -372,6 +385,10 @@ final class ELAB_Google_Calendar {
 		}
 		if ( ! is_wp_error( $event ) ) {
 			update_post_meta( $booking_id, self::META_EVENT, $event['id'] );
+			$meet = isset( $event['hangoutLink'] ) ? esc_url_raw( $event['hangoutLink'] ) : '';
+			if ( $meet && 0 === strpos( $meet, 'https://meet.google.com/' ) ) {
+				update_post_meta( $booking_id, '_elab_meet_url', $meet );
+			}
 			self::flush_busy_cache( $advisor_id );
 		}
 		return $event;

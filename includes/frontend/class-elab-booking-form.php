@@ -27,20 +27,41 @@ final class ELAB_Booking_Form {
 	}
 
 	public function render() {
+		$requested = ELAB_Booking_Manage::requested_booking();
+		if ( $requested ) {
+			return $this->render_manage( $requested[0], $requested[1] );
+		}
 		$has_advisors = (bool) ELAB_Availability::bookable_advisors();
 		$confirm_mode = ELAB_Google_Calendar::configured();
 		wp_enqueue_style( 'elab-booking', plugins_url( 'assets/css/bookacall.min.css', ELAB_FILE ), array(), self::asset_version( 'assets/css/bookacall.min.css' ) );
 		if ( $has_advisors && ! wp_script_is( self::SCRIPT_HANDLE, 'enqueued' ) ) {
 			wp_enqueue_script( self::SCRIPT_HANDLE, plugins_url( 'assets/js/booking.min.js', ELAB_FILE ), array(), self::asset_version( 'assets/js/booking.min.js' ), true );
+			$turnstile = ELAB_Security::turnstile_site_key();
+			if ( $turnstile ) {
+				// Loaded after our script so its onload callback finds the queue it renders.
+				wp_enqueue_script( 'elab-turnstile', ELAB_Security::SCRIPT_URL . '&onload=elabTurnstileReady', array( self::SCRIPT_HANDLE ), null, array( 'in_footer' => true, 'strategy' => 'defer' ) ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- Cloudflare requires the unversioned URL.
+			}
+			// No REST nonce: the endpoints are public, and a nonce in cached HTML would expire
+			// and break the calendar for logged-in visitors behind LiteSpeed or any page cache.
 			wp_add_inline_script( self::SCRIPT_HANDLE, 'window.elabBooking = ' . wp_json_encode( array(
 				'api'         => esc_url_raw( rest_url( 'elab/v1' ) ),
-				'nonce'       => wp_create_nonce( 'wp_rest' ),
+				'page'        => (int) get_queried_object_id(),
+				'turnstile'   => $turnstile,
 				'confirmMode' => $confirm_mode,
 				'i18n'        => self::strings( $confirm_mode ),
 			) ) . ';', 'before' );
 		}
 		ob_start();
 		require ELAB_DIR . 'includes/frontend/templates/booking-form.php';
+		return ob_get_clean();
+	}
+
+	private function render_manage( $booking_id, $token ) {
+		wp_enqueue_style( 'elab-booking', plugins_url( 'assets/css/bookacall.min.css', ELAB_FILE ), array(), self::asset_version( 'assets/css/bookacall.min.css' ) );
+		$booking_id = ELAB_Booking_Manage::verify( $booking_id, $token ) ? (int) $booking_id : 0;
+		$result = isset( $_GET['elab_result'] ) ? sanitize_key( wp_unslash( $_GET['elab_result'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only.
+		ob_start();
+		require ELAB_DIR . 'includes/frontend/templates/manage-booking.php';
 		return ob_get_clean();
 	}
 
@@ -78,6 +99,8 @@ final class ELAB_Booking_Form {
 			'withAdvisor'    => __( 'with %s', 'elaltillo-bookacall' ),
 			'addGoogle'      => __( 'Open in Google Calendar', 'elaltillo-bookacall' ),
 			'addIcs'         => __( 'Apple, Outlook or other calendar', 'elaltillo-bookacall' ),
+			'botCheck'       => __( 'Please complete the security check.', 'elaltillo-bookacall' ),
+			'joinMeet'       => __( 'Join with Google Meet', 'elaltillo-bookacall' ),
 			'filesChosen'    => __( '%d files selected', 'elaltillo-bookacall' ),
 		);
 	}
