@@ -29,7 +29,7 @@ final class ELAB_System_Status {
 
 	public function enqueue( $hook ) {
 		if ( $this->hook_suffix === $hook ) {
-			wp_enqueue_style( 'elab-advisor-admin', plugins_url( 'assets/css/advisor-admin.css', ELAB_FILE ), array(), ELAB_VERSION );
+			wp_enqueue_style( 'elab-advisor-admin', plugins_url( 'assets/css/advisor-admin.css', ELAB_FILE ), array(), ELAB_Plugin::asset_version( 'assets/css/advisor-admin.css' ) );
 		}
 	}
 
@@ -46,7 +46,9 @@ final class ELAB_System_Status {
 	 */
 	public static function checks() {
 		$checks = array();
-		$settings = add_query_arg( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'page' => 'elab-google-settings' ), admin_url( 'edit.php' ) );
+		$settings = ELAB_Google_Settings_Admin::url( 'security' );
+		$settings_google = ELAB_Google_Settings_Admin::url( 'google' );
+		$settings_privacy = ELAB_Google_Settings_Admin::url( 'privacy' );
 
 		// Site.
 		$https = 0 === strpos( home_url(), 'https://' ) && 0 === strpos( admin_url(), 'https://' );
@@ -83,7 +85,7 @@ final class ELAB_System_Status {
 
 		// Google Calendar.
 		$configured = ELAB_Google_Calendar::configured();
-		$checks[] = array( 'google', __( 'OAuth credentials', 'elaltillo-bookacall' ), $configured ? 'ok' : 'warn', $configured ? __( 'Client ID and encrypted Client Secret are saved.', 'elaltillo-bookacall' ) : __( 'Not configured: bookings stay as requests that you confirm by hand.', 'elaltillo-bookacall' ), '<a class="button" href="' . esc_url( $settings ) . '">' . esc_html__( 'Settings', 'elaltillo-bookacall' ) . '</a>' );
+		$checks[] = array( 'google', __( 'OAuth credentials', 'elaltillo-bookacall' ), $configured ? 'ok' : 'warn', $configured ? __( 'Client ID and encrypted Client Secret are saved.', 'elaltillo-bookacall' ) : __( 'Not configured: bookings stay as requests that you confirm by hand.', 'elaltillo-bookacall' ), '<a class="button" href="' . esc_url( $settings_google ) . '">' . esc_html__( 'Settings', 'elaltillo-bookacall' ) . '</a>' );
 		$host = (string) wp_parse_url( ELAB_Google_Calendar::redirect_uri(), PHP_URL_HOST );
 		$local = (bool) preg_match( '/(\.local|\.test|localhost)$/i', $host );
 		$checks[] = array( 'google', __( 'Redirect URI', 'elaltillo-bookacall' ), $local ? 'warn' : 'ok', $local ? sprintf( __( '%s is a local address; Google only accepts it for testing. Connect advisors on the production site.', 'elaltillo-bookacall' ), $host ) : ELAB_Google_Calendar::redirect_uri(), '' );
@@ -110,7 +112,7 @@ final class ELAB_System_Status {
 		$storage = ELAB_Private_Attachments::storage_ready();
 		$checks[] = array( 'privacy', __( 'Private document storage', 'elaltillo-bookacall' ), $storage ? 'ok' : 'error', $storage ? __( 'Uploads are stored outside the public web folder.', 'elaltillo-bookacall' ) : __( 'No writable folder outside the web root. Visitors cannot attach files until ELAB_PRIVATE_UPLOAD_DIR is set.', 'elaltillo-bookacall' ), '' );
 		$months = ELAB_Privacy::retention_months();
-		$checks[] = array( 'privacy', __( 'Retention', 'elaltillo-bookacall' ), $months ? 'ok' : 'warn', $months ? sprintf( _n( 'Bookings are deleted %d month after the call.', 'Bookings are deleted %d months after the call.', $months, 'elaltillo-bookacall' ), $months ) : __( 'Bookings are kept forever. Set a retention period to comply with data minimisation.', 'elaltillo-bookacall' ), '<a class="button" href="' . esc_url( $settings ) . '">' . esc_html__( 'Settings', 'elaltillo-bookacall' ) . '</a>' );
+		$checks[] = array( 'privacy', __( 'Retention', 'elaltillo-bookacall' ), $months ? 'ok' : 'warn', $months ? sprintf( _n( 'Bookings are deleted %d month after the call.', 'Bookings are deleted %d months after the call.', $months, 'elaltillo-bookacall' ), $months ) : __( 'Bookings are kept forever. Set a retention period to comply with data minimisation.', 'elaltillo-bookacall' ), '<a class="button" href="' . esc_url( $settings_privacy ) . '">' . esc_html__( 'Settings', 'elaltillo-bookacall' ) . '</a>' );
 		$policy = (int) get_option( 'wp_page_for_privacy_policy' );
 		$published = $policy && 'publish' === get_post_status( $policy );
 		$checks[] = array( 'privacy', __( 'Privacy policy page', 'elaltillo-bookacall' ), $published ? 'ok' : 'warn', $published ? sprintf( __( '“%s” is published. Add the booking section from Settings → Privacy → Policy guide.', 'elaltillo-bookacall' ), get_the_title( $policy ) ) : __( 'No published privacy policy page is set.', 'elaltillo-bookacall' ), '<a class="button" href="' . esc_url( admin_url( 'options-privacy.php' ) ) . '">' . esc_html__( 'Privacy settings', 'elaltillo-bookacall' ) . '</a>' );
@@ -187,7 +189,8 @@ final class ELAB_System_Status {
 			$result[ $ok ? 'passed' : 'failed' ]++;
 		}
 		set_transient( self::TRANSIENT_GOOGLE, $result, HOUR_IN_SECONDS );
-		wp_safe_redirect( self::url( array( 'elab_status' => 'google_tested' ) ) );
+		$to_settings = isset( $_POST['elab_return'] ) && 'settings' === $_POST['elab_return']; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Checked above.
+		wp_safe_redirect( $to_settings ? ELAB_Google_Settings_Admin::url( 'google', array( 'elab_status' => 'google_tested' ) ) : self::url( array( 'elab_status' => 'google_tested' ) ) );
 		exit;
 	}
 }

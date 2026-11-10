@@ -19,6 +19,8 @@ final class ELAB_Booking_List_Admin {
 		add_action( 'restrict_manage_posts', array( $this, 'filters' ), 10, 2 );
 		add_action( 'pre_get_posts', array( $this, 'query' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
+		// The Upcoming/Past filter replaces WordPress's month dropdown, which filters by receipt date.
+		add_filter( 'disable_months_dropdown', static function ( $disabled, $post_type ) { return ELAB_Post_Types::BOOKING === $post_type ? true : $disabled; }, 10, 2 );
 	}
 
 	public static function statuses() {
@@ -53,7 +55,7 @@ final class ELAB_Booking_List_Admin {
 	public function enqueue( $hook ) {
 		$screen = get_current_screen();
 		if ( $screen && ELAB_Post_Types::BOOKING === $screen->post_type && in_array( $hook, array( 'edit.php', 'post.php' ), true ) ) {
-			wp_enqueue_style( 'elab-advisor-admin', plugins_url( 'assets/css/advisor-admin.css', ELAB_FILE ), array(), ELAB_VERSION );
+			wp_enqueue_style( 'elab-advisor-admin', plugins_url( 'assets/css/advisor-admin.css', ELAB_FILE ), array(), ELAB_Plugin::asset_version( 'assets/css/advisor-admin.css' ) );
 		}
 	}
 
@@ -65,7 +67,7 @@ final class ELAB_Booking_List_Admin {
 			'elab_advisor'  => __( 'Advisor', 'elaltillo-bookacall' ),
 			'elab_status'   => __( 'Status', 'elaltillo-bookacall' ),
 			'elab_language' => __( 'Language', 'elaltillo-bookacall' ),
-			'date'          => __( 'Received', 'elaltillo-bookacall' ),
+			'elab_received' => __( 'Received', 'elaltillo-bookacall' ),
 		);
 	}
 
@@ -94,6 +96,9 @@ final class ELAB_Booking_List_Admin {
 				break;
 			case 'elab_status':
 				echo self::status_badge( (string) get_post_meta( $post_id, '_elab_status', true ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in status_badge().
+				break;
+			case 'elab_received':
+				echo esc_html( get_the_date( get_option( 'date_format' ), $post_id ) ) . '<br><span class="description">' . esc_html( get_the_time( get_option( 'time_format' ), $post_id ) ) . '</span>';
 				break;
 			case 'elab_language':
 				echo esc_html( ELAB_Booking_Service::language_label( get_post_meta( $post_id, '_elab_language', true ) ?: ELAB_Booking_Service::DEFAULT_LANGUAGE ) );

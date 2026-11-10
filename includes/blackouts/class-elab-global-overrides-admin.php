@@ -18,7 +18,7 @@ final class ELAB_Global_Overrides_Admin {
 
 	public function enqueue_profile_styles( $hook ) {
 		if ( 'profile.php' === $hook && $this->assigned_advisors( get_current_user_id() ) ) {
-			wp_enqueue_style( 'elab-advisor-admin', plugins_url( 'assets/css/advisor-admin.css', ELAB_FILE ), array(), ELAB_VERSION );
+			wp_enqueue_style( 'elab-advisor-admin', plugins_url( 'assets/css/advisor-admin.css', ELAB_FILE ), array(), ELAB_Plugin::asset_version( 'assets/css/advisor-admin.css' ) );
 		}
 	}
 

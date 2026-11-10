@@ -12,6 +12,8 @@ final class ELAB_Google_Calendar {
 	const META_ACCOUNT_SUB = '_elab_google_account_sub';
 	const META_EVENT = '_elab_google_event_id';
 	const META_BUSY_VERSION = '_elab_busy_version';
+	const META_REVOKED = '_elab_google_revoked';
+	const REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
 	const OPTION_CLIENT_ID = 'elab_google_client_id';
 	const OPTION_CLIENT_SECRET = 'elab_google_client_secret';
 	const TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -100,7 +102,7 @@ final class ELAB_Google_Calendar {
 		$stored_hash = (string) get_post_meta( $advisor_id, self::META_CLIENT_HASH, true );
 		$account_email = self::account_email( $advisor_id );
 		$expected_email = ELAB_Notifications::advisor_email( $advisor_id );
-		return self::configured() && (bool) get_post_meta( $advisor_id, self::META_REFRESH, true ) && '' !== $stored_hash && hash_equals( hash( 'sha256', self::client_id() ), $stored_hash ) && (bool) get_post_meta( $advisor_id, self::META_ACCOUNT_SUB, true ) && $expected_email && 0 === strcasecmp( $account_email, $expected_email );
+		return self::configured() && ! get_post_meta( $advisor_id, self::META_REVOKED, true ) && (bool) get_post_meta( $advisor_id, self::META_REFRESH, true ) && '' !== $stored_hash && hash_equals( hash( 'sha256', self::client_id() ), $stored_hash ) && (bool) get_post_meta( $advisor_id, self::META_ACCOUNT_SUB, true ) && $expected_email && 0 === strcasecmp( $account_email, $expected_email );
 	}
 
 	public static function account_email( $advisor_id ) {
@@ -118,7 +120,8 @@ final class ELAB_Google_Calendar {
 			wp_die( esc_html__( 'Google Calendar is not configured or you cannot edit this advisor.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
 		}
 		$state = wp_generate_password( 48, false, false );
-		set_transient( 'elab_google_state_' . hash( 'sha256', $state ), array( 'advisor' => $advisor_id, 'user' => get_current_user_id() ), 10 * MINUTE_IN_SECONDS );
+		$pkce = self::pkce_pair();
+		set_transient( 'elab_google_state_' . hash( 'sha256', $state ), array( 'advisor' => $advisor_id, 'user' => get_current_user_id(), 'verifier' => $pkce['verifier'] ), 10 * MINUTE_IN_SECONDS );
 		$url = add_query_arg( array(
 			'client_id' => self::client_id(),
 			'redirect_uri' => self::redirect_uri(),
@@ -127,9 +130,20 @@ final class ELAB_Google_Calendar {
 			'prompt' => 'consent',
 			'scope' => 'openid email https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.freebusy',
 			'state' => $state,
+			// Opens Google on the account this advisor must use, so the wrong one is rarely picked.
+			'login_hint' => ELAB_Notifications::advisor_email( $advisor_id ),
+			'code_challenge' => $pkce['challenge'],
+			'code_challenge_method' => 'S256',
 		), 'https://accounts.google.com/o/oauth2/v2/auth' );
 		wp_redirect( esc_url_raw( $url ) ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- Google OAuth endpoint.
 		exit;
+	}
+
+	/** PKCE (RFC 7636): the authorization code is useless without this request's secret verifier. */
+	public static function pkce_pair() {
+		$verifier = rtrim( strtr( base64_encode( random_bytes( 48 ) ), '+/', '-_' ), '=' );
+		$challenge = rtrim( strtr( base64_encode( hash( 'sha256', $verifier, true ) ), '+/', '-_' ), '=' );
+		return array( 'verifier' => $verifier, 'challenge' => $challenge );
 	}
 
 	public function callback() {
@@ -143,7 +157,7 @@ final class ELAB_Google_Calendar {
 		if ( ! $code ) {
 			wp_die( esc_html__( 'Google authorization was cancelled.', 'elaltillo-bookacall' ), '', array( 'response' => 400 ) );
 		}
-		$tokens = self::token_request( array( 'grant_type' => 'authorization_code', 'code' => $code, 'redirect_uri' => self::redirect_uri() ) );
+		$tokens = self::token_request( array( 'grant_type' => 'authorization_code', 'code' => $code, 'redirect_uri' => self::redirect_uri(), 'code_verifier' => (string) ( $data['verifier'] ?? '' ) ) );
 		if ( is_wp_error( $tokens ) || empty( $tokens['refresh_token'] ) ) {
 			wp_die( esc_html__( 'Google did not provide a refresh token. Reconnect the advisor and grant calendar access.', 'elaltillo-bookacall' ), '', array( 'response' => 400 ) );
 		}
@@ -172,6 +186,7 @@ final class ELAB_Google_Calendar {
 		update_post_meta( (int) $data['advisor'], self::META_CLIENT_HASH, hash( 'sha256', self::client_id() ) );
 		update_post_meta( (int) $data['advisor'], self::META_ACCOUNT_EMAIL, $identity['email'] );
 		update_post_meta( (int) $data['advisor'], self::META_ACCOUNT_SUB, $identity['sub'] );
+		delete_post_meta( (int) $data['advisor'], self::META_REVOKED );
 		delete_transient( 'elab_google_access_' . (int) $data['advisor'] );
 		ELAB_Notifications::schedule_summary( (int) $data['advisor'] );
 		$destination = current_user_can( 'manage_options' ) ? get_edit_post_link( (int) $data['advisor'], 'raw' ) : admin_url( 'profile.php' );
@@ -185,13 +200,38 @@ final class ELAB_Google_Calendar {
 		if ( ! self::can_connect( $advisor_id ) || ELAB_Post_Types::ADVISOR !== get_post_type( $advisor_id ) ) {
 			wp_die( esc_html__( 'You cannot edit this advisor.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
 		}
-		delete_post_meta( $advisor_id, self::META_REFRESH );
-		delete_post_meta( $advisor_id, self::META_CLIENT_HASH );
-		delete_post_meta( $advisor_id, self::META_ACCOUNT_EMAIL );
-		delete_post_meta( $advisor_id, self::META_ACCOUNT_SUB );
-		delete_transient( 'elab_google_access_' . $advisor_id );
+		self::forget( $advisor_id, true );
 		wp_safe_redirect( current_user_can( 'manage_options' ) ? get_edit_post_link( $advisor_id, 'raw' ) : admin_url( 'profile.php' ) );
 		exit;
+	}
+
+	/**
+	 * Remove the advisor's connection; with $revoke also invalidate the token at Google,
+	 * so a disconnected site keeps no working access to the advisor's calendar.
+	 */
+	public static function forget( $advisor_id, $revoke = false ) {
+		$refresh = $revoke ? self::decrypt( (string) get_post_meta( $advisor_id, self::META_REFRESH, true ) ) : '';
+		if ( $refresh ) {
+			wp_remote_post( self::REVOKE_URL, array( 'timeout' => 10, 'body' => array( 'token' => $refresh ) ) );
+		}
+		foreach ( array( self::META_REFRESH, self::META_CLIENT_HASH, self::META_ACCOUNT_EMAIL, self::META_ACCOUNT_SUB, self::META_REVOKED ) as $key ) {
+			delete_post_meta( $advisor_id, $key );
+		}
+		delete_transient( 'elab_google_access_' . $advisor_id );
+	}
+
+	public static function revoked( $advisor_id ) {
+		return (bool) get_post_meta( $advisor_id, self::META_REVOKED, true );
+	}
+
+	/** Google answered invalid_grant: the advisor removed access or the Testing-mode grant expired. */
+	private static function mark_revoked( $advisor_id ) {
+		if ( self::revoked( $advisor_id ) ) {
+			return;
+		}
+		update_post_meta( $advisor_id, self::META_REVOKED, time() );
+		delete_transient( 'elab_google_access_' . $advisor_id );
+		ELAB_Notifications::connection_lost( $advisor_id );
 	}
 
 	private static function token_request( $fields ) {
@@ -199,6 +239,10 @@ final class ELAB_Google_Calendar {
 			return new WP_Error( 'google_not_configured', __( 'Google Calendar is not configured.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
 		}
 		$response = wp_remote_post( self::TOKEN_URL, array( 'timeout' => 15, 'body' => array_merge( array( 'client_id' => self::client_id(), 'client_secret' => self::client_secret() ), $fields ) ) );
+		$error = is_wp_error( $response ) ? null : json_decode( wp_remote_retrieve_body( $response ), true );
+		if ( ! is_wp_error( $response ) && 400 === wp_remote_retrieve_response_code( $response ) && is_array( $error ) && 'invalid_grant' === ( $error['error'] ?? '' ) ) {
+			return new WP_Error( 'google_revoked', __( 'Google access for this advisor was removed or has expired.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
+		}
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			return new WP_Error( 'google_auth_failed', __( 'Google Calendar authorization failed.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
 		}
@@ -250,13 +294,30 @@ final class ELAB_Google_Calendar {
 		return reset( $data['calendars'] );
 	}
 
-	/** AES-256-GCM with a key derived from the site auth salt; shared by modules that store secrets. */
+	/**
+	 * Encryption keys, newest first. Define ELAB_ENCRYPTION_KEY in wp-config.php so stored
+	 * secrets survive a salt rotation; values saved with the salt key still decrypt.
+	 */
+	private static function keys() {
+		$keys = array();
+		if ( defined( 'ELAB_ENCRYPTION_KEY' ) && is_string( ELAB_ENCRYPTION_KEY ) && strlen( ELAB_ENCRYPTION_KEY ) >= 32 ) {
+			$keys[] = hash( 'sha256', 'elab|' . ELAB_ENCRYPTION_KEY, true );
+		}
+		$keys[] = hash( 'sha256', wp_salt( 'auth' ), true );
+		return $keys;
+	}
+
+	public static function has_own_key() {
+		return count( self::keys() ) > 1;
+	}
+
+	/** AES-256-GCM; shared by modules that store secrets. */
 	public static function encrypt( $plaintext ) {
 		if ( ! function_exists( 'openssl_encrypt' ) ) {
 			return false;
 		}
 		$iv = random_bytes( 12 );
-		$cipher = openssl_encrypt( $plaintext, 'aes-256-gcm', hash( 'sha256', wp_salt( 'auth' ), true ), OPENSSL_RAW_DATA, $iv, $tag );
+		$cipher = openssl_encrypt( $plaintext, 'aes-256-gcm', self::keys()[0], OPENSSL_RAW_DATA, $iv, $tag );
 		return false === $cipher ? false : base64_encode( $iv . $tag . $cipher );
 	}
 
@@ -268,7 +329,13 @@ final class ELAB_Google_Calendar {
 		if ( false === $bytes || strlen( $bytes ) < 29 ) {
 			return false;
 		}
-		return openssl_decrypt( substr( $bytes, 28 ), 'aes-256-gcm', hash( 'sha256', wp_salt( 'auth' ), true ), OPENSSL_RAW_DATA, substr( $bytes, 0, 12 ), substr( $bytes, 12, 16 ) );
+		foreach ( self::keys() as $key ) {
+			$plain = openssl_decrypt( substr( $bytes, 28 ), 'aes-256-gcm', $key, OPENSSL_RAW_DATA, substr( $bytes, 0, 12 ), substr( $bytes, 12, 16 ) );
+			if ( false !== $plain ) {
+				return $plain;
+			}
+		}
+		return false;
 	}
 
 	private static function access_token( $advisor_id ) {
@@ -284,6 +351,10 @@ final class ELAB_Google_Calendar {
 			return new WP_Error( 'google_disconnected', __( 'This advisor has not connected Google Calendar.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
 		}
 		$tokens = self::token_request( array( 'grant_type' => 'refresh_token', 'refresh_token' => $refresh ) );
+		if ( is_wp_error( $tokens ) && 'google_revoked' === $tokens->get_error_code() ) {
+			self::mark_revoked( $advisor_id );
+			return $tokens;
+		}
 		if ( is_wp_error( $tokens ) || empty( $tokens['access_token'] ) ) {
 			return new WP_Error( 'google_auth_failed', __( 'Google Calendar needs to be reconnected.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
 		}
@@ -359,10 +430,30 @@ final class ELAB_Google_Calendar {
 	public static function create_event( $advisor_id, $booking_id, DateTimeImmutable $start, $duration, $email ) {
 		$end = $start->modify( '+' . absint( $duration ) . ' minutes' );
 		$event_id = 'elab' . md5( $booking_id . '|' . wp_salt( 'nonce' ) );
+		$advisor = get_the_title( $advisor_id );
+		$visitor = (string) get_post_meta( $booking_id, '_elab_name', true );
+		$description = array(
+			sprintf( __( 'Call booked through %s.', 'elaltillo-bookacall' ), get_bloginfo( 'name' ) ),
+			sprintf( __( 'Length: %d minutes', 'elaltillo-bookacall' ), absint( $duration ) ),
+			sprintf( __( 'Meeting language: %s', 'elaltillo-bookacall' ), ELAB_Booking_Service::language_label( get_post_meta( $booking_id, '_elab_language', true ) ?: ELAB_Booking_Service::DEFAULT_LANGUAGE ) ),
+		);
+		$manage = ELAB_Booking_Manage::url( $booking_id );
+		if ( $manage ) {
+			$description[] = '';
+			$description[] = __( 'Need to cancel? Use this private link:', 'elaltillo-bookacall' );
+			$description[] = $manage;
+		}
+		// The visitor is an invited guest: Google emails the invitation, nothing to set up on their side.
+		// Sector, message and files stay out of the event; it is private on the advisor's calendar.
 		$body = array(
 			'id' => $event_id,
-			'summary' => __( 'Private call', 'elaltillo-bookacall' ),
+			'summary' => sprintf( __( '%1$s · %2$s and %3$s', 'elaltillo-bookacall' ), get_bloginfo( 'name' ), $visitor ?: __( 'Visitor', 'elaltillo-bookacall' ), $advisor ),
+			'description' => implode( "\n", $description ),
 			'visibility' => 'private',
+			'guestsCanInviteOthers' => false,
+			'guestsCanSeeOtherGuests' => false,
+			'guestsCanModify' => false,
+			'reminders' => array( 'useDefault' => true ),
 			'start' => array( 'dateTime' => $start->format( DATE_RFC3339 ) ),
 			'end' => array( 'dateTime' => $end->format( DATE_RFC3339 ) ),
 			'attendees' => array( array( 'email' => $email ) ),

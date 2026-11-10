@@ -173,7 +173,7 @@ final class ELAB_Booking_Service {
 		if ( $page && 'publish' === get_post_status( $page ) && has_shortcode( (string) get_post_field( 'post_content', $page ), 'elaltillo_bookacall' ) ) {
 			update_post_meta( $booking_id, ELAB_Booking_Manage::META_PAGE, $page );
 		}
-		ELAB_Booking_Manage::issue_token( $booking_id );
+		ELAB_Booking_Manage::remember( $booking_id, ELAB_Booking_Manage::issue_token( $booking_id ) );
 		$summary = array(
 			'advisor'  => get_the_title( $advisor_id ),
 			'start'    => $start_utc->format( 'Y-m-d\TH:i:s\Z' ),
@@ -196,7 +196,8 @@ final class ELAB_Booking_Service {
 				'status'   => 'confirmed',
 				'message'  => __( 'A Google Calendar invitation is on its way to your email.', 'elaltillo-bookacall' ),
 				'booking'  => $summary,
-				'manage'   => ELAB_Booking_Manage::url( $booking_id ),
+				'manage'   => ELAB_Booking_Manage::public_url( $booking_id ),
+				'invited'  => $visitor['email'],
 				'meet'     => (string) get_post_meta( $booking_id, '_elab_meet_url', true ),
 				'calendar' => array(
 					'title' => sprintf( __( 'Call with %s', 'elaltillo-bookacall' ), $summary['advisor'] ),
@@ -213,7 +214,7 @@ final class ELAB_Booking_Service {
 			'status'  => 'pending',
 			'message' => __( 'We will confirm this time by email shortly.', 'elaltillo-bookacall' ),
 			'booking' => $summary,
-			'manage'  => ELAB_Booking_Manage::url( $booking_id ),
+			'manage'  => ELAB_Booking_Manage::public_url( $booking_id ),
 		), 201 );
 	}
 }

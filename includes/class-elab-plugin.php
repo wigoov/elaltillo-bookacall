@@ -31,6 +31,12 @@ require_once __DIR__ . '/system/class-elab-system-status.php';
 final class ELAB_Plugin {
 	private static $instance;
 
+	/** Release version plus file time, so a rebuilt asset is never served from a stale cache. */
+	public static function asset_version( $relative ) {
+		$mtime = @filemtime( ELAB_DIR . $relative ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Missing file falls back to the release version.
+		return ELAB_VERSION . ( $mtime ? '.' . $mtime : '' );
+	}
+
 	public static function instance() {
 		if ( ! self::$instance ) {
 			self::$instance = new self();

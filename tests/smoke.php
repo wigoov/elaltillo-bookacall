@@ -22,6 +22,7 @@ $saved_defaults = get_option( ELAB_Booking_Defaults::OPTION, false );
 $saved_retention = get_option( ELAB_Privacy::OPTION_RETENTION, false );
 $saved_security = get_option( ELAB_Security::OPTION, false );
 $event_path = '';
+$revoke_grant = false;
 $original_user = get_current_user_id();
 $original_post = $_POST;
 $original_ip = $_SERVER['REMOTE_ADDR'] ?? null;
@@ -38,12 +39,17 @@ $email_filter = static function ( $preempt, $mail ) use ( &$mail_log ) {
 	$mail_log[] = $mail;
 	return true;
 };
-$http_filter = static function ( $preempt, $args, $url ) use ( &$http_calls, &$event_body, &$busy_periods, &$event_path ) {
+$http_filter = static function ( $preempt, $args, $url ) use ( &$http_calls, &$event_body, &$busy_periods, &$event_path, &$revoke_grant ) {
 	$http_calls[] = $url;
 	$data = array();
 	$code = 200;
-	if ( false !== strpos( $url, 'oauth2.googleapis.com/token' ) ) {
+	if ( false !== strpos( $url, 'oauth2.googleapis.com/token' ) && $revoke_grant ) {
+		$code = 400;
+		$data = array( 'error' => 'invalid_grant', 'error_description' => 'Token has been expired or revoked.' );
+	} elseif ( false !== strpos( $url, 'oauth2.googleapis.com/token' ) ) {
 		$data = array( 'access_token' => 'smoke-access', 'expires_in' => 3600 );
+	} elseif ( false !== strpos( $url, 'oauth2.googleapis.com/revoke' ) ) {
+		$data = array();
 	} elseif ( false !== strpos( $url, 'openidconnect.googleapis.com/v1/userinfo' ) ) {
 		$data = array( 'sub' => 'smoke-sub', 'email' => 'advisor@example.test', 'email_verified' => true );
 	} elseif ( false !== strpos( $url, '/freeBusy' ) ) {
@@ -288,12 +294,31 @@ try {
 	$google_id = (int) $google_ids[0];
 	$created[] = $google_id;
 	elab_smoke_assert( 'confirmed' === get_post_meta( $google_id, '_elab_status', true ) && get_post_meta( $google_id, ELAB_Google_Calendar::META_EVENT, true ), 'Private booking stores the confirmed Google event ID' );
-	elab_smoke_assert( 'private' === $event_body['visibility'] && 'Private call' === $event_body['summary'] && ! isset( $event_body['description'] ) && ! isset( $event_body['attendees'][0]['displayName'] ), 'Calendar event excludes private booking details' );
+	elab_smoke_assert( 'private' === $event_body['visibility'] && false !== strpos( $event_body['summary'], 'Google visitor' ) && false !== strpos( $event_body['summary'], 'Smoke advisor' ), 'The invitation title names the visitor and the advisor' );
+	elab_smoke_assert( 1 === count( $event_body['attendees'] ) && 0 === strpos( $event_body['attendees'][0]['email'], 'visitor+' ) && ! isset( $event_body['attendees'][0]['displayName'] ), 'The visitor is the only invited guest; Google sends the invitation' );
+	elab_smoke_assert( false === strpos( $event_body['description'], 'Private message' ) && false === strpos( $event_body['description'], 'Private sector' ) && false !== strpos( $event_body['description'], 'elab_token=' ), 'The event description has the cancel link but no private details' );
+	elab_smoke_assert( false === $event_body['guestsCanInviteOthers'] && false === $event_body['guestsCanSeeOtherGuests'] && false === $event_body['guestsCanModify'], 'Guests cannot invite others, see other guests or edit the event' );
+	$google_response = $google_booking->get_data();
+	elab_smoke_assert( ! empty( $google_response['invited'] ) && false === strpos( $google_response['manage'], 'elab_token' ), 'Confirmation names the invited email and its manage link carries no secret' );
 	elab_smoke_assert( false !== strpos( $event_path, 'conferenceDataVersion=1' ) && 'hangoutsMeet' === $event_body['conferenceData']['createRequest']['conferenceSolutionKey']['type'] && 'https://meet.google.com/smk-test-call' === get_post_meta( $google_id, '_elab_meet_url', true ), 'Confirmed calls get a Google Meet link' );
 	$_POST = array( 'elab_booking_nonce' => wp_create_nonce( 'elab_booking_meta' ), 'elab_status' => 'cancelled' );
 	( new ELAB_Booking_Admin() )->save( $google_id );
 	elab_smoke_assert( 'cancelled' === get_post_meta( $google_id, '_elab_status', true ) && ! get_post_meta( $google_id, ELAB_Google_Calendar::META_EVENT, true ), 'Cancellation removes the Google event and releases the booking' );
 	$_POST = $original_post;
+
+	$revoke_grant = true;
+	delete_transient( 'elab_google_access_' . $advisor_id );
+	ELAB_Google_Calendar::flush_busy_cache( $advisor_id );
+	$mails_before = count( $mail_log );
+	$revoked_result = ELAB_Availability::advisor_starts( $advisor_id, time(), time() + 3 * DAY_IN_SECONDS );
+	$revoke_grant = false;
+	$lost_mail = array_filter( array_slice( $mail_log, $mails_before ), static function ( $mail ) { return false !== strpos( $mail['subject'], 'Reconnect Google Calendar' ); } );
+	elab_smoke_assert( is_wp_error( $revoked_result ) && ELAB_Google_Calendar::revoked( $advisor_id ) && ! ELAB_Google_Calendar::connected( $advisor_id ), 'A revoked or expired Google grant marks the advisor as needing to reconnect' );
+	elab_smoke_assert( count( $lost_mail ) >= 1 && false !== strpos( implode( ' ', ELAB_Advisor_Admin::booking_issues( $advisor_id ) ), 'removed or expired' ), 'The advisor and admin are emailed and the profile explains why' );
+	delete_post_meta( $advisor_id, ELAB_Google_Calendar::META_REVOKED );
+	elab_smoke_assert( ELAB_Google_Calendar::connected( $advisor_id ), 'Reconnecting clears the revoked state' );
+	$pkce = ELAB_Google_Calendar::pkce_pair();
+	elab_smoke_assert( preg_match( '/^[A-Za-z0-9_-]{43,128}$/', $pkce['verifier'] ) && rtrim( strtr( base64_encode( hash( 'sha256', $pkce['verifier'], true ) ), '+/', '-_' ), '=' ) === $pkce['challenge'], 'Google sign-in uses PKCE (S256)' );
 
 	$second_id = wp_insert_post( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_status' => 'publish', 'post_title' => 'Smoke advisor two' ), true );
 	$created[] = $second_id;
@@ -380,6 +405,17 @@ try {
 	elab_smoke_assert( is_array( $save_notes ) && 4 <= count( $save_notes ), 'Saving explains each correction to the administrator' );
 	elab_smoke_assert( 0 === (int) get_post_meta( $advisor_id, '_elab_wp_user', true ), 'An administrator account is not linked on save' );
 	$_POST = $original_post;
+	$revokes_before = count( array_filter( $http_calls, static function ( $url ) { return false !== strpos( $url, 'oauth2.googleapis.com/revoke' ); } ) );
+	ELAB_Google_Calendar::forget( $second_id, true );
+	elab_smoke_assert( ! ELAB_Google_Calendar::connected( $second_id ) && count( array_filter( $http_calls, static function ( $url ) { return false !== strpos( $url, 'oauth2.googleapis.com/revoke' ); } ) ) === $revokes_before + 1, 'Disconnecting revokes the token at Google' );
+
+	$cookie_booking = (int) $auto_ids[0];
+	$cookie_token = ELAB_Booking_Manage::issue_token( $cookie_booking );
+	$_GET['elab_booking'] = (string) $cookie_booking;
+	$_COOKIE[ ELAB_Booking_Manage::COOKIE . $cookie_booking ] = $cookie_token;
+	$from_cookie = ELAB_Booking_Manage::requested_booking();
+	unset( $_GET['elab_booking'], $_COOKIE[ ELAB_Booking_Manage::COOKIE . $cookie_booking ] );
+	elab_smoke_assert( $from_cookie && ELAB_Booking_Manage::verify( $from_cookie[0], $from_cookie[1] ) && false === strpos( ELAB_Booking_Manage::public_url( $cookie_booking ), $cookie_token ), 'The private page reads the token from an HttpOnly cookie, never the URL' );
 	$privacy_email = 'privacy+' . strtolower( wp_generate_password( 6, false, false ) ) . '@example.test';
 	$make_booking = static function ( $start, $status, $event = '' ) use ( &$created, $advisor_id, $privacy_email ) {
 		$id = wp_insert_post( array( 'post_type' => ELAB_Post_Types::BOOKING, 'post_status' => 'private', 'post_title' => 'Privacy check' ) );

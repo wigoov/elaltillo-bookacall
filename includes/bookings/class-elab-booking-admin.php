@@ -53,6 +53,12 @@ final class ELAB_Booking_Admin {
 			__( 'Cancelled', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_cancelled_at', true ) ? sprintf( 'visitor' === get_post_meta( $post->ID, '_elab_cancelled_by', true ) ? __( 'By the visitor, %s UTC', 'elaltillo-bookacall' ) : __( 'By an administrator, %s UTC', 'elaltillo-bookacall' ), get_post_meta( $post->ID, '_elab_cancelled_at', true ) ) : '—',
 			__( 'Privacy consent', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_consent_at', true ) ? sprintf( __( 'Accepted %s UTC', 'elaltillo-bookacall' ), get_post_meta( $post->ID, '_elab_consent_at', true ) ) : '—',
 		);
+		// Rows that only apply sometimes are left out instead of showing a dash.
+		foreach ( array( __( 'Video call', 'elaltillo-bookacall' ), __( 'Cancelled', 'elaltillo-bookacall' ), __( 'Privacy consent', 'elaltillo-bookacall' ) ) as $optional ) {
+			if ( isset( $fields[ $optional ] ) && '—' === $fields[ $optional ] ) {
+				unset( $fields[ $optional ] );
+			}
+		}
 		echo '<dl class="elab-booking-details">';
 		foreach ( $fields as $label => $value ) {
 			echo '<dt>' . esc_html( $label ) . '</dt><dd>' . nl2br( esc_html( (string) $value ) ) . '</dd>';

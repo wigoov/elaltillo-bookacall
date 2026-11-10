@@ -97,9 +97,8 @@ final class ELAB_Booking_Form {
 			'taken'          => __( 'That time was just taken. Please choose another.', 'elaltillo-bookacall' ),
 			'doneTitle'      => $confirm_mode ? __( 'Your call is booked', 'elaltillo-bookacall' ) : __( 'Request received', 'elaltillo-bookacall' ),
 			'withAdvisor'    => __( 'with %s', 'elaltillo-bookacall' ),
-			'addGoogle'      => __( 'Open in Google Calendar', 'elaltillo-bookacall' ),
-			'addIcs'         => __( 'Apple, Outlook or other calendar', 'elaltillo-bookacall' ),
 			'botCheck'       => __( 'Please complete the security check.', 'elaltillo-bookacall' ),
+			'invitedTo'      => __( 'We sent a Google Calendar invitation to %s. Accept it to keep the call in your calendar.', 'elaltillo-bookacall' ),
 			'joinMeet'       => __( 'Join with Google Meet', 'elaltillo-bookacall' ),
 			'filesChosen'    => __( '%d files selected', 'elaltillo-bookacall' ),
 		);

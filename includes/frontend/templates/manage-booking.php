@@ -17,7 +17,7 @@ $elab_book = remove_query_arg( array( 'elab_booking', 'elab_token', 'elab_result
 <?php if ( ! $booking_id ) : ?>
 	<section class="<?php echo esc_attr( $elab_card ); ?>">
 		<h2 class="font-primary text-2xl"><?php esc_html_e( 'This link is not valid', 'elaltillo-bookacall' ); ?></h2>
-		<p class="font-primary text-base text-secondary/70"><?php esc_html_e( 'The booking may have been removed, or the link was copied incompletely. Check the email we sent you.', 'elaltillo-bookacall' ); ?></p>
+		<p class="font-primary text-base text-secondary/70"><?php esc_html_e( 'Open the link from the email we sent you, on this device. The booking may also have been removed.', 'elaltillo-bookacall' ); ?></p>
 		<a class="<?php echo esc_attr( $elab_link ); ?> justify-self-start" href="<?php echo esc_url( $elab_book ); ?>"><?php esc_html_e( 'Book a call', 'elaltillo-bookacall' ); ?></a>
 	</section>
 <?php else :
@@ -50,7 +50,6 @@ $elab_book = remove_query_arg( array( 'elab_booking', 'elab_token', 'elab_result
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="grid gap-4 border-t border-secondary/10 pt-6">
 				<input type="hidden" name="action" value="<?php echo esc_attr( ELAB_Booking_Manage::ACTION ); ?>">
 				<input type="hidden" name="booking" value="<?php echo esc_attr( $booking_id ); ?>">
-				<input type="hidden" name="token" value="<?php echo esc_attr( $token ); ?>">
 				<label class="flex cursor-pointer items-start gap-3 font-secondary text-xs leading-relaxed text-secondary/70">
 					<input type="checkbox" name="confirm" value="1" required class="peer sr-only">
 					<span aria-hidden="true" class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-secondary/40 bg-white/70 text-[0.7rem] text-transparent transition-colors peer-checked:border-secondary peer-checked:bg-secondary peer-checked:text-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-secondary">✓</span>

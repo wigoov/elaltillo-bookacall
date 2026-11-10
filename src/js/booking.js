@@ -21,7 +21,6 @@ const NOTE = 'col-span-full self-center justify-self-center py-10 text-center fo
 const RETRY = 'col-span-full justify-self-center cursor-pointer font-secondary text-xs underline underline-offset-4';
 const STEP_DOT_ACTIVE = ['bg-secondary', 'text-primary', 'border-secondary'];
 const ACTION_PRIMARY = 'rounded-full bg-secondary px-5 py-2.5 text-primary transition-colors hover:bg-secondary/85';
-const ACTION_SECONDARY = 'rounded-full border border-secondary/30 px-5 py-2.5 transition-colors hover:border-secondary hover:bg-accent';
 
 const PERIODS = ['morning', 'afternoon', 'evening'];
 const STEPS = ['time', 'details', 'done'];
@@ -738,7 +737,11 @@ function createCalendar(root, config) {
 		play(ui.error, [{ opacity: 0, transform: 'translateY(-4px)' }, { opacity: 1, transform: 'none' }], { duration: 220 });
 	}
 
-	function showCalendarChoices(calendar, meet, manage) {
+	/**
+	 * After booking: the visitor is already an invited guest of the advisor's Google event,
+	 * so there is nothing to add to a calendar by hand. Offer the Meet link and self-service.
+	 */
+	function showNextSteps(meet, manage) {
 		ui.calendarActions.replaceChildren();
 		ui.manage.hidden = !(manage && /^https?:\/\//.test(manage));
 		if (!ui.manage.hidden) ui.manage.href = manage;
@@ -751,25 +754,6 @@ function createCalendar(root, config) {
 			join.textContent = t('joinMeet');
 			ui.calendarActions.appendChild(join);
 		}
-		if (!calendar) return;
-		if (calendar.url && /^https:\/\/(www\.)?(calendar\.)?google\.com\//.test(calendar.url)) {
-			const google = document.createElement('a');
-			google.href = calendar.url;
-			google.target = '_blank';
-			google.rel = 'noopener noreferrer';
-			google.className = meet ? ACTION_SECONDARY : ACTION_PRIMARY;
-			google.textContent = t('addGoogle');
-			ui.calendarActions.appendChild(google);
-		}
-		const escape = (value) => String(value).replace(/\\/g, '\\\\').replace(/,/g, '\\,').replace(/;/g, '\\;').replace(/\n/g, '\\n');
-		const stamp = (value) => value.replace(/[-:]/g, '');
-		const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//El Altillo//Book a Call//EN', 'METHOD:PUBLISH', 'BEGIN:VEVENT', `UID:${escape(calendar.uid || 'elab-call')}`, `DTSTAMP:${stamp(new Date().toISOString().slice(0, 19) + 'Z')}`, `DTSTART:${stamp(calendar.start)}`, `DTEND:${stamp(calendar.end)}`, `SUMMARY:${escape(calendar.title)}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
-		const download = document.createElement('a');
-		download.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
-		download.download = 'el-altillo-call.ics';
-		download.className = calendar.url ? ACTION_SECONDARY : ACTION_PRIMARY;
-		download.textContent = t('addIcs');
-		ui.calendarActions.appendChild(download);
 	}
 
 	async function submit(event) {
@@ -795,13 +779,15 @@ function createCalendar(root, config) {
 		ui.submit.textContent = t('sending');
 		showError('');
 		try {
-			const result = await api('/bookings', { method: 'POST', body: data });
+			// same-origin so the browser keeps the private-link cookie; no nonce is sent, so the
+			// request stays anonymous for logged-in visitors too.
+			const result = await api('/bookings', { method: 'POST', body: data, credentials: 'same-origin' });
 			const booking = result.booking || {};
 			ui.doneTitle.textContent = t('doneTitle');
 			ui.doneWhen.textContent = `${longDate(state.date)} · ${timeLabel(state.slot.value)}`;
 			ui.doneMeta.textContent = [booking.advisor ? t('withAdvisor', booking.advisor) : '', booking.language, tzName()].filter(Boolean).join(' · ');
-			ui.doneMessage.textContent = result.message || '';
-			showCalendarChoices(result.calendar, result.meet, result.manage);
+			ui.doneMessage.textContent = result.invited ? t('invitedTo', result.invited) : result.message || '';
+			showNextSteps(result.meet, result.manage);
 			await goTo('done');
 			ui.form.reset();
 			ui.files.textContent = filesHint;

@@ -139,6 +139,27 @@ final class ELAB_Notifications {
 		return $sent;
 	}
 
+	/**
+	 * Google stopped accepting the advisor's access: tell the advisor and the site admin
+	 * once, because the advisor no longer appears in the booking calendar.
+	 */
+	public static function connection_lost( $advisor_id ) {
+		$name = get_the_title( $advisor_id );
+		$lines = array(
+			sprintf( __( 'Google Calendar access for %s was removed or has expired, so this advisor no longer appears in the booking calendar.', 'elaltillo-bookacall' ), $name ),
+			'',
+			__( 'This happens when access is removed in the Google account, the password changes, or the Google app is still in Testing mode (access then expires after 7 days).', 'elaltillo-bookacall' ),
+			'',
+			__( 'To fix it, connect Google Calendar again:', 'elaltillo-bookacall' ),
+			(int) get_post_meta( $advisor_id, '_elab_wp_user', true ) ? admin_url( 'profile.php' ) : get_edit_post_link( $advisor_id, 'raw' ),
+		);
+		$subject = sprintf( __( 'Reconnect Google Calendar for %s', 'elaltillo-bookacall' ), $name );
+		$recipients = array_unique( array_filter( array( self::advisor_email( $advisor_id ), sanitize_email( (string) get_option( 'admin_email' ) ) ) ) );
+		foreach ( $recipients as $recipient ) {
+			wp_mail( $recipient, $subject, implode( "\n", $lines ) );
+		}
+	}
+
 	/** Call time in the visitor's zone, in the site's language. */
 	private static function visitor_when( $booking_id ) {
 		$timezone = (string) get_post_meta( $booking_id, '_elab_visitor_timezone', true ) ?: 'UTC';

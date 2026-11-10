@@ -15,11 +15,56 @@ final class ELAB_Booking_Manage {
 	const ACTION = 'elab_visitor_cancel';
 	const META_TOKEN = '_elab_manage_token';
 	const META_PAGE = '_elab_page';
+	const COOKIE = 'elab_manage_';
+	const COOKIE_DAYS = 60;
 
 	public function __construct() {
 		add_action( 'admin_post_nopriv_' . self::ACTION, array( $this, 'handle_cancel' ) );
 		add_action( 'admin_post_' . self::ACTION, array( $this, 'handle_cancel' ) );
+		add_action( 'template_redirect', array( $this, 'exchange_token' ), 0 );
 		add_action( 'template_redirect', array( $this, 'private_page_headers' ) );
+	}
+
+	/**
+	 * Keep the token out of every URL that analytics, logs or referrers could record:
+	 * it lives in an HttpOnly cookie scoped to this booking.
+	 */
+	public static function remember( $booking_id, $token ) {
+		if ( headers_sent() || ! $token ) {
+			return;
+		}
+		setcookie( self::COOKIE . (int) $booking_id, $token, array(
+			'expires'  => time() + self::COOKIE_DAYS * DAY_IN_SECONDS,
+			'path'     => COOKIEPATH ?: '/',
+			'domain'   => COOKIE_DOMAIN ?: '',
+			'secure'   => is_ssl(),
+			'httponly' => true,
+			'samesite' => 'Lax',
+		) );
+		$_COOKIE[ self::COOKIE . (int) $booking_id ] = $token;
+	}
+
+	/** Link without the secret, for pages and screens; the cookie authenticates it. */
+	public static function public_url( $booking_id, $args = array() ) {
+		return add_query_arg( array_merge( array( 'elab_booking' => (int) $booking_id ), $args ), self::booking_page_url( $booking_id ) );
+	}
+
+	/** Emailed links arrive with ?elab_token=…: store it in the cookie and drop it from the URL. */
+	public function exchange_token() {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- The private token authenticates this request.
+		if ( empty( $_GET['elab_booking'] ) || ! isset( $_GET['elab_token'] ) ) {
+			return;
+		}
+		$id = absint( $_GET['elab_booking'] );
+		$token = sanitize_text_field( wp_unslash( $_GET['elab_token'] ) );
+		// phpcs:enable
+		nocache_headers();
+		header( 'Referrer-Policy: no-referrer' );
+		if ( self::verify( $id, $token ) ) {
+			self::remember( $id, $token );
+		}
+		wp_safe_redirect( self::public_url( $id ) );
+		exit;
 	}
 
 	/** Create (or rotate) the booking's private token and return it in plain text. */
@@ -95,12 +140,14 @@ final class ELAB_Booking_Manage {
 		return true;
 	}
 
+	private static function cookie_token( $booking_id ) {
+		$name = self::COOKIE . (int) $booking_id;
+		return isset( $_COOKIE[ $name ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ $name ] ) ) : '';
+	}
+
 	public static function requested_booking() {
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Token-authenticated read.
-		$id = isset( $_GET['elab_booking'] ) ? absint( $_GET['elab_booking'] ) : 0;
-		$token = isset( $_GET['elab_token'] ) ? sanitize_text_field( wp_unslash( $_GET['elab_token'] ) ) : '';
-		// phpcs:enable
-		return $id ? array( $id, $token ) : null;
+		$id = isset( $_GET['elab_booking'] ) ? absint( $_GET['elab_booking'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Cookie-authenticated read.
+		return $id ? array( $id, self::cookie_token( $id ) ) : null;
 	}
 
 	/** Never cache, index or leak the private link through the Referer header. */
@@ -116,7 +163,7 @@ final class ELAB_Booking_Manage {
 
 	public function handle_cancel() {
 		$id = isset( $_POST['booking'] ) ? absint( $_POST['booking'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- The private token authenticates this request.
-		$token = isset( $_POST['token'] ) ? sanitize_text_field( wp_unslash( $_POST['token'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$token = self::cookie_token( $id );
 		$limited = ELAB_Booking_Guard::cancellation();
 		if ( is_wp_error( $limited ) ) {
 			wp_die( esc_html( $limited->get_error_message() ), '', array( 'response' => 429 ) );
@@ -125,7 +172,7 @@ final class ELAB_Booking_Manage {
 			wp_die( esc_html__( 'This booking link is not valid.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
 		}
 		$result = self::cancel( $id, 'visitor' );
-		$back = add_query_arg( array( 'elab_booking' => $id, 'elab_token' => rawurlencode( $token ), 'elab_result' => is_wp_error( $result ) ? $result->get_error_code() : 'cancelled' ), self::booking_page_url( $id ) );
+		$back = self::public_url( $id, array( 'elab_result' => is_wp_error( $result ) ? $result->get_error_code() : 'cancelled' ) );
 		wp_safe_redirect( $back );
 		exit;
 	}

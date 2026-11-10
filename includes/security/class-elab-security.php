@@ -165,7 +165,7 @@ final class ELAB_Security {
 	/* ---------- Settings card ---------- */
 
 	public function render_settings() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'manage_options' ) || 'security' !== ELAB_Google_Settings_Admin::tab() ) {
 			return;
 		}
 		$settings = self::settings();
@@ -176,7 +176,7 @@ final class ELAB_Security {
 		<?php elseif ( 'security_failed' === $status ) : ?>
 			<div class="notice notice-error"><p><?php esc_html_e( 'The Turnstile secret could not be encrypted on this server. No changes were saved.', 'elaltillo-bookacall' ); ?></p></div>
 		<?php endif; ?>
-		<div class="card elab-google-settings-card">
+		<div class="card elab-settings-card">
 			<h2><?php esc_html_e( 'Security', 'elaltillo-bookacall' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION ); ?>">
@@ -184,8 +184,8 @@ final class ELAB_Security {
 				<h3><?php esc_html_e( 'Bot protection (Cloudflare Turnstile)', 'elaltillo-bookacall' ); ?></h3>
 				<p class="description"><?php echo wp_kses( sprintf( __( 'Every booking sends a calendar invitation from the advisor’s account, so bots must be stopped. Create a free widget in <a href="%s" target="_blank" rel="noopener noreferrer">Cloudflare → Turnstile</a> for this domain (mode: Managed) and paste its keys. Leave both empty to turn the check off.', 'elaltillo-bookacall' ), 'https://dash.cloudflare.com/?to=/:account/turnstile' ), array( 'a' => array( 'href' => true, 'target' => true, 'rel' => true ) ) ); ?></p>
 				<table class="form-table" role="presentation"><tbody>
-					<tr><th scope="row"><label for="elab-turnstile-site"><?php esc_html_e( 'Site key', 'elaltillo-bookacall' ); ?></label></th><td><input type="text" class="regular-text code" id="elab-turnstile-site" name="elab_turnstile_site" maxlength="200" value="<?php echo esc_attr( $settings['site_key'] ); ?>" autocomplete="off"></td></tr>
-					<tr><th scope="row"><label for="elab-turnstile-secret"><?php esc_html_e( 'Secret key', 'elaltillo-bookacall' ); ?></label></th><td><input type="password" class="regular-text" id="elab-turnstile-secret" name="elab_turnstile_secret" maxlength="200" autocomplete="new-password" placeholder="<?php echo esc_attr( $settings['secret'] ? __( 'Saved; leave blank to keep it', 'elaltillo-bookacall' ) : __( 'Paste the secret key', 'elaltillo-bookacall' ) ); ?>">
+					<tr><th scope="row"><label for="elab-turnstile-site"><?php esc_html_e( 'Site key', 'elaltillo-bookacall' ); ?></label></th><td><input type="text" class="large-text code" id="elab-turnstile-site" name="elab_turnstile_site" maxlength="200" value="<?php echo esc_attr( $settings['site_key'] ); ?>" autocomplete="off"></td></tr>
+					<tr><th scope="row"><label for="elab-turnstile-secret"><?php esc_html_e( 'Secret key', 'elaltillo-bookacall' ); ?></label></th><td><input type="password" class="large-text" id="elab-turnstile-secret" name="elab_turnstile_secret" maxlength="200" autocomplete="new-password" placeholder="<?php echo esc_attr( $settings['secret'] ? __( 'Saved; leave blank to keep it', 'elaltillo-bookacall' ) : __( 'Paste the secret key', 'elaltillo-bookacall' ) ); ?>">
 						<?php if ( $settings['secret'] ) : ?><label class="elab-inline-check"><input type="checkbox" name="elab_turnstile_clear" value="1"> <?php esc_html_e( 'Remove saved keys', 'elaltillo-bookacall' ); ?></label><?php endif; ?>
 						<p class="description"><?php echo esc_html( self::turnstile_enabled() ? __( 'Turnstile is on: bookings need a passed check.', 'elaltillo-bookacall' ) : __( 'Turnstile is off.', 'elaltillo-bookacall' ) ); ?></p></td></tr>
 				</tbody></table>
@@ -197,8 +197,8 @@ final class ELAB_Security {
 						<label><input type="radio" name="elab_proxy" value="cloudflare" <?php checked( 'cloudflare', $settings['proxy'] ); ?>> <?php esc_html_e( 'Through Cloudflare (uses CF-Connecting-IP from Cloudflare addresses only)', 'elaltillo-bookacall' ); ?></label><br>
 						<label><input type="radio" name="elab_proxy" value="custom" <?php checked( 'custom', $settings['proxy'] ); ?>> <?php esc_html_e( 'Through my own proxy or load balancer', 'elaltillo-bookacall' ); ?></label>
 					</fieldset></td></tr>
-					<tr><th scope="row"><label for="elab-proxy-ips"><?php esc_html_e( 'Trusted proxy addresses', 'elaltillo-bookacall' ); ?></label></th><td><textarea id="elab-proxy-ips" name="elab_proxy_ips" rows="3" class="large-text code" placeholder="10.0.0.0/8&#10;203.0.113.7"><?php echo esc_textarea( implode( "\n", $settings['proxy_ips'] ) ); ?></textarea><p class="description"><?php esc_html_e( 'Only for “my own proxy”. One IP or CIDR range per line.', 'elaltillo-bookacall' ); ?></p>
-						<label for="elab-proxy-header"><?php esc_html_e( 'Header', 'elaltillo-bookacall' ); ?></label> <select id="elab-proxy-header" name="elab_proxy_header"><option value="HTTP_X_FORWARDED_FOR" <?php selected( 'HTTP_X_FORWARDED_FOR', $settings['header'] ); ?>>X-Forwarded-For</option><option value="HTTP_X_REAL_IP" <?php selected( 'HTTP_X_REAL_IP', $settings['header'] ); ?>>X-Real-IP</option></select></td></tr>
+					<tr><th scope="row"><label for="elab-proxy-ips"><?php esc_html_e( 'Trusted proxy addresses', 'elaltillo-bookacall' ); ?></label></th><td><textarea id="elab-proxy-ips" name="elab_proxy_ips" rows="3" class="large-text code" placeholder="10.0.0.0/8&#10;203.0.113.7"><?php echo esc_textarea( implode( "\n", $settings['proxy_ips'] ) ); ?></textarea><p class="description"><?php esc_html_e( 'Only for “my own proxy”. One IP or CIDR range per line.', 'elaltillo-bookacall' ); ?></p></td></tr>
+					<tr><th scope="row"><label for="elab-proxy-header"><?php esc_html_e( 'Forwarded header', 'elaltillo-bookacall' ); ?></label></th><td><select id="elab-proxy-header" name="elab_proxy_header"><option value="HTTP_X_FORWARDED_FOR" <?php selected( 'HTTP_X_FORWARDED_FOR', $settings['header'] ); ?>>X-Forwarded-For</option><option value="HTTP_X_REAL_IP" <?php selected( 'HTTP_X_REAL_IP', $settings['header'] ); ?>>X-Real-IP</option></select><p class="description"><?php esc_html_e( 'Only for “my own proxy”: the header your proxy sets with the visitor’s address.', 'elaltillo-bookacall' ); ?></p></td></tr>
 					<tr><th scope="row"><?php esc_html_e( 'Your address as seen now', 'elaltillo-bookacall' ); ?></th><td><code><?php echo esc_html( self::visitor_ip() ); ?></code> <span class="description"><?php echo esc_html( sprintf( __( '(connection from %s)', 'elaltillo-bookacall' ), isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '—' ) ); ?></span></td></tr>
 				</tbody></table>
 				<?php submit_button( __( 'Save security settings', 'elaltillo-bookacall' ) ); ?>
@@ -221,7 +221,7 @@ final class ELAB_Security {
 		if ( '' !== $secret ) {
 			$encrypted = ELAB_Google_Calendar::encrypt( $secret );
 			if ( ! $encrypted ) {
-				wp_safe_redirect( add_query_arg( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'page' => 'elab-google-settings', 'elab_status' => 'security_failed' ), admin_url( 'edit.php' ) ) );
+				wp_safe_redirect( ELAB_Google_Settings_Admin::url( 'security', array( 'elab_status' => 'security_failed' ) ) );
 				exit;
 			}
 			$settings['secret'] = $encrypted;
@@ -244,7 +244,7 @@ final class ELAB_Security {
 		}
 		$settings['proxy_ips'] = array_values( array_unique( $ranges ) );
 		update_option( self::OPTION, $settings, false );
-		wp_safe_redirect( add_query_arg( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'page' => 'elab-google-settings', 'elab_status' => 'security_saved' ), admin_url( 'edit.php' ) ) );
+		wp_safe_redirect( ELAB_Google_Settings_Admin::url( 'security', array( 'elab_status' => 'security_saved' ) ) );
 		exit;
 	}
 }

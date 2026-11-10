@@ -29,8 +29,8 @@ final class ELAB_Blackouts_Admin {
 		if ( $this->hook_suffix !== $hook ) {
 			return;
 		}
-		wp_enqueue_style( 'elab-advisor-admin', plugins_url( 'assets/css/advisor-admin.css', ELAB_FILE ), array(), ELAB_VERSION );
-		wp_enqueue_script( 'elab-advisor-admin', plugins_url( 'assets/js/advisor-admin.min.js', ELAB_FILE ), array(), ELAB_VERSION, true );
+		wp_enqueue_style( 'elab-advisor-admin', plugins_url( 'assets/css/advisor-admin.css', ELAB_FILE ), array(), ELAB_Plugin::asset_version( 'assets/css/advisor-admin.css' ) );
+		wp_enqueue_script( 'elab-advisor-admin', plugins_url( 'assets/js/advisor-admin.min.js', ELAB_FILE ), array(), ELAB_Plugin::asset_version( 'assets/js/advisor-admin.min.js' ), true );
 	}
 
 	public function render() {

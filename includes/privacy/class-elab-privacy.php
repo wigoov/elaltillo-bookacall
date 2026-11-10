@@ -164,7 +164,7 @@ final class ELAB_Privacy {
 	}
 
 	public function render_settings() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'manage_options' ) || 'privacy' !== ELAB_Google_Settings_Admin::tab() ) {
 			return;
 		}
 		$status = isset( $_GET['elab_status'] ) ? sanitize_key( wp_unslash( $_GET['elab_status'] ) ) : '';
@@ -174,14 +174,14 @@ final class ELAB_Privacy {
 		<?php if ( 'privacy_saved' === $status ) : ?>
 			<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Privacy settings saved.', 'elaltillo-bookacall' ); ?></p></div>
 		<?php endif; ?>
-		<div class="card elab-google-settings-card">
+		<div class="card elab-settings-card">
 			<h2><?php esc_html_e( 'Privacy and retention', 'elaltillo-bookacall' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION ); ?>">
 				<?php wp_nonce_field( self::ACTION ); ?>
 				<table class="form-table" role="presentation"><tbody>
 					<tr><th scope="row"><label for="elab-retention"><?php esc_html_e( 'Delete bookings after', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" class="small-text" id="elab-retention" name="elab_retention_months" min="0" max="120" step="1" value="<?php echo esc_attr( $months ); ?>"> <?php esc_html_e( 'months after the call', 'elaltillo-bookacall' ); ?><p class="description"><?php esc_html_e( 'Booking records and their documents are permanently deleted once a day after this period. 0 keeps them until you delete them by hand.', 'elaltillo-bookacall' ); ?></p>
-					<?php if ( is_array( $last ) && ! empty( $last['time'] ) ) : ?><p class="description"><?php echo esc_html( sprintf( __( 'Last clean-up: %1$s, %2$d records deleted.', 'elaltillo-bookacall' ), wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), (int) $last['time'] ), (int) $last['deleted'] ) ); ?></p><?php endif; ?></td></tr>
+					<?php if ( is_array( $last ) && ! empty( $last['time'] ) ) : ?><p class="description"><?php echo esc_html( sprintf( _n( 'Last clean-up: %1$s, %2$d record deleted.', 'Last clean-up: %1$s, %2$d records deleted.', (int) $last['deleted'], 'elaltillo-bookacall' ), wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), (int) $last['time'] ), (int) $last['deleted'] ) ); ?></p><?php endif; ?></td></tr>
 				</tbody></table>
 				<p class="description"><?php echo wp_kses( sprintf( __( 'Visitors’ requests to export or erase their data are handled with the WordPress tools under <a href="%1$s">Tools → Export Personal Data</a> and <a href="%2$s">Erase Personal Data</a>. Suggested wording for your privacy policy is available in <a href="%3$s">Settings → Privacy</a>.', 'elaltillo-bookacall' ), esc_url( admin_url( 'export-personal-data.php' ) ), esc_url( admin_url( 'erase-personal-data.php' ) ), esc_url( admin_url( 'options-privacy.php?tab=policyguide' ) ) ), array( 'a' => array( 'href' => true ) ) ); ?></p>
 				<?php submit_button( __( 'Save privacy settings', 'elaltillo-bookacall' ) ); ?>
@@ -197,7 +197,7 @@ final class ELAB_Privacy {
 		check_admin_referer( self::ACTION );
 		$months = isset( $_POST['elab_retention_months'] ) && is_numeric( $_POST['elab_retention_months'] ) ? (int) $_POST['elab_retention_months'] : 0;
 		update_option( self::OPTION_RETENTION, min( 120, max( 0, $months ) ), false );
-		wp_safe_redirect( add_query_arg( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'page' => 'elab-google-settings', 'elab_status' => 'privacy_saved' ), admin_url( 'edit.php' ) ) );
+		wp_safe_redirect( ELAB_Google_Settings_Admin::url( 'privacy', array( 'elab_status' => 'privacy_saved' ) ) );
 		exit;
 	}
 }

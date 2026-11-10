@@ -24,7 +24,7 @@ final class ELAB_Booking_Defaults_Admin {
 	}
 
 	public function render() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'manage_options' ) || 'general' !== ELAB_Google_Settings_Admin::tab() ) {
 			return;
 		}
 		$values = ELAB_Booking_Defaults::get();
@@ -33,7 +33,7 @@ final class ELAB_Booking_Defaults_Admin {
 		<?php if ( 'defaults_saved' === $status ) : ?>
 			<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Booking defaults saved. Advisors without their own values now use them.', 'elaltillo-bookacall' ); ?></p></div>
 		<?php endif; ?>
-		<div class="card elab-google-settings-card">
+		<div class="card elab-settings-card">
 			<h2><?php esc_html_e( 'Booking defaults', 'elaltillo-bookacall' ); ?></h2>
 			<p class="description"><?php esc_html_e( 'These values apply to every advisor whose profile leaves the field empty. An advisor’s own value always wins.', 'elaltillo-bookacall' ); ?></p>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -79,7 +79,7 @@ final class ELAB_Booking_Defaults_Admin {
 				}
 			}
 		}
-		wp_safe_redirect( add_query_arg( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'page' => 'elab-google-settings', 'elab_status' => 'defaults_saved' ), admin_url( 'edit.php' ) ) );
+		wp_safe_redirect( ELAB_Google_Settings_Admin::url( 'general', array( 'elab_status' => 'defaults_saved' ) ) );
 		exit;
 	}
 }
