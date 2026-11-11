@@ -29,6 +29,9 @@ final class ELAB_Test {
 	public static $token_scope = 'openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/calendar.app.created';
 	public static $calendar_gone = false;
 	public static $event_delete_code = 204;
+	public static $event_get_code = 200;
+	public static $event_status = 'confirmed';
+	public static $unauthorized_once = false;
 	public static $identity = array( 'sub' => 'test-sub', 'email' => 'advisor@example.test', 'email_verified' => true );
 	public static $checks = 0;
 
@@ -141,6 +144,9 @@ final class ELAB_Test {
 		self::$token_scope = 'openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/calendar.app.created';
 		self::$calendar_gone = false;
 		self::$event_delete_code = 204;
+		self::$event_get_code = 200;
+		self::$event_status = 'confirmed';
+		self::$unauthorized_once = false;
 		self::as_admin();
 	}
 
@@ -167,7 +173,10 @@ final class ELAB_Test {
 		$code = 200;
 		$data = array();
 		$calendar_api = 0 === strpos( $url, 'https://www.googleapis.com/calendar/v3/' );
-		if ( $calendar_api && self::$google_down ) {
+		if ( $calendar_api && self::$unauthorized_once ) {
+			self::$unauthorized_once = false;
+			$code = 401;
+		} elseif ( $calendar_api && self::$google_down ) {
 			$code = 503;
 		} elseif ( false !== strpos( $url, 'oauth2.googleapis.com/tokeninfo' ) ) {
 			$data = array( 'scope' => self::$token_scope, 'expires_in' => 3000 );
@@ -182,6 +191,8 @@ final class ELAB_Test {
 			$data = array();
 		} elseif ( false !== strpos( $url, 'openidconnect.googleapis.com/v1/userinfo' ) ) {
 			$data = self::$identity;
+		} elseif ( $calendar_api && self::$calendar_gone && false !== strpos( $url, '/calendars/test-cal%40group' ) ) {
+			$code = 404;
 		} elseif ( $calendar_api && preg_match( '#/calendar/v3/calendars$#', $url ) && 'POST' === $method ) {
 			self::$calendar_posts[] = json_decode( $args['body'], true );
 			$data = array( 'id' => 'test-cal-' . count( self::$calendar_posts ) . '@group.calendar.google.com' );
@@ -192,8 +203,6 @@ final class ELAB_Test {
 			} else {
 				$data = array( 'id' => $id );
 			}
-		} elseif ( $calendar_api && self::$calendar_gone && false !== strpos( $url, '/calendars/test-cal%40group' ) ) {
-			$code = 404;
 		} elseif ( $calendar_api && false !== strpos( $url, '/events?sendUpdates=all' ) && 'POST' === $method ) {
 			self::$event_body = json_decode( $args['body'], true );
 			self::$event_path = $url;
@@ -207,7 +216,8 @@ final class ELAB_Test {
 		} elseif ( $calendar_api && false !== strpos( $url, '/events/' ) && 'DELETE' === $method ) {
 			$code = self::$event_delete_code;
 		} elseif ( $calendar_api && false !== strpos( $url, '/events/' ) ) {
-			$data = array( 'id' => rawurldecode( basename( wp_parse_url( $url, PHP_URL_PATH ) ) ) );
+			$code = self::$event_get_code;
+			$data = array( 'id' => rawurldecode( basename( wp_parse_url( $url, PHP_URL_PATH ) ) ), 'status' => self::$event_status );
 		} elseif ( false !== strpos( $url, 'challenges.cloudflare.com/turnstile' ) ) {
 			$good = isset( $args['body']['response'] ) && 'good-token' === $args['body']['response'] && 'turnstile-secret' === $args['body']['secret'];
 			$data = array( 'success' => $good, 'hostname' => wp_parse_url( home_url(), PHP_URL_HOST ) );

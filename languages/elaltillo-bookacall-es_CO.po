@@ -2693,3 +2693,67 @@ msgstr "%1$d–%2$d min"
 #, php-format
 msgid "%1$d to %2$d-minute call with the first available advisor"
 msgstr "Llamada de %1$d a %2$d minutos con el primer asesor disponible"
+
+msgid "Calls already booked"
+msgstr "Llamadas ya reservadas"
+
+msgid "Calls already booked are kept and stay in your “El Altillo · Citas” calendar. If one is cancelled while you are disconnected, the site removes its event once you connect again."
+msgstr "Las llamadas ya reservadas se conservan y siguen en tu calendario «El Altillo · Citas». Si alguna se cancela mientras estás desconectado, el sitio borra su evento cuando vuelvas a conectarte."
+
+msgid "Checks that each advisor’s “El Altillo · Citas” calendar answers, asks Google which permissions the site really holds, and retries calls waiting for Google."
+msgstr "Comprueba que responde el calendario «El Altillo · Citas» de cada asesor, pregunta a Google qué permisos tiene realmente el sitio y reintenta las llamadas pendientes."
+
+#, php-format
+msgid "Deleted in the advisor’s Google Calendar, noticed %s UTC"
+msgstr "Borrada en el Google Calendar del asesor, detectado el %s UTC"
+
+msgid "Google Calendar disconnected"
+msgstr "Google Calendar desconectado"
+
+msgid "Google Calendar matches every booking."
+msgstr "Google Calendar coincide con todas las reservas."
+
+msgid "Google confirms this site can only reach its own “El Altillo · Citas” calendar."
+msgstr "Google confirma que este sitio solo puede usar su propio calendario «El Altillo · Citas»."
+
+msgid "Google did not report the permissions of this connection."
+msgstr "Google no informó los permisos de esta conexión."
+
+#, php-format
+msgid "Google reports more access than this site needs (%s). Disconnect and connect again so only the site’s own calendar is shared."
+msgstr "Google indica más acceso del que necesita este sitio (%s). Desconecta y vuelve a conectar para compartir solo el calendario del sitio."
+
+#, php-format
+msgid "Google reports more access than this site needs (%s): disconnect and connect again."
+msgstr "Google indica más acceso del que necesita este sitio (%s): desconecta y vuelve a conectar."
+
+msgid "None. Google Calendar matches every booking."
+msgstr "Ninguna. Google Calendar coincide con todas las reservas."
+
+msgid "The bookings calendar is missing in Google."
+msgstr "El calendario de citas no existe en Google."
+
+msgid "The event was deleted from your Google Calendar, so the call was cancelled on the site too. The time is free again and the visitor was emailed."
+msgstr "El evento se borró de tu Google Calendar, así que la llamada también se canceló en el sitio. La hora quedó libre y se avisó al visitante por correo."
+
+msgid "Visitors cannot book calls with you until you connect it again."
+msgstr "Los visitantes no pueden reservar llamadas contigo hasta que vuelvas a conectarlo."
+
+#, php-format
+msgid "Your Google Calendar is no longer connected to %s."
+msgstr "Tu Google Calendar ya no está conectado a %s."
+
+msgid "Your Google Calendar was disconnected"
+msgstr "Tu Google Calendar se desconectó"
+
+#, php-format
+msgid "%d call is up to date here but not in Google yet (an event to add or remove). It is retried every hour and when the advisor reconnects."
+msgid_plural "%d calls are up to date here but not in Google yet (events to add or remove). They are retried every hour and when the advisor reconnects."
+msgstr[0] "%d llamada está al día aquí pero aún no en Google (un evento por crear o borrar). Se reintenta cada hora y cuando el asesor se reconecta."
+msgstr[1] "%d llamadas están al día aquí pero aún no en Google (eventos por crear o borrar). Se reintentan cada hora y cuando el asesor se reconecta."
+
+#, php-format
+msgid "%d call is up to date in WordPress but not in Google yet (an event to add or remove). It is retried every hour."
+msgid_plural "%d calls are up to date in WordPress but not in Google yet (events to add or remove). They are retried every hour."
+msgstr[0] "%d llamada está al día en WordPress pero aún no en Google (un evento por crear o borrar). Se reintenta cada hora."
+msgstr[1] "%d llamadas están al día en WordPress pero aún no en Google (eventos por crear o borrar). Se reintentan cada hora."

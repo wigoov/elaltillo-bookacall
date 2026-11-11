@@ -242,7 +242,11 @@ final class ELAB_Google_Calendar {
 		if ( ! self::can_connect( $advisor_id ) || ELAB_Post_Types::ADVISOR !== get_post_type( $advisor_id ) ) {
 			wp_die( esc_html__( 'You cannot edit this advisor.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
 		}
+		$was_linked = self::linked( $advisor_id );
 		self::forget( $advisor_id, true );
+		if ( $was_linked ) {
+			ELAB_Notifications::disconnected( $advisor_id );
+		}
 		wp_safe_redirect( current_user_can( 'manage_options' ) ? get_edit_post_link( $advisor_id, 'raw' ) : admin_url( 'profile.php' ) );
 		exit;
 	}
@@ -466,7 +470,7 @@ final class ELAB_Google_Calendar {
 		return $tokens['access_token'];
 	}
 
-	private static function request( $advisor_id, $method, $path, $body = null ) {
+	private static function request( $advisor_id, $method, $path, $body = null, $retry = true ) {
 		$token = self::access_token( $advisor_id );
 		if ( is_wp_error( $token ) ) {
 			return $token;
@@ -477,6 +481,12 @@ final class ELAB_Google_Calendar {
 		}
 		$response = wp_remote_request( self::API_URL . $path, $args );
 		$code = is_wp_error( $response ) ? 0 : wp_remote_retrieve_response_code( $response );
+		// The saved access stopped working (access removed in Google): get a new one once, so a
+		// removed grant is noticed now (and the advisor told) instead of when the cache expires.
+		if ( 401 === $code && $retry ) {
+			delete_transient( 'elab_google_access_' . $advisor_id );
+			return self::request( $advisor_id, $method, $path, $body, false );
+		}
 		// Already gone in Google (404), or deleted there earlier (410): the removal is done.
 		if ( 'DELETE' === $method && in_array( $code, array( 404, 410 ), true ) ) {
 			return array();
@@ -564,6 +574,31 @@ final class ELAB_Google_Calendar {
 			}
 		}
 		return $event;
+	}
+
+	/**
+	 * Whether the advisor deleted this booking's event in Google Calendar.
+	 *
+	 * @return bool|WP_Error True when the event is gone; an error when Google cannot tell
+	 *                       (including when the whole calendar is missing, which is never
+	 *                       read as "every call was cancelled").
+	 */
+	public static function event_deleted( $booking_id ) {
+		$advisor_id = (int) get_post_meta( $booking_id, '_elab_advisor', true );
+		$event_id = (string) get_post_meta( $booking_id, self::META_EVENT, true );
+		$calendar = (string) get_post_meta( $booking_id, self::META_CALENDAR, true );
+		if ( ! preg_match( '/^elab[0-9a-f]{32}$/', $event_id ) || '' === $calendar ) {
+			return false;
+		}
+		$event = self::request( $advisor_id, 'GET', '/calendars/' . rawurlencode( $calendar ) . '/events/' . rawurlencode( $event_id ) );
+		if ( ! is_wp_error( $event ) ) {
+			return 'cancelled' === ( $event['status'] ?? '' );
+		}
+		if ( ! in_array( (int) ( $event->get_error_data()['http'] ?? 0 ), array( 404, 410 ), true ) ) {
+			return $event;
+		}
+		$exists = self::request( $advisor_id, 'GET', '/calendars/' . rawurlencode( $calendar ) );
+		return is_wp_error( $exists ) ? new WP_Error( 'google_calendar_gone', __( 'The bookings calendar is missing in Google.', 'elaltillo-bookacall' ) ) : true;
 	}
 
 	/** The only event ID this plugin ever creates for a booking: "elab" + 32 hex characters. */

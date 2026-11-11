@@ -179,7 +179,10 @@ final class ELAB_Notifications {
 		$titles = array(
 			'confirmed' => array( __( 'New call booked', 'elaltillo-bookacall' ), sprintf( __( '%s booked a call with you.', 'elaltillo-bookacall' ), $name ) ),
 			'pending'   => array( __( 'New call request', 'elaltillo-bookacall' ), sprintf( __( '%s requested a call. Confirm it from the booking record.', 'elaltillo-bookacall' ), $name ) ),
-			'cancelled' => array( __( 'Call cancelled', 'elaltillo-bookacall' ), 'visitor' === get_post_meta( $booking_id, '_elab_cancelled_by', true ) ? sprintf( __( '%s cancelled the call from their private link. The time is free again.', 'elaltillo-bookacall' ), $name ) : __( 'This call was cancelled. The time is free again.', 'elaltillo-bookacall' ) ),
+			'cancelled' => array( __( 'Call cancelled', 'elaltillo-bookacall' ), array(
+				'visitor' => sprintf( __( '%s cancelled the call from their private link. The time is free again.', 'elaltillo-bookacall' ), $name ),
+				'google'  => __( 'The event was deleted from your Google Calendar, so the call was cancelled on the site too. The time is free again and the visitor was emailed.', 'elaltillo-bookacall' ),
+			)[ get_post_meta( $booking_id, '_elab_cancelled_by', true ) ] ?? __( 'This call was cancelled. The time is free again.', 'elaltillo-bookacall' ) ),
 			'synced'    => array( __( 'Call added to your calendar', 'elaltillo-bookacall' ), __( 'Google is reachable again: this call is now in your calendar and the visitor received the invitation.', 'elaltillo-bookacall' ) ),
 		);
 		list( $title, $intro ) = $titles[ $status ] ?? $titles['pending'];
@@ -249,6 +252,29 @@ final class ELAB_Notifications {
 				) );
 			} );
 		}
+	}
+
+	/** The connection was removed from the site (Disconnect). The advisor hears it from us. */
+	public static function disconnected( $advisor_id ) {
+		$email = self::advisor_email( $advisor_id );
+		if ( ! $email ) {
+			return false;
+		}
+		return self::in_locale( self::advisor_locale( $advisor_id ), static function () use ( $advisor_id, $email ) {
+			$upcoming = get_posts( array( 'post_type' => ELAB_Post_Types::BOOKING, 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids', 'meta_query' => array(
+				array( 'key' => '_elab_advisor', 'value' => (int) $advisor_id ),
+				array( 'key' => '_elab_status', 'value' => array( 'pending', 'confirmed' ), 'compare' => 'IN' ),
+				array( 'key' => '_elab_start_utc', 'value' => gmdate( 'Y-m-d H:i:s' ), 'compare' => '>', 'type' => 'DATETIME' ),
+			) ) );
+			return ELAB_Mailer::send( $email, __( 'Google Calendar disconnected', 'elaltillo-bookacall' ), array(
+				'title'  => __( 'Your Google Calendar was disconnected', 'elaltillo-bookacall' ),
+				'intro'  => sprintf( __( 'Your Google Calendar is no longer connected to %s.', 'elaltillo-bookacall' ), get_bloginfo( 'name' ) ),
+				'notice' => __( 'Visitors cannot book calls with you until you connect it again.', 'elaltillo-bookacall' ),
+				'rows'   => array( __( 'Calls already booked', 'elaltillo-bookacall' ) => (string) count( $upcoming ) ),
+				'button' => array( __( 'Connect Google Calendar', 'elaltillo-bookacall' ), self::reconnect_url( $advisor_id ) ),
+				'body'   => array( __( 'Calls already booked are kept and stay in your “El Altillo · Citas” calendar. If one is cancelled while you are disconnected, the site removes its event once you connect again.', 'elaltillo-bookacall' ) ),
+			) );
+		} );
 	}
 
 	/* ---------- Visitor and guests ---------- */

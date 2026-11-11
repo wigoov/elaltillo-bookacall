@@ -51,7 +51,7 @@ final class ELAB_Booking_Admin {
 			__( 'Guests', 'elaltillo-bookacall' ) => implode( ', ', ELAB_Booking_Sync::guests( $post->ID ) ) ?: '—',
 			__( 'Received', 'elaltillo-bookacall' ) => get_the_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $post ),
 			__( 'Video call', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_meet_url', true ) ?: '—',
-			__( 'Cancelled', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_cancelled_at', true ) ? sprintf( 'visitor' === get_post_meta( $post->ID, '_elab_cancelled_by', true ) ? __( 'By the visitor, %s UTC', 'elaltillo-bookacall' ) : __( 'By an administrator, %s UTC', 'elaltillo-bookacall' ), get_post_meta( $post->ID, '_elab_cancelled_at', true ) ) : '—',
+			__( 'Cancelled', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_cancelled_at', true ) ? sprintf( array( 'visitor' => __( 'By the visitor, %s UTC', 'elaltillo-bookacall' ), 'google' => __( 'Deleted in the advisor’s Google Calendar, noticed %s UTC', 'elaltillo-bookacall' ) )[ get_post_meta( $post->ID, '_elab_cancelled_by', true ) ] ?? __( 'By an administrator, %s UTC', 'elaltillo-bookacall' ), get_post_meta( $post->ID, '_elab_cancelled_at', true ) ) : '—',
 			__( 'Privacy consent', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_consent_at', true ) ? sprintf( __( 'Accepted %s UTC', 'elaltillo-bookacall' ), get_post_meta( $post->ID, '_elab_consent_at', true ) ) : '—',
 		);
 		// Rows that only apply sometimes are left out instead of showing a dash.

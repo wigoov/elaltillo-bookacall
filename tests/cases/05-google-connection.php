@@ -165,4 +165,43 @@ return array(
 		}
 		T::same( array(), T::requests( '#oauth2\.googleapis\.com/revoke#' ), 'No revoke' );
 	},
+
+	'Access removed in Google is noticed on the next request, not when the cache expires' => function () {
+		$advisor = T::connect( T::advisor() );
+		set_transient( 'elab_google_access_' . $advisor, 'stale-token', HOUR_IN_SECONDS );
+		T::$unauthorized_once = true;
+		T::$revoke = true;
+		T::check( is_wp_error( ELAB_Google_Calendar::check( $advisor ) ), 'Check fails' );
+		T::check( ELAB_Google_Calendar::revoked( $advisor ), 'Marked as needing to reconnect' );
+		T::same( 2, count( T::mail_with_subject( 'Reconnect Google Calendar for Test advisor' ) ), 'Advisor and site admin told at once' );
+	},
+
+	'A 401 with a still valid grant just renews the access and goes on' => function () {
+		$advisor = T::connect( T::advisor() );
+		set_transient( 'elab_google_access_' . $advisor, 'stale-token', HOUR_IN_SECONDS );
+		T::$unauthorized_once = true;
+		T::same( true, ELAB_Google_Calendar::check( $advisor ), 'Check passes after renewing' );
+		T::check( ! ELAB_Google_Calendar::revoked( $advisor ), 'Not marked revoked' );
+	},
+
+	'Disconnecting from the site emails the advisor' => function () {
+		$advisor = T::connect( T::advisor( array( '_elab_email' => 'advisor@example.test' ) ) );
+		T::booking( $advisor );
+		$catch = static function () { throw new ELAB_Test_Failure( 'redirected' ); };
+		add_filter( 'wp_redirect', $catch, 1 );
+		$_GET['advisor'] = (string) $advisor;
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'elab_google_disconnect_' . $advisor );
+		try {
+			( new ELAB_Google_Calendar() )->disconnect();
+		} catch ( ELAB_Test_Failure $redirect ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
+		} finally {
+			remove_filter( 'wp_redirect', $catch, 1 );
+			unset( $_REQUEST['_wpnonce'] );
+		}
+		$mail = T::mail_with_subject( 'Google Calendar disconnected' );
+		T::same( 1, count( $mail ), 'One email' );
+		T::same( 'advisor@example.test', $mail[0]['to'], 'To the advisor' );
+		T::check( ! ELAB_Google_Calendar::linked( $advisor ), 'Disconnected' );
+		T::same( 1, count( T::requests( '#oauth2\.googleapis\.com/revoke#' ) ), 'Grant revoked at Google' );
+	},
 );

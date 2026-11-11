@@ -184,12 +184,49 @@ final class ELAB_Booking_Sync {
 	}
 
 	/**
-	 * Retry everything queued (for one advisor after they reconnect, or all from cron).
+	 * Upcoming calls whose event the advisor deleted in Google Calendar are cancelled here
+	 * too: the time is freed and the visitor and advisor are emailed.
 	 *
-	 * @return array{created:int,deleted:int,waiting:int}
+	 * @return int Calls cancelled.
+	 */
+	public static function reconcile( $advisor_id = 0 ) {
+		$meta = array(
+			array( 'key' => '_elab_status', 'value' => 'confirmed' ),
+			array( 'key' => ELAB_Google_Calendar::META_EVENT, 'compare' => 'EXISTS' ),
+			array( 'key' => '_elab_start_utc', 'value' => gmdate( 'Y-m-d H:i:s' ), 'compare' => '>', 'type' => 'DATETIME' ),
+		);
+		if ( $advisor_id ) {
+			$meta[] = array( 'key' => '_elab_advisor', 'value' => (int) $advisor_id );
+		}
+		$cancelled = 0;
+		foreach ( get_posts( array( 'post_type' => ELAB_Post_Types::BOOKING, 'post_status' => 'any', 'numberposts' => 200, 'fields' => 'ids', 'meta_query' => $meta ) ) as $booking_id ) {
+			if ( ! ELAB_Google_Calendar::connected( (int) get_post_meta( $booking_id, '_elab_advisor', true ) ) || true !== ELAB_Google_Calendar::event_deleted( $booking_id ) ) {
+				continue;
+			}
+			$lock = self::lock( $booking_id );
+			if ( ! $lock ) {
+				continue;
+			}
+			try {
+				if ( 'confirmed' === get_post_meta( $booking_id, '_elab_status', true ) && get_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT, true ) ) {
+					ELAB_Booking_Manage::cancelled_in_google( $booking_id );
+					$cancelled++;
+				}
+			} finally {
+				delete_option( $lock );
+			}
+		}
+		return $cancelled;
+	}
+
+	/**
+	 * Retry everything queued (for one advisor after they reconnect, or all from cron), then
+	 * cancel the calls the advisor deleted in Google.
+	 *
+	 * @return array{created:int,deleted:int,waiting:int,cancelled:int}
 	 */
 	public static function run( $advisor_id = 0 ) {
-		$done = array( 'created' => 0, 'deleted' => 0, 'waiting' => 0 );
+		$done = array( 'created' => 0, 'deleted' => 0, 'waiting' => 0, 'cancelled' => 0 );
 		foreach ( self::pending( (int) $advisor_id ) as $booking_id ) {
 			$owner = (int) get_post_meta( $booking_id, '_elab_advisor', true );
 			if ( ! ELAB_Google_Calendar::connected( $owner ) ) {
@@ -223,6 +260,7 @@ final class ELAB_Booking_Sync {
 			}
 			$done['created']++;
 		}
+		$done['cancelled'] = self::reconcile( (int) $advisor_id );
 		return $done;
 	}
 

@@ -139,6 +139,20 @@ final class ELAB_Booking_Manage {
 		return $google;
 	}
 
+	/**
+	 * The advisor deleted the event in Google Calendar: cancel the call here as well. Google
+	 * may or may not have told the visitor, so the site always emails them (and the guests
+	 * who were invited), with a link to book another time.
+	 */
+	public static function cancelled_in_google( $booking_id ) {
+		update_post_meta( $booking_id, '_elab_status', 'cancelled' );
+		update_post_meta( $booking_id, '_elab_cancelled_by', 'google' );
+		update_post_meta( $booking_id, '_elab_cancelled_at', gmdate( 'Y-m-d H:i:s' ) );
+		delete_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT );
+		ELAB_Notifications::booking_notice( $booking_id, 'cancelled' );
+		ELAB_Notifications::visitor_notice( $booking_id, 'cancelled' );
+	}
+
 	private static function cookie_token( $booking_id ) {
 		$name = self::COOKIE . (int) $booking_id;
 		return isset( $_COOKIE[ $name ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ $name ] ) ) : '';
