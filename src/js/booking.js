@@ -193,6 +193,7 @@ function createCalendar(root, config) {
 		period: '',
 		slot: null,
 		advisor: '',
+		notice: '',
 		step: 'time',
 		monthRequest: 0,
 		slotRequest: 0,
@@ -319,7 +320,7 @@ function createCalendar(root, config) {
 		renderMonth(true);
 		try {
 			const params = new URLSearchParams({ month: monthKey(state.year, state.month), timezone: state.timezone });
-			const data = await api(`/availability?${params}`);
+			const data = await api(`/availability?${params}&_=${Date.now()}`);
 			if (request !== state.monthRequest || data?.month !== monthKey(state.year, state.month)) return;
 			state.days = data.days || {};
 			state.max = data.max || '';
@@ -406,6 +407,7 @@ function createCalendar(root, config) {
 	}
 
 	function selectDate(date, fromUser = true) {
+		if (fromUser) state.notice = '';
 		state.date = date;
 		renderMonth();
 		swapText(ui.day, longDate(date));
@@ -424,7 +426,7 @@ function createCalendar(root, config) {
 		announce(t('loadingTimes'));
 		try {
 			const params = new URLSearchParams({ date: state.date, timezone: state.timezone });
-			const slots = await api(`/slots?${params}`);
+			const slots = await api(`/slots?${params}&_=${Date.now()}`);
 			if (request !== state.slotRequest) return;
 			state.slots = (Array.isArray(slots) ? slots : []).map((slot) => ({ ...slot, period: periodOf(slot.value) }));
 			ui.times.setAttribute('aria-busy', 'false');
@@ -507,7 +509,8 @@ function createCalendar(root, config) {
 	async function updateChoice() {
 		const slot = state.slot;
 		ui.continue.disabled = !slot;
-		swapText(ui.choiceWhen, slot ? `${shortDate(state.date)} · ${timeLabel(slot.value)}` : pickTime);
+		swapText(ui.choiceWhen, slot ? `${shortDate(state.date)} · ${timeLabel(slot.value)}` : state.notice || pickTime);
+		ui.choiceWhen.classList.toggle('text-secondary/70', Boolean(state.notice) && !slot);
 		const advisors = slot?.advisors || [];
 		const fillMeta = () => {
 			ui.choiceDuration.textContent = slot ? t('minutes', durationOf(chosenAdvisors())) : '';
@@ -551,6 +554,7 @@ function createCalendar(root, config) {
 	}
 
 	function selectSlot(value) {
+		state.notice = '';
 		state.slot = state.slots.find((slot) => slot.value === value) || null;
 		state.advisor = '';
 		paintSlots();
@@ -794,9 +798,11 @@ function createCalendar(root, config) {
 		} catch (error) {
 			if (error.status === 409) {
 				await goTo('time');
+				// Say it where the visitor is looking: the selection bar, which never changes size.
+				state.notice = error.message || t('taken');
 				state.slot = null;
 				updateChoice();
-				announce(error.message || t('taken'));
+				announce(state.notice);
 				loadSlots(false);
 				return;
 			}

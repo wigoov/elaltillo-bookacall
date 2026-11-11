@@ -57,7 +57,16 @@ final class ELAB_System_Status {
 		$page = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type IN ('page','post') AND post_content LIKE %s LIMIT 1", '%' . $wpdb->esc_like( '[elaltillo_bookacall' ) . '%' ) );
 		$checks[] = array( 'site', __( 'Booking page', 'elaltillo-bookacall' ), $page ? 'ok' : 'warn', $page ? sprintf( __( 'The calendar is published on “%s”.', 'elaltillo-bookacall' ), get_the_title( (int) $page ) ) : __( 'No published page contains the [elaltillo_bookacall] shortcode yet.', 'elaltillo-bookacall' ), $page ? '<a class="button" href="' . esc_url( get_permalink( (int) $page ) ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'View page', 'elaltillo-bookacall' ) . '</a>' : '' );
 		$security = ELAB_Security::settings();
-		$forwarded = ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) || ! empty( $_SERVER['HTTP_CF_CONNECTING_IP'] ) || ! empty( $_SERVER['HTTP_X_REAL_IP'] );
+		// Warn only when a proxy reports a visitor address different from the connection's.
+		// Hosts such as Hostinger's CDN already restore the real address into REMOTE_ADDR.
+		$remote = isset( $_SERVER['REMOTE_ADDR'] ) ? trim( (string) $_SERVER['REMOTE_ADDR'] ) : '';
+		$reported = array();
+		foreach ( array( 'HTTP_CF_CONNECTING_IP', 'HTTP_X_REAL_IP', 'HTTP_X_FORWARDED_FOR' ) as $header ) {
+			if ( ! empty( $_SERVER[ $header ] ) ) {
+				$reported[] = trim( explode( ',', (string) $_SERVER[ $header ] )[0] );
+			}
+		}
+		$forwarded = (bool) array_filter( $reported, static function ( $ip ) use ( $remote ) { return filter_var( $ip, FILTER_VALIDATE_IP ) && $ip !== $remote; } );
 		if ( 'direct' === $security['proxy'] ) {
 			$checks[] = array( 'site', __( 'Visitor IP for rate limits', 'elaltillo-bookacall' ), $forwarded ? 'warn' : 'ok', $forwarded ? __( 'This request came through a proxy or CDN, but the plugin is set to “directly”. All visitors may share one booking limit. Choose your proxy under Settings → Security.', 'elaltillo-bookacall' ) : __( 'Requests reach WordPress directly; limits use each visitor’s address.', 'elaltillo-bookacall' ), '<a class="button" href="' . esc_url( $settings ) . '">' . esc_html__( 'Settings', 'elaltillo-bookacall' ) . '</a>' );
 		} else {

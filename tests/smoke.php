@@ -209,7 +209,13 @@ try {
 	$visitor_mails = array_filter( $mail_log, static function ( $mail ) use ( $visitor_email ) { return false !== strpos( (string) ( is_array( $mail['to'] ) ? implode( ',', $mail['to'] ) : $mail['to'] ), 'visitor+' ) && false !== strpos( $mail['message'], 'elab_token=' ); } );
 	elab_smoke_assert( (bool) $visitor_mails, 'The visitor receives a booking email with a private cancel link' );
 	$no_store = apply_filters( 'rest_post_dispatch', new WP_REST_Response( array() ), rest_get_server(), $slots_request );
+	$litespeed_told = 0;
+	$litespeed_spy = static function () use ( &$litespeed_told ) { $litespeed_told++; };
+	add_action( 'litespeed_control_set_nocache', $litespeed_spy );
+	$no_store = apply_filters( 'rest_post_dispatch', new WP_REST_Response( array() ), rest_get_server(), $slots_request );
+	remove_action( 'litespeed_control_set_nocache', $litespeed_spy );
 	elab_smoke_assert( 'no-store, max-age=0' === ( $no_store->get_headers()['Cache-Control'] ?? '' ), 'Availability responses are never cached' );
+	elab_smoke_assert( 'no-cache' === ( $no_store->get_headers()['X-LiteSpeed-Cache-Control'] ?? '' ) && $litespeed_told > 0, 'LiteSpeed Cache is told not to cache the booking API' );
 	elab_smoke_assert( 30 === (int) get_post_meta( $manual_id, '_elab_duration', true ), 'Booking stores its own call length' );
 	elab_smoke_assert( ELAB_Booking_Service::DEFAULT_LANGUAGE === get_post_meta( $manual_id, '_elab_language', true ) && 'es' === ELAB_Booking_Service::DEFAULT_LANGUAGE, 'Meeting language defaults to Spanish' );
 	$bad_language = new WP_REST_Request( 'POST', '/elab/v1/bookings' );

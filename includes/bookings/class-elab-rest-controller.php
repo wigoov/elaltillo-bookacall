@@ -16,10 +16,17 @@ final class ELAB_REST_Controller {
 		add_filter( 'rest_post_dispatch', array( $this, 'no_store' ), 10, 3 );
 	}
 
-	/** Availability changes minute to minute and bookings carry personal data: never cache. */
+	/**
+	 * Availability changes minute to minute and bookings carry personal data: never cache.
+	 * LiteSpeed Cache ignores Cache-Control when "Cache REST API" is on, so it is told
+	 * directly through its API and its response header; otherwise visitors see booked
+	 * times as free until the cached copy expires.
+	 */
 	public function no_store( $response, $server, $request ) {
 		if ( $response instanceof WP_HTTP_Response && 0 === strpos( $request->get_route(), '/elab/v1/' ) ) {
 			$response->header( 'Cache-Control', 'no-store, max-age=0' );
+			$response->header( 'X-LiteSpeed-Cache-Control', 'no-cache' );
+			do_action( 'litespeed_control_set_nocache', 'elab booking API' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed Cache API.
 		}
 		return $response;
 	}
