@@ -85,7 +85,10 @@ final class ELAB_Google_Settings_Admin {
 		$local_redirect = is_string( $redirect_host ) && preg_match( '/(\.local|\.test|localhost)$/i', $redirect_host );
 		$advisors = get_posts( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids' ) );
 		$connected = count( array_filter( $advisors, array( 'ELAB_Google_Calendar', 'connected' ) ) );
-		$revoked = count( array_filter( $advisors, array( 'ELAB_Google_Calendar', 'revoked' ) ) );
+		$revoked = count( array_filter( $advisors, static function ( $id ) {
+			return ELAB_Google_Calendar::linked( $id ) && ! ELAB_Google_Calendar::connected( $id );
+		} ) );
+		$waiting = count( ELAB_Booking_Sync::pending() );
 		$live = get_transient( ELAB_System_Status::TRANSIENT_GOOGLE );
 		$notices = array(
 			'saved'             => array( 'success', __( 'Google settings saved.', 'elaltillo-bookacall' ) ),
@@ -99,7 +102,8 @@ final class ELAB_Google_Settings_Admin {
 		}
 		$rows = array(
 			array( __( 'OAuth client', 'elaltillo-bookacall' ), $configured ? 'ok' : 'warn', $configured ? __( 'Client ID and encrypted Client Secret saved.', 'elaltillo-bookacall' ) : __( 'Not configured yet. Follow the setup guide below.', 'elaltillo-bookacall' ) ),
-			array( __( 'Advisors connected', 'elaltillo-bookacall' ), $advisors && $connected === count( $advisors ) ? 'ok' : 'warn', sprintf( __( '%1$d of %2$d published advisors.', 'elaltillo-bookacall' ), $connected, count( $advisors ) ) . ( $revoked ? ' ' . sprintf( _n( '%d needs to reconnect: Google access was removed or expired.', '%d need to reconnect: Google access was removed or expired.', $revoked, 'elaltillo-bookacall' ), $revoked ) : '' ) ),
+			array( __( 'Advisors connected', 'elaltillo-bookacall' ), $advisors && $connected === count( $advisors ) ? 'ok' : 'warn', sprintf( __( '%1$d of %2$d published advisors.', 'elaltillo-bookacall' ), $connected, count( $advisors ) ) . ( $revoked ? ' ' . sprintf( _n( '%d needs to reconnect.', '%d need to reconnect.', $revoked, 'elaltillo-bookacall' ), $revoked ) : '' ) ),
+			array( __( 'Calls waiting for Google', 'elaltillo-bookacall' ), $waiting ? 'warn' : 'ok', $waiting ? sprintf( _n( '%d call is saved in WordPress and will be added to Google when its advisor reconnects.', '%d calls are saved in WordPress and will be added to Google when their advisors reconnect.', $waiting, 'elaltillo-bookacall' ), $waiting ) : __( 'None. Every booked call is in Google Calendar.', 'elaltillo-bookacall' ) ),
 			array( __( 'Last live test', 'elaltillo-bookacall' ), is_array( $live ) ? ( $live['failed'] ? 'error' : 'ok' ) : 'info', is_array( $live ) ? sprintf( __( '%1$d of %2$d calendars answered at %3$s.', 'elaltillo-bookacall' ), $live['passed'], $live['passed'] + $live['failed'], wp_date( get_option( 'time_format' ), (int) $live['time'] ) ) : __( 'Not run yet.', 'elaltillo-bookacall' ) ),
 			array( __( 'Encryption key', 'elaltillo-bookacall' ), ELAB_Google_Calendar::has_own_key() ? 'ok' : 'info', ELAB_Google_Calendar::has_own_key() ? __( 'ELAB_ENCRYPTION_KEY from wp-config.php protects stored tokens.', 'elaltillo-bookacall' ) : __( 'Tokens are encrypted with the WordPress auth salt. Define ELAB_ENCRYPTION_KEY (32+ random characters) in wp-config.php so a salt change does not force every advisor to reconnect.', 'elaltillo-bookacall' ) ),
 		);
@@ -107,7 +111,7 @@ final class ELAB_Google_Settings_Admin {
 		?>
 		<div class="card elab-settings-card">
 			<h2><?php esc_html_e( 'Connection', 'elaltillo-bookacall' ); ?></h2>
-			<p class="description"><?php esc_html_e( 'One Google Cloud OAuth client serves the whole site. Each advisor connects their own Google account; bookings become events in that advisor’s calendar with the visitor invited as a guest.', 'elaltillo-bookacall' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Availability is managed here in WordPress. Google is only used to add each booked call to the advisor’s calendar and invite the visitor. When an advisor connects, the site creates a separate calendar, “El Altillo · Citas”, and can only see and change that one: never their other calendars or events. If Google is unreachable, bookings are still saved and added later.', 'elaltillo-bookacall' ); ?></p>
 			<table class="widefat elab-status-table elab-settings-status"><tbody>
 			<?php foreach ( $rows as $row ) : ?>
 				<tr><th scope="row"><?php echo esc_html( $row[0] ); ?></th><td class="elab-status-state"><span class="elab-check elab-check--<?php echo esc_attr( $row[1] ); ?>"><?php echo esc_html( $states[ $row[1] ] ); ?></span></td><td><?php echo esc_html( $row[2] ); ?></td></tr>
@@ -146,10 +150,10 @@ final class ELAB_Google_Settings_Admin {
 				<li><strong><?php esc_html_e( 'Create or select a Google Cloud project.', 'elaltillo-bookacall' ); ?></strong> <?php esc_html_e( 'Use the account that will own this integration.', 'elaltillo-bookacall' ); ?> <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Open Google Cloud Console', 'elaltillo-bookacall' ); ?></a></li>
 				<li><strong><?php esc_html_e( 'Enable the Google Calendar API.', 'elaltillo-bookacall' ); ?></strong> <?php esc_html_e( 'In APIs & Services, find Google Calendar API and select Enable.', 'elaltillo-bookacall' ); ?></li>
 				<li><strong><?php esc_html_e( 'Choose the app audience.', 'elaltillo-bookacall' ); ?></strong> <?php esc_html_e( 'In Google Auth Platform → Audience: choose Internal when every advisor uses an account of your own Google Workspace; no Google review is needed. Choose External if any advisor uses a personal Gmail account: while the app is in Testing, add each advisor as a test user, and note that access then expires every 7 days. Publish the app and complete Google’s verification (the calendar scope is sensitive) before going live.', 'elaltillo-bookacall' ); ?> <a href="https://support.google.com/cloud/answer/15549945" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'About audiences', 'elaltillo-bookacall' ); ?></a></li>
-				<li><strong><?php esc_html_e( 'Complete Branding and Data Access.', 'elaltillo-bookacall' ); ?></strong> <?php esc_html_e( 'Add your logo, home page and privacy policy, then these scopes:', 'elaltillo-bookacall' ); ?> <code>calendar.events</code>, <code>calendar.freebusy</code>, <code>openid</code>, <code>email</code>. <?php esc_html_e( 'No Gmail access is requested.', 'elaltillo-bookacall' ); ?></li>
+				<li><strong><?php esc_html_e( 'Complete Branding and Data Access.', 'elaltillo-bookacall' ); ?></strong> <?php esc_html_e( 'Add your logo, home page and privacy policy, then these scopes:', 'elaltillo-bookacall' ); ?> <code>calendar.app.created</code>, <code>openid</code>, <code>email</code>. <?php esc_html_e( 'This calendar scope only reaches calendars created by this site. No Gmail access is requested.', 'elaltillo-bookacall' ); ?></li>
 				<li><strong><?php esc_html_e( 'Create an OAuth client of type Web application.', 'elaltillo-bookacall' ); ?></strong> <?php esc_html_e( 'Add the redirect URI shown above, then paste the Client ID and Client Secret here.', 'elaltillo-bookacall' ); ?></li>
-				<li><strong><?php esc_html_e( 'Connect each advisor.', 'elaltillo-bookacall' ); ?></strong> <?php esc_html_e( 'Set the advisor’s Google email and WordPress account in their profile. The advisor opens Users → Profile and selects Connect Google Calendar; Google opens on that account, and the plugin checks the email and the primary calendar before enabling bookings.', 'elaltillo-bookacall' ); ?></li>
-				<li><strong><?php esc_html_e( 'Test.', 'elaltillo-bookacall' ); ?></strong> <?php esc_html_e( 'Use “Test connected calendars”, then make one real booking: the visitor receives Google’s invitation and the event appears in the advisor’s calendar.', 'elaltillo-bookacall' ); ?></li>
+				<li><strong><?php esc_html_e( 'Connect each advisor.', 'elaltillo-bookacall' ); ?></strong> <?php esc_html_e( 'Set the advisor’s Google email and WordPress account in their profile. The advisor opens Users → Profile and selects Connect Google Calendar; Google opens on that account, the plugin checks the email and creates the “El Altillo · Citas” calendar in it.', 'elaltillo-bookacall' ); ?></li>
+				<li><strong><?php esc_html_e( 'Test.', 'elaltillo-bookacall' ); ?></strong> <?php esc_html_e( 'Use “Test connected calendars”, then make one real booking: the visitor receives Google’s invitation and the event appears in the advisor’s “El Altillo · Citas” calendar.', 'elaltillo-bookacall' ); ?></li>
 			</ol>
 		</details>
 		<?php

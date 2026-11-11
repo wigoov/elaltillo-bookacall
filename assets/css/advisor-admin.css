@@ -137,3 +137,19 @@
 .post-type-elab_booking #misc-publishing-actions, .post-type-elab_booking #minor-publishing-actions { display: none; }
 .post-type-elab_booking .column-elab_received { width: 11%; }
 .widefat.elab-status-table tbody th, .widefat.elab-status-table tbody td, #elab-advisor-preview .widefat.elab-preview tbody th, #elab-advisor-preview .widefat.elab-preview tbody td { vertical-align: middle; }
+
+/* ---------- Buttons and Google sync states ---------- */
+#elab-advisor-settings .elab-google-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+#elab-advisor-settings .elab-google-actions .button { margin: 0; }
+#elab-advisor-settings .form-table td > .notice.inline, .elab-booking-details ~ .notice.inline, #elab-booking-details .inside > .notice.inline { margin: 12px 0 0; padding: 8px 12px; }
+#elab-booking-details .inside > .notice.inline p { margin: 4px 0; }
+#elab-booking-details .inside > .notice.inline .button { margin-top: 4px; }
+.elab-status-table .elab-status-action { white-space: nowrap; }
+.elab-status-table .elab-status-action .button + .button, .elab-status-table .elab-status-action form + .button, .elab-status-table .elab-status-action .button + form { margin-left: 6px; }
+.elab-sync-note { display: block; margin-top: 6px; color: #7a5300; font-size: 12px; font-weight: 600; }
+.elab-google-warning { color: #7a5300; }
+.elab-status-control { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 16px 0 0; }
+.elab-status-control > label { flex-basis: 100%; }
+.elab-status-control > br { display: none; }
+.elab-inline-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.elab-inline-actions .button { margin: 0; }

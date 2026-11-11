@@ -112,8 +112,9 @@ final class ELAB_Booking_Manage {
 	}
 
 	/**
-	 * Cancel a booking: remove its Google event (Google notifies the visitor), mark it
-	 * cancelled and email the advisor, or email the visitor when there was no event.
+	 * Cancel a booking. It is cancelled here at once and the time is freed; the Google event
+	 * is removed now (Google notifies the visitor) or as soon as Google answers. When Google
+	 * did not send the cancellation, the visitor gets it by email from this site.
 	 *
 	 * @return true|WP_Error
 	 */
@@ -121,23 +122,21 @@ final class ELAB_Booking_Manage {
 		if ( ! self::can_cancel( $booking_id ) ) {
 			return new WP_Error( 'cannot_cancel', __( 'This call can no longer be cancelled online.', 'elaltillo-bookacall' ), array( 'status' => 409 ) );
 		}
-		$advisor_id = (int) get_post_meta( $booking_id, '_elab_advisor', true );
-		$event_id = (string) get_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT, true );
-		if ( $event_id ) {
-			$deleted = ELAB_Google_Calendar::delete_event( $advisor_id, $event_id, $booking_id );
-			if ( is_wp_error( $deleted ) ) {
-				return new WP_Error( 'cancel_failed', __( 'We could not cancel the calendar event right now. Please try again in a few minutes or reply to your invitation.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
-			}
-			delete_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT );
-		}
+		self::mark_cancelled( $booking_id, $by );
+		return true;
+	}
+
+	/** Shared by visitor and admin cancellation. Returns the Google outcome. */
+	public static function mark_cancelled( $booking_id, $by ) {
 		update_post_meta( $booking_id, '_elab_status', 'cancelled' );
 		update_post_meta( $booking_id, '_elab_cancelled_by', sanitize_key( $by ) );
 		update_post_meta( $booking_id, '_elab_cancelled_at', gmdate( 'Y-m-d H:i:s' ) );
+		$google = ELAB_Booking_Sync::remove_event( $booking_id );
 		ELAB_Notifications::booking_notice( $booking_id, 'cancelled' );
-		if ( ! $event_id ) {
+		if ( 'deleted' !== $google ) {
 			ELAB_Notifications::visitor_notice( $booking_id, 'cancelled' );
 		}
-		return true;
+		return $google;
 	}
 
 	private static function cookie_token( $booking_id ) {

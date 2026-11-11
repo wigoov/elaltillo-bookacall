@@ -99,7 +99,9 @@ final class ELAB_System_Status {
 		$local = (bool) preg_match( '/(\.local|\.test|localhost)$/i', $host );
 		$checks[] = array( 'google', __( 'Redirect URI', 'elaltillo-bookacall' ), $local ? 'warn' : 'ok', $local ? sprintf( __( '%s is a local address; Google only accepts it for testing. Connect advisors on the production site.', 'elaltillo-bookacall' ), $host ) : ELAB_Google_Calendar::redirect_uri(), '' );
 		$live = get_transient( self::TRANSIENT_GOOGLE );
-		$checks[] = array( 'google', __( 'Live connection test', 'elaltillo-bookacall' ), is_array( $live ) ? ( $live['failed'] ? 'error' : 'ok' ) : 'info', is_array( $live ) ? sprintf( __( '%1$d of %2$d connected calendars answered on %3$s.', 'elaltillo-bookacall' ), $live['passed'], $live['passed'] + $live['failed'], wp_date( get_option( 'time_format' ), (int) $live['time'] ) ) : __( 'Asks Google for each connected advisor’s busy times, as a booking would.', 'elaltillo-bookacall' ), $configured ? self::action_button( self::GOOGLE_TEST, __( 'Test Google now', 'elaltillo-bookacall' ) ) : '' );
+		$checks[] = array( 'google', __( 'Live connection test', 'elaltillo-bookacall' ), is_array( $live ) ? ( $live['failed'] ? 'error' : 'ok' ) : 'info', is_array( $live ) ? sprintf( __( '%1$d of %2$d connected calendars answered on %3$s.', 'elaltillo-bookacall' ), $live['passed'], $live['passed'] + $live['failed'], wp_date( get_option( 'time_format' ), (int) $live['time'] ) ) : __( 'Checks that each advisor’s “El Altillo · Citas” calendar answers, and retries calls waiting for Google.', 'elaltillo-bookacall' ), $configured ? self::action_button( self::GOOGLE_TEST, __( 'Test Google now', 'elaltillo-bookacall' ) ) : '' );
+		$waiting = ELAB_Booking_Sync::pending();
+		$checks[] = array( 'google', __( 'Calls waiting for Google', 'elaltillo-bookacall' ), $waiting ? 'warn' : 'ok', $waiting ? sprintf( _n( '%d call is saved but its calendar event is not in Google yet. It is retried every hour and when the advisor reconnects.', '%d calls are saved but their calendar events are not in Google yet. They are retried every hour and when the advisor reconnects.', count( $waiting ), 'elaltillo-bookacall' ), count( $waiting ) ) : __( 'Every booked call is in Google Calendar.', 'elaltillo-bookacall' ), $waiting ? '<a class="button" href="' . esc_url( admin_url( 'post.php?post=' . (int) $waiting[0] . '&action=edit' ) ) . '">' . esc_html__( 'Open booking', 'elaltillo-bookacall' ) . '</a>' : '' );
 
 		// Advisors.
 		$advisors = get_posts( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_status' => array( 'publish', 'draft', 'pending', 'private' ), 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) );
@@ -111,7 +113,8 @@ final class ELAB_System_Status {
 				$issues[] = sprintf( __( 'Google test failed: %s', 'elaltillo-bookacall' ), $result );
 			}
 			$bookable += $issues ? 0 : 1;
-			$checks[] = array( 'advisors', get_the_title( $advisor ), $issues ? 'warn' : 'ok', $issues ? implode( ' ', $issues ) : __( 'Bookable.', 'elaltillo-bookacall' ), '<a class="button" href="' . esc_url( get_edit_post_link( $advisor->ID ) ) . '">' . esc_html__( 'Edit', 'elaltillo-bookacall' ) . '</a>' );
+			$warning = $issues ? '' : ELAB_Advisor_Admin::google_warning( $advisor->ID );
+			$checks[] = array( 'advisors', get_the_title( $advisor ), $issues || $warning ? 'warn' : 'ok', $issues ? implode( ' ', $issues ) : trim( __( 'Bookable.', 'elaltillo-bookacall' ) . ' ' . $warning ), '<a class="button" href="' . esc_url( get_edit_post_link( $advisor->ID ) ) . '">' . esc_html__( 'Edit', 'elaltillo-bookacall' ) . '</a>' );
 		}
 		if ( ! $bookable ) {
 			$checks[] = array( 'advisors', __( 'Booking calendar', 'elaltillo-bookacall' ), 'error', __( 'No advisor is bookable, so visitors see no times.', 'elaltillo-bookacall' ), '' );
@@ -187,16 +190,16 @@ final class ELAB_System_Status {
 		}
 		check_admin_referer( self::GOOGLE_TEST );
 		$result = array( 'time' => time(), 'passed' => 0, 'failed' => 0, 'advisors' => array() );
-		$now = new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
 		foreach ( get_posts( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids' ) ) as $advisor_id ) {
-			if ( ! ELAB_Google_Calendar::connected( $advisor_id ) ) {
+			if ( ! ELAB_Google_Calendar::linked( $advisor_id ) ) {
 				continue;
 			}
-			$busy = ELAB_Google_Calendar::busy( $advisor_id, $now, $now->modify( '+1 day' ), true );
-			$ok = ! is_wp_error( $busy );
-			$result['advisors'][ $advisor_id ] = $ok ? true : $busy->get_error_message();
+			$check = ELAB_Google_Calendar::connected( $advisor_id ) ? ELAB_Google_Calendar::check( $advisor_id ) : new WP_Error( 'google_not_ready', __( 'Needs to reconnect Google Calendar.', 'elaltillo-bookacall' ) );
+			$ok = ! is_wp_error( $check );
+			$result['advisors'][ $advisor_id ] = $ok ? true : $check->get_error_message();
 			$result[ $ok ? 'passed' : 'failed' ]++;
 		}
+		ELAB_Booking_Sync::run();
 		set_transient( self::TRANSIENT_GOOGLE, $result, HOUR_IN_SECONDS );
 		$to_settings = isset( $_POST['elab_return'] ) && 'settings' === $_POST['elab_return']; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Checked above.
 		wp_safe_redirect( $to_settings ? ELAB_Google_Settings_Admin::url( 'google', array( 'elab_status' => 'google_tested' ) ) : self::url( array( 'elab_status' => 'google_tested' ) ) );

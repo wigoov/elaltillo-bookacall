@@ -1,5 +1,12 @@
 <?php
-/** Per-advisor Google Calendar OAuth, free/busy and event operations. */
+/**
+ * Per-advisor Google connection, used only to place bookings in Google Calendar.
+ *
+ * Least privilege: the only Calendar permission requested is calendar.app.created, so Google
+ * itself limits this site to the calendar it creates in the advisor's account
+ * ("El Altillo · Citas"). The site cannot read, list or change any other calendar or event,
+ * and it never asks for free/busy. Availability comes entirely from WordPress.
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -11,8 +18,11 @@ final class ELAB_Google_Calendar {
 	const META_ACCOUNT_EMAIL = '_elab_google_account_email';
 	const META_ACCOUNT_SUB = '_elab_google_account_sub';
 	const META_EVENT = '_elab_google_event_id';
-	const META_BUSY_VERSION = '_elab_busy_version';
 	const META_REVOKED = '_elab_google_revoked';
+	/** Advisor: ID of the calendar this site created. Booking: calendar its event lives in. */
+	const META_CALENDAR = '_elab_google_calendar';
+	const SCOPE = 'https://www.googleapis.com/auth/calendar.app.created';
+	const CALENDAR_NAME = 'El Altillo · Citas';
 	const REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
 	const OPTION_CLIENT_ID = 'elab_google_client_id';
 	const OPTION_CLIENT_SECRET = 'elab_google_client_secret';
@@ -39,11 +49,11 @@ final class ELAB_Google_Calendar {
 		if ( ! $advisors ) {
 			return;
 		}
-		echo '<h2>' . esc_html__( 'Your advisor calendars', 'elaltillo-bookacall' ) . '</h2>';
+		echo '<h2 id="elab-google">' . esc_html__( 'Your advisor calendars', 'elaltillo-bookacall' ) . '</h2>';
 		if ( isset( $_GET['elab_google'] ) && 'connected' === sanitize_key( wp_unslash( $_GET['elab_google'] ) ) ) {
-			echo '<div class="notice notice-success inline"><p>' . esc_html__( 'Your Google Calendar is connected and its account and primary calendar were verified.', 'elaltillo-bookacall' ) . '</p></div>';
+			echo '<div class="notice notice-success inline"><p>' . esc_html( sprintf( __( 'Connected. New calls appear in the “%s” calendar of your Google account.', 'elaltillo-bookacall' ), self::CALENDAR_NAME ) ) . '</p></div>';
 		}
-		echo '<p>' . esc_html__( 'Connect the Google account shown for your advisor profile. We verify the account email and primary calendar before enabling bookings. Your weekly availability is emailed to you; only confirmed calls become calendar events.', 'elaltillo-bookacall' ) . '</p><table class="form-table" role="presentation"><tbody>';
+		echo '<p>' . esc_html( sprintf( __( 'Connect the Google account shown below. This site creates one calendar in it, “%s”, and can only add and remove your booked calls there: it cannot see or change any other calendar or event.', 'elaltillo-bookacall' ), self::CALENDAR_NAME ) ) . '</p><table class="form-table" role="presentation"><tbody>';
 		foreach ( $advisors as $advisor ) {
 			$connected = self::connected( $advisor->ID );
 			$expected_email = ELAB_Notifications::advisor_email( $advisor->ID );
@@ -54,10 +64,10 @@ final class ELAB_Google_Calendar {
 				echo esc_html__( 'Ask an administrator to set your Google email in the advisor profile.', 'elaltillo-bookacall' );
 			} elseif ( self::configured() ) {
 				echo '<p>' . esc_html( $connected ? sprintf( __( 'Connected as %s', 'elaltillo-bookacall' ), self::account_email( $advisor->ID ) ) : sprintf( __( 'Expected Google account: %s', 'elaltillo-bookacall' ), $expected_email ) ) . '</p>';
-				if ( ! $connected && get_post_meta( $advisor->ID, self::META_REFRESH, true ) ) {
-					echo '<p class="description">' . esc_html__( 'The previous connection needs to be authorized again.', 'elaltillo-bookacall' ) . '</p>';
+				if ( ! $connected && self::linked( $advisor->ID ) ) {
+					echo '<p class="description">' . esc_html__( 'Connect again: until then, new calls are saved here and added to Google automatically once you reconnect.', 'elaltillo-bookacall' ) . '</p>';
 				}
-				echo '<a class="button" href="' . esc_url( $url ) . '">' . esc_html( $connected ? __( 'Disconnect Google Calendar', 'elaltillo-bookacall' ) : __( 'Connect Google Calendar', 'elaltillo-bookacall' ) ) . '</a>';
+				echo '<a class="button ' . ( $connected ? '' : 'button-primary' ) . '" href="' . esc_url( $url ) . '">' . esc_html( $connected ? __( 'Disconnect Google Calendar', 'elaltillo-bookacall' ) : ( self::linked( $advisor->ID ) ? __( 'Reconnect Google Calendar', 'elaltillo-bookacall' ) : __( 'Connect Google Calendar', 'elaltillo-bookacall' ) ) ) . '</a>';
 			} else {
 				echo esc_html__( 'Google Calendar is awaiting site configuration.', 'elaltillo-bookacall' );
 			}
@@ -98,11 +108,25 @@ final class ELAB_Google_Calendar {
 		return true;
 	}
 
+	/** Ready to place bookings now: valid grant, same OAuth client and email, and its own calendar. */
 	public static function connected( $advisor_id ) {
 		$stored_hash = (string) get_post_meta( $advisor_id, self::META_CLIENT_HASH, true );
 		$account_email = self::account_email( $advisor_id );
 		$expected_email = ELAB_Notifications::advisor_email( $advisor_id );
-		return self::configured() && ! get_post_meta( $advisor_id, self::META_REVOKED, true ) && (bool) get_post_meta( $advisor_id, self::META_REFRESH, true ) && '' !== $stored_hash && hash_equals( hash( 'sha256', self::client_id() ), $stored_hash ) && (bool) get_post_meta( $advisor_id, self::META_ACCOUNT_SUB, true ) && $expected_email && 0 === strcasecmp( $account_email, $expected_email );
+		return self::configured() && ! get_post_meta( $advisor_id, self::META_REVOKED, true ) && (bool) get_post_meta( $advisor_id, self::META_REFRESH, true ) && '' !== $stored_hash && hash_equals( hash( 'sha256', self::client_id() ), $stored_hash ) && (bool) get_post_meta( $advisor_id, self::META_ACCOUNT_SUB, true ) && $expected_email && 0 === strcasecmp( $account_email, $expected_email ) && '' !== self::calendar_id( $advisor_id );
+	}
+
+	/**
+	 * Connected at least once and not disconnected on purpose. Such advisors keep taking
+	 * bookings while their connection is broken: calls are saved in WordPress and added to
+	 * Google automatically after they reconnect.
+	 */
+	public static function linked( $advisor_id ) {
+		return (bool) get_post_meta( $advisor_id, self::META_ACCOUNT_SUB, true );
+	}
+
+	public static function calendar_id( $advisor_id ) {
+		return (string) get_post_meta( $advisor_id, self::META_CALENDAR, true );
 	}
 
 	public static function account_email( $advisor_id ) {
@@ -128,7 +152,7 @@ final class ELAB_Google_Calendar {
 			'response_type' => 'code',
 			'access_type' => 'offline',
 			'prompt' => 'consent',
-			'scope' => 'openid email https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.freebusy',
+			'scope' => 'openid email ' . self::SCOPE,
 			'state' => $state,
 			// Opens Google on the account this advisor must use, so the wrong one is rarely picked.
 			'login_hint' => ELAB_Notifications::advisor_email( $advisor_id ),
@@ -161,10 +185,9 @@ final class ELAB_Google_Calendar {
 		if ( is_wp_error( $tokens ) || empty( $tokens['refresh_token'] ) ) {
 			wp_die( esc_html__( 'Google did not provide a refresh token. Reconnect the advisor and grant calendar access.', 'elaltillo-bookacall' ), '', array( 'response' => 400 ) );
 		}
-		$required_scopes = array( 'https://www.googleapis.com/auth/calendar.events', 'https://www.googleapis.com/auth/calendar.freebusy' );
 		$granted_scopes = isset( $tokens['scope'] ) ? explode( ' ', trim( (string) $tokens['scope'] ) ) : array();
-		if ( $granted_scopes && array_diff( $required_scopes, $granted_scopes ) ) {
-			wp_die( esc_html__( 'Grant both requested Google Calendar permissions and try again.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
+		if ( $granted_scopes && ! in_array( self::SCOPE, $granted_scopes, true ) ) {
+			wp_die( esc_html__( 'Allow the requested Google Calendar permission and try again.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
 		}
 		$identity = self::account_identity( $tokens['access_token'] ?? '' );
 		if ( is_wp_error( $identity ) ) {
@@ -174,9 +197,11 @@ final class ELAB_Google_Calendar {
 		if ( ! $expected_email || 0 !== strcasecmp( $identity['email'], $expected_email ) ) {
 			wp_die( esc_html( sprintf( __( 'You connected %1$s, but this advisor expects %2$s. Choose the correct Google account or ask an administrator to update the advisor email.', 'elaltillo-bookacall' ), $identity['email'], $expected_email ) ), '', array( 'response' => 403 ) );
 		}
-		$calendar_check = self::verify_calendar_access( $tokens['access_token'] );
-		if ( is_wp_error( $calendar_check ) ) {
-			wp_die( esc_html( $calendar_check->get_error_message() ), '', array( 'response' => 503 ) );
+		$advisor_id = (int) $data['advisor'];
+		$same_account = hash_equals( (string) get_post_meta( $advisor_id, self::META_ACCOUNT_SUB, true ), (string) $identity['sub'] );
+		$calendar = self::ensure_calendar( $advisor_id, $tokens['access_token'], $same_account ? self::calendar_id( $advisor_id ) : '' );
+		if ( is_wp_error( $calendar ) ) {
+			wp_die( esc_html( $calendar->get_error_message() ), '', array( 'response' => 503 ) );
 		}
 		$encrypted = self::encrypt( $tokens['refresh_token'] );
 		if ( ! $encrypted ) {
@@ -186,9 +211,12 @@ final class ELAB_Google_Calendar {
 		update_post_meta( (int) $data['advisor'], self::META_CLIENT_HASH, hash( 'sha256', self::client_id() ) );
 		update_post_meta( (int) $data['advisor'], self::META_ACCOUNT_EMAIL, $identity['email'] );
 		update_post_meta( (int) $data['advisor'], self::META_ACCOUNT_SUB, $identity['sub'] );
+		update_post_meta( $advisor_id, self::META_CALENDAR, $calendar );
 		delete_post_meta( (int) $data['advisor'], self::META_REVOKED );
-		delete_transient( 'elab_google_access_' . (int) $data['advisor'] );
+		set_transient( 'elab_google_access_' . $advisor_id, $tokens['access_token'], max( 60, min( 3300, (int) ( $tokens['expires_in'] ?? 3600 ) - 120 ) ) );
 		ELAB_Notifications::schedule_summary( (int) $data['advisor'] );
+		// Calls saved while the connection was broken go to Google now.
+		ELAB_Booking_Sync::run( $advisor_id );
 		$destination = current_user_can( 'manage_options' ) ? get_edit_post_link( (int) $data['advisor'], 'raw' ) : admin_url( 'profile.php' );
 		wp_safe_redirect( add_query_arg( 'elab_google', 'connected', $destination ) );
 		exit;
@@ -268,30 +296,51 @@ final class ELAB_Google_Calendar {
 		return array( 'sub' => sanitize_text_field( $data['sub'] ), 'email' => sanitize_email( $data['email'] ) );
 	}
 
-	private static function verify_calendar_access( $access_token ) {
-		$now = new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
-		$response = wp_remote_post( self::API_URL . '/freeBusy', array(
-			'timeout' => 15,
-			'headers' => array( 'Authorization' => 'Bearer ' . $access_token, 'Content-Type' => 'application/json' ),
-			'body' => wp_json_encode( array(
-				'timeMin' => $now->format( DATE_RFC3339 ),
-				'timeMax' => $now->modify( '+1 hour' )->format( DATE_RFC3339 ),
-				'items' => array( array( 'id' => 'primary' ) ),
-			) ),
-		) );
-		$data = is_wp_error( $response ) ? null : json_decode( wp_remote_retrieve_body( $response ), true );
-		$calendar = is_array( $data ) ? self::primary_freebusy( $data ) : null;
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) || ! is_array( $calendar ) || ! isset( $calendar['busy'] ) || ! is_array( $calendar['busy'] ) || ! empty( $calendar['errors'] ) ) {
-			return new WP_Error( 'google_calendar_unavailable', __( 'The connected Google account could not access its primary calendar. Grant Calendar access and try again.', 'elaltillo-bookacall' ) );
+	/** One authenticated Calendar API call with an explicit token (used before a connection is saved). */
+	private static function api( $access_token, $method, $path, $body = null ) {
+		$args = array( 'method' => $method, 'timeout' => 15, 'headers' => array( 'Authorization' => 'Bearer ' . $access_token, 'Content-Type' => 'application/json' ) );
+		if ( null !== $body ) {
+			$args['body'] = wp_json_encode( $body );
 		}
-		return true;
+		$response = wp_remote_request( self::API_URL . $path, $args );
+		$code = is_wp_error( $response ) ? 0 : (int) wp_remote_retrieve_response_code( $response );
+		$data = is_wp_error( $response ) ? null : json_decode( wp_remote_retrieve_body( $response ), true );
+		return array( $code, is_array( $data ) ? $data : array() );
 	}
 
-	private static function primary_freebusy( $data ) {
-		if ( ! isset( $data['calendars'] ) || ! is_array( $data['calendars'] ) || 1 !== count( $data['calendars'] ) ) {
-			return null;
+	/**
+	 * The calendar this site keeps in the advisor's account. An existing one is reused when it
+	 * still answers (reconnecting never piles up calendars); otherwise a new one is created.
+	 *
+	 * @return string|WP_Error Calendar ID.
+	 */
+	public static function ensure_calendar( $advisor_id, $access_token, $existing = '' ) {
+		if ( $existing ) {
+			list( $code, $data ) = self::api( $access_token, 'GET', '/calendars/' . rawurlencode( $existing ) );
+			if ( 200 === $code && isset( $data['id'] ) && $existing === $data['id'] ) {
+				return $existing;
+			}
 		}
-		return reset( $data['calendars'] );
+		$zone = (string) get_post_meta( $advisor_id, '_elab_timezone', true ) ?: 'UTC';
+		list( $code, $data ) = self::api( $access_token, 'POST', '/calendars', array(
+			'summary'     => self::CALENDAR_NAME,
+			'description' => sprintf( __( 'Calls booked through %s. This site can only see and change this calendar.', 'elaltillo-bookacall' ), get_bloginfo( 'name' ) ),
+			'timeZone'    => $zone,
+		) );
+		if ( 200 !== $code || empty( $data['id'] ) || ! is_string( $data['id'] ) ) {
+			return new WP_Error( 'google_calendar_unavailable', __( 'Google did not allow creating the bookings calendar. Allow the requested permission and try again.', 'elaltillo-bookacall' ) );
+		}
+		return $data['id'];
+	}
+
+	/** Live check used by the admin tests: the site's own calendar still answers. */
+	public static function check( $advisor_id ) {
+		$calendar = self::calendar_id( $advisor_id );
+		if ( ! $calendar ) {
+			return new WP_Error( 'google_not_ready', __( 'The bookings calendar is missing; connect Google Calendar again.', 'elaltillo-bookacall' ) );
+		}
+		$data = self::request( $advisor_id, 'GET', '/calendars/' . rawurlencode( $calendar ) );
+		return is_wp_error( $data ) ? $data : true;
 	}
 
 	/**
@@ -383,51 +432,16 @@ final class ELAB_Google_Calendar {
 		return is_array( $data ) ? $data : array();
 	}
 
-	/**
-	 * Busy periods from the advisor's primary calendar.
-	 *
-	 * The window is widened to 15-minute boundaries so repeated public requests share a
-	 * short-lived cache entry. Pass $fresh to bypass it right before a booking is saved.
-	 */
-	public static function busy( $advisor_id, DateTimeImmutable $start, DateTimeImmutable $end, $fresh = false ) {
-		$step = 15 * MINUTE_IN_SECONDS;
-		$from = (int) floor( $start->getTimestamp() / $step ) * $step;
-		$to = (int) ceil( $end->getTimestamp() / $step ) * $step;
-		$cache_key = 'elab_busy_' . md5( $advisor_id . '|' . (int) get_post_meta( $advisor_id, self::META_BUSY_VERSION, true ) . '|' . $from . '|' . $to );
-		if ( ! $fresh ) {
-			$cached = get_transient( $cache_key );
-			if ( is_array( $cached ) ) {
-				return $cached;
-			}
-		}
-		$data = self::request( $advisor_id, 'POST', '/freeBusy', array(
-			'timeMin' => gmdate( 'Y-m-d\TH:i:s\Z', $from ),
-			'timeMax' => gmdate( 'Y-m-d\TH:i:s\Z', $to ),
-			'items' => array( array( 'id' => 'primary' ) ),
-		) );
-		if ( is_wp_error( $data ) ) {
-			return $data;
-		}
-		$calendar = self::primary_freebusy( $data );
-		if ( ! is_array( $calendar ) || ! empty( $calendar['errors'] ) || ! isset( $calendar['busy'] ) || ! is_array( $calendar['busy'] ) ) {
-			return new WP_Error( 'google_calendar_failed', __( 'Google Calendar availability is unavailable.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
-		}
-		$busy = array_values( array_filter( $calendar['busy'], 'is_array' ) );
-		set_transient( $cache_key, $busy, 2 * MINUTE_IN_SECONDS );
-		return $busy;
-	}
-
-	/** Invalidate cached busy periods after this site changes the advisor's calendar. */
-	public static function flush_busy_cache( $advisor_id ) {
-		update_post_meta( $advisor_id, self::META_BUSY_VERSION, (int) get_post_meta( $advisor_id, self::META_BUSY_VERSION, true ) + 1 );
-	}
-
 	/** Whether confirmed calls get a Google Meet link (on unless an administrator turns it off). */
 	public static function meet_enabled() {
 		return '0' !== (string) get_option( 'elab_google_meet', '1' );
 	}
 
 	public static function create_event( $advisor_id, $booking_id, DateTimeImmutable $start, $duration, $email ) {
+		if ( ! self::connected( $advisor_id ) ) {
+			return new WP_Error( 'google_not_ready', __( 'This advisor needs to connect Google Calendar again.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
+		}
+		$calendar = self::calendar_id( $advisor_id );
 		$end = $start->modify( '+' . absint( $duration ) . ' minutes' );
 		$event_id = self::event_id_for( $booking_id );
 		$advisor = get_the_title( $advisor_id );
@@ -444,7 +458,7 @@ final class ELAB_Google_Calendar {
 			$description[] = $manage;
 		}
 		// The visitor is an invited guest: Google emails the invitation, nothing to set up on their side.
-		// Sector, message and files stay out of the event; it is private on the advisor's calendar.
+		// Sector, message and files stay out of the event; it lives only in the site's own calendar.
 		$body = array(
 			'id' => $event_id,
 			'summary' => sprintf( __( '%1$s · %2$s and %3$s', 'elaltillo-bookacall' ), get_bloginfo( 'name' ), $visitor ?: __( 'Visitor', 'elaltillo-bookacall' ), $advisor ),
@@ -456,9 +470,9 @@ final class ELAB_Google_Calendar {
 			'reminders' => array( 'useDefault' => true ),
 			'start' => array( 'dateTime' => $start->format( DATE_RFC3339 ) ),
 			'end' => array( 'dateTime' => $end->format( DATE_RFC3339 ) ),
-			'attendees' => array( array( 'email' => $email ) ),
+			'attendees' => array_map( static function ( $address ) { return array( 'email' => $address ); }, array_merge( array( $email ), ELAB_Booking_Sync::guests( $booking_id ) ) ),
 		);
-		$path = '/calendars/primary/events?sendUpdates=all';
+		$path = '/calendars/' . rawurlencode( $calendar ) . '/events?sendUpdates=all';
 		if ( self::meet_enabled() ) {
 			// The event ID doubles as the idempotent request ID, so a retried insert reuses the same Meet.
 			$body['conferenceData'] = array( 'createRequest' => array( 'requestId' => $event_id, 'conferenceSolutionKey' => array( 'type' => 'hangoutsMeet' ) ) );
@@ -467,7 +481,7 @@ final class ELAB_Google_Calendar {
 		$event = self::request( $advisor_id, 'POST', $path, $body );
 		// A timed-out insert can still have created the event. Look up its stable ID before failing.
 		if ( is_wp_error( $event ) || empty( $event['id'] ) ) {
-			$existing = self::request( $advisor_id, 'GET', '/calendars/primary/events/' . rawurlencode( $event_id ) );
+			$existing = self::request( $advisor_id, 'GET', '/calendars/' . rawurlencode( $calendar ) . '/events/' . rawurlencode( $event_id ) );
 			if ( ! is_wp_error( $existing ) && isset( $existing['id'] ) && $event_id === $existing['id'] ) {
 				$event = $existing;
 			} elseif ( ! is_wp_error( $event ) ) {
@@ -476,11 +490,11 @@ final class ELAB_Google_Calendar {
 		}
 		if ( ! is_wp_error( $event ) ) {
 			update_post_meta( $booking_id, self::META_EVENT, $event['id'] );
+			update_post_meta( $booking_id, self::META_CALENDAR, $calendar );
 			$meet = isset( $event['hangoutLink'] ) ? esc_url_raw( $event['hangoutLink'] ) : '';
 			if ( $meet && 0 === strpos( $meet, 'https://meet.google.com/' ) ) {
 				update_post_meta( $booking_id, '_elab_meet_url', $meet );
 			}
-			self::flush_busy_cache( $advisor_id );
 		}
 		return $event;
 	}
@@ -505,10 +519,11 @@ final class ELAB_Google_Calendar {
 		if ( ! $ours ) {
 			return new WP_Error( 'google_event_not_ours', __( 'This calendar event was not created for this booking, so it was not changed.', 'elaltillo-bookacall' ), array( 'status' => 409 ) );
 		}
-		$result = self::request( $advisor_id, 'DELETE', '/calendars/primary/events/' . rawurlencode( $event_id ) . '?sendUpdates=all' );
-		if ( ! is_wp_error( $result ) ) {
-			self::flush_busy_cache( $advisor_id );
+		$calendar = (string) get_post_meta( $booking_id, self::META_CALENDAR, true );
+		if ( '' === $calendar ) {
+			// Created before the site switched to its own calendar: this permission cannot reach it.
+			return new WP_Error( 'google_event_legacy', __( 'This event is in the advisor’s main calendar and must be removed there by hand.', 'elaltillo-bookacall' ), array( 'status' => 409 ) );
 		}
-		return $result;
+		return self::request( $advisor_id, 'DELETE', '/calendars/' . rawurlencode( $calendar ) . '/events/' . rawurlencode( $event_id ) . '?sendUpdates=all' );
 	}
 }

@@ -8,6 +8,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/content/class-elab-post-types.php';
 require_once __DIR__ . '/google/class-elab-google-calendar.php';
 require_once __DIR__ . '/google/class-elab-google-settings-admin.php';
+require_once __DIR__ . '/google/class-elab-booking-sync.php';
+require_once __DIR__ . '/notifications/class-elab-mailer.php';
 require_once __DIR__ . '/notifications/class-elab-notifications.php';
 require_once __DIR__ . '/blackouts/class-elab-blackouts.php';
 require_once __DIR__ . '/blackouts/class-elab-blackouts-admin.php';
@@ -52,6 +54,7 @@ final class ELAB_Plugin {
 		add_action( 'init', array( 'ELAB_Post_Types', 'register' ) );
 		new ELAB_Google_Calendar();
 		new ELAB_Google_Settings_Admin();
+		new ELAB_Booking_Sync();
 		new ELAB_Booking_Defaults_Admin();
 		new ELAB_Blackouts_Admin();
 		new ELAB_Global_Overrides_Admin();

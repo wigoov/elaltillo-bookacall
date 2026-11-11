@@ -63,12 +63,21 @@ final class ELAB_Advisor_Admin {
 		if ( ! array_filter( ELAB_Availability::rules( $advisor_id )['weekly'] ) ) {
 			$issues[] = __( 'No weekly hours are turned on.', 'elaltillo-bookacall' );
 		}
-		if ( ELAB_Google_Calendar::configured() && ELAB_Google_Calendar::revoked( $advisor_id ) ) {
-			$issues[] = __( 'Google access was removed or expired; connect Google Calendar again.', 'elaltillo-bookacall' );
-		} elseif ( ELAB_Google_Calendar::configured() && ! ELAB_Google_Calendar::connected( $advisor_id ) ) {
+		if ( ELAB_Google_Calendar::configured() && ! ELAB_Google_Calendar::linked( $advisor_id ) ) {
 			$issues[] = __( 'Google Calendar is not connected.', 'elaltillo-bookacall' );
 		}
 		return $issues;
+	}
+
+	/**
+	 * The advisor stays bookable when a working connection breaks (calls are saved and wait
+	 * for Google), but someone has to reconnect. '' when nothing is wrong.
+	 */
+	public static function google_warning( $advisor_id ) {
+		if ( ! ELAB_Google_Calendar::configured() || ! ELAB_Google_Calendar::linked( $advisor_id ) || ELAB_Google_Calendar::connected( $advisor_id ) ) {
+			return '';
+		}
+		return __( 'Google needs to be reconnected: new calls are saved and wait to be added to the calendar.', 'elaltillo-bookacall' );
 	}
 
 	private static function notice_key( $post_id ) {
@@ -108,8 +117,12 @@ final class ELAB_Advisor_Admin {
 	public function render_column( $column, $post_id ) {
 		if ( 'elab_bookable' === $column ) {
 			$issues = self::booking_issues( $post_id );
+			$warning = self::google_warning( $post_id );
 			if ( ! $issues ) {
 				echo '<span class="elab-status elab-status--confirmed">' . esc_html__( 'Bookable', 'elaltillo-bookacall' ) . '</span>';
+				if ( $warning ) {
+					echo '<br><span class="description elab-google-warning">' . esc_html( $warning ) . '</span>';
+				}
 			} else {
 				echo '<span class="elab-status elab-status--pending">' . esc_html__( 'Hidden', 'elaltillo-bookacall' ) . '</span><br><span class="description">' . esc_html( implode( ' ', $issues ) ) . '</span>';
 			}
@@ -122,8 +135,8 @@ final class ELAB_Advisor_Admin {
 				echo '<span class="description">' . esc_html__( 'Not set up', 'elaltillo-bookacall' ) . '</span>';
 			} elseif ( ELAB_Google_Calendar::connected( $post_id ) ) {
 				echo esc_html( sprintf( __( 'Connected as %s', 'elaltillo-bookacall' ), ELAB_Google_Calendar::account_email( $post_id ) ) );
-			} elseif ( get_post_meta( $post_id, ELAB_Google_Calendar::META_REFRESH, true ) ) {
-				echo esc_html__( 'Reconnect required', 'elaltillo-bookacall' );
+			} elseif ( ELAB_Google_Calendar::linked( $post_id ) ) {
+				echo '<strong>' . esc_html__( 'Reconnect required', 'elaltillo-bookacall' ) . '</strong>';
 			} else {
 				echo esc_html__( 'Not connected', 'elaltillo-bookacall' );
 			}
@@ -148,7 +161,7 @@ final class ELAB_Advisor_Admin {
 
 	/**
 	 * Saved availability for the next seven days, computed exactly as the public calendar does
-	 * (notice, window, closures, bookings, break and Google busy times), in the advisor's zone.
+	 * (notice, window, closures, existing bookings and the break between them), in the advisor's zone.
 	 */
 	public function render_preview( $post ) {
 		if ( 'auto-draft' === $post->post_status ) {
@@ -212,6 +225,8 @@ final class ELAB_Advisor_Admin {
 		<?php if ( 'auto-draft' !== $post->post_status ) : ?>
 			<?php if ( $issues ) : ?>
 				<div class="notice notice-warning inline elab-advisor-status"><p><strong><?php esc_html_e( 'Not shown in the booking calendar yet:', 'elaltillo-bookacall' ); ?></strong></p><ul class="ul-disc"><?php foreach ( $issues as $issue ) : ?><li><?php echo esc_html( $issue ); ?></li><?php endforeach; ?></ul></div>
+			<?php elseif ( self::google_warning( $post->ID ) ) : ?>
+				<div class="notice notice-warning inline elab-advisor-status"><p><strong><?php esc_html_e( 'Bookable.', 'elaltillo-bookacall' ); ?></strong> <?php echo esc_html( self::google_warning( $post->ID ) ); ?> <a href="#elab-google-connection"><?php esc_html_e( 'Reconnect', 'elaltillo-bookacall' ); ?></a></p></div>
 			<?php else : ?>
 				<div class="notice notice-success inline elab-advisor-status"><p><?php esc_html_e( 'Bookable: this advisor’s times appear in the booking calendar.', 'elaltillo-bookacall' ); ?></p></div>
 			<?php endif; ?>
@@ -219,6 +234,7 @@ final class ELAB_Advisor_Admin {
 		<p class="description"><?php esc_html_e( 'Set the hours when this advisor can receive calls. Visitors will see these times in their own time zone.', 'elaltillo-bookacall' ); ?></p>
 		<table class="form-table" role="presentation"><tbody>
 		<tr><th scope="row"><label for="elab-email"><?php esc_html_e( 'Advisor Google email', 'elaltillo-bookacall' ); ?></label></th><td><input class="regular-text" type="email" id="elab-email" name="elab_email" value="<?php echo esc_attr( $email ); ?>" autocomplete="email" required><p class="description"><?php esc_html_e( 'Enter the Google account that this advisor will authorize. The account must match during connection; booking and schedule emails are sent here.', 'elaltillo-bookacall' ); ?></p></td></tr>
+		<tr><th scope="row"><label for="elab-email-locale"><?php esc_html_e( 'Email language', 'elaltillo-bookacall' ); ?></label></th><td><select id="elab-email-locale" name="elab_email_locale"><?php foreach ( ELAB_Notifications::locales() as $elab_locale => $elab_locale_name ) : ?><option value="<?php echo esc_attr( $elab_locale ); ?>" <?php selected( ELAB_Notifications::advisor_locale( $post->ID ), $elab_locale ); ?>><?php echo esc_html( $elab_locale_name ); ?></option><?php endforeach; ?></select><p class="description"><?php esc_html_e( 'Language of the booking, reconnection and schedule emails this advisor receives.', 'elaltillo-bookacall' ); ?></p></td></tr>
 		<?php if ( current_user_can( 'manage_options' ) ) :
 			$linked = (int) get_post_meta( $post->ID, '_elab_wp_user', true );
 			$taken = self::assigned_users( $post->ID );
@@ -243,7 +259,7 @@ final class ELAB_Advisor_Admin {
 		<tr><th scope="row"><label for="elab-notice"><?php esc_html_e( 'Minimum notice', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="0" max="720" step="1" id="elab-notice" name="elab_notice_hours" value="<?php echo esc_attr( $own['notice'] ); ?>" placeholder="<?php echo esc_attr( $defaults['notice'] ); ?>" class="small-text"> <?php esc_html_e( 'hours', 'elaltillo-bookacall' ); ?><p class="description"><?php echo esc_html( sprintf( __( 'Visitors cannot book a call that starts sooner than this. Leave empty to use the site default (%d).', 'elaltillo-bookacall' ), $defaults['notice'] ) ); ?></p></td></tr>
 		<tr><th scope="row"><label for="elab-horizon"><?php esc_html_e( 'Booking window', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="1" max="365" step="1" id="elab-horizon" name="elab_horizon_days" value="<?php echo esc_attr( $own['horizon'] ); ?>" placeholder="<?php echo esc_attr( $defaults['horizon'] ); ?>" class="small-text"> <?php esc_html_e( 'days ahead', 'elaltillo-bookacall' ); ?><p class="description"><?php echo esc_html( sprintf( __( 'How far into the future visitors can book. Leave empty to use the site default (%d).', 'elaltillo-bookacall' ), $defaults['horizon'] ) ); ?></p></td></tr>
 		<tr><th scope="row"><label for="elab-interval"><?php esc_html_e( 'Start times every', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="0" max="120" step="5" id="elab-interval" name="elab_slot_interval" value="<?php echo esc_attr( $own['interval'] ); ?>" placeholder="<?php echo esc_attr( $defaults['interval'] ); ?>" class="small-text"> <?php esc_html_e( 'minutes', 'elaltillo-bookacall' ); ?><p class="description"><?php echo esc_html( sprintf( __( '0 offers a start every call length; 15 offers 9:00, 9:15, 9:30… with the same call length. Leave empty to use the site default (%d).', 'elaltillo-bookacall' ), $defaults['interval'] ) ); ?></p></td></tr>
-		<tr><th scope="row"><label for="elab-buffer"><?php esc_html_e( 'Break between calls', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="0" max="120" step="5" id="elab-buffer" name="elab_buffer_minutes" value="<?php echo esc_attr( $own['buffer'] ); ?>" placeholder="<?php echo esc_attr( $defaults['buffer'] ); ?>" class="small-text"> <?php esc_html_e( 'minutes', 'elaltillo-bookacall' ); ?><p class="description"><?php echo esc_html( sprintf( __( 'Free time kept before and after each booking and each busy Google Calendar event. Leave empty to use the site default (%d).', 'elaltillo-bookacall' ), $defaults['buffer'] ) ); ?></p></td></tr>
+		<tr><th scope="row"><label for="elab-buffer"><?php esc_html_e( 'Break between calls', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="0" max="120" step="5" id="elab-buffer" name="elab_buffer_minutes" value="<?php echo esc_attr( $own['buffer'] ); ?>" placeholder="<?php echo esc_attr( $defaults['buffer'] ); ?>" class="small-text"> <?php esc_html_e( 'minutes', 'elaltillo-bookacall' ); ?><p class="description"><?php echo esc_html( sprintf( __( 'Free time kept before and after each booking. Leave empty to use the site default (%d).', 'elaltillo-bookacall' ), $defaults['buffer'] ) ); ?></p></td></tr>
 		</tbody></table>
 		<h3><?php esc_html_e( 'Weekly hours', 'elaltillo-bookacall' ); ?></h3>
 		<p class="description"><?php esc_html_e( 'Turn on each working day. Add separate time ranges for breaks. Overlapping ranges are merged when you save.', 'elaltillo-bookacall' ); ?></p>
@@ -263,20 +279,22 @@ final class ELAB_Advisor_Admin {
 		<h3><?php esc_html_e( 'Unavailable dates for this advisor', 'elaltillo-bookacall' ); ?></h3>
 		<p class="description"><?php esc_html_e( 'Use this for vacations, personal holidays or specific days off. Global unavailable dates also apply.', 'elaltillo-bookacall' ); ?></p>
 		<?php ELAB_Blackouts::render_editor( get_post_meta( $post->ID, ELAB_Blackouts::META, true ), 'elab_blackouts' ); ?>
-		<h3><?php esc_html_e( 'Google Calendar', 'elaltillo-bookacall' ); ?></h3>
-		<p class="description"><?php esc_html_e( 'Busy events in this calendar block times; each booking becomes an event here with the visitor invited as a guest.', 'elaltillo-bookacall' ); ?></p>
+		<h3 id="elab-google-connection"><?php esc_html_e( 'Google Calendar', 'elaltillo-bookacall' ); ?></h3>
+		<p class="description"><?php echo esc_html( sprintf( __( 'Each booked call is added to a separate calendar, “%s”, created by this site in the advisor’s Google account, with the visitor invited as a guest. The site cannot see or change any other calendar or event.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::CALENDAR_NAME ) ); ?></p>
 		<?php
-		$google_state = ! ELAB_Google_Calendar::configured() ? 'setup' : ( ELAB_Google_Calendar::connected( $post->ID ) ? 'connected' : ( ELAB_Google_Calendar::revoked( $post->ID ) ? 'revoked' : ( get_post_meta( $post->ID, ELAB_Google_Calendar::META_REFRESH, true ) ? 'mismatch' : 'disconnected' ) ) );
+		$google_state = ! ELAB_Google_Calendar::configured() ? 'setup' : ( ELAB_Google_Calendar::connected( $post->ID ) ? 'connected' : ( ELAB_Google_Calendar::revoked( $post->ID ) ? 'revoked' : ( ELAB_Google_Calendar::linked( $post->ID ) && ! ELAB_Google_Calendar::calendar_id( $post->ID ) ? 'upgrade' : ( ELAB_Google_Calendar::linked( $post->ID ) ? 'mismatch' : 'disconnected' ) ) ) );
+		$waiting = count( ELAB_Booking_Sync::pending( $post->ID ) );
 		$connect = wp_nonce_url( add_query_arg( array( 'action' => 'elab_google_connect', 'advisor' => $post->ID ), admin_url( 'admin-post.php' ) ), 'elab_google_connect_' . $post->ID );
 		$disconnect = wp_nonce_url( add_query_arg( array( 'action' => 'elab_google_disconnect', 'advisor' => $post->ID ), admin_url( 'admin-post.php' ) ), 'elab_google_disconnect_' . $post->ID );
 		$google_text = array(
 			'setup'        => __( 'Google Calendar is not set up for this site yet.', 'elaltillo-bookacall' ),
 			'connected'    => sprintf( __( 'Connected as %s.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::account_email( $post->ID ) ),
-			'revoked'      => __( 'Google access was removed or expired. Connect again to show this advisor’s times.', 'elaltillo-bookacall' ),
+			'revoked'      => __( 'Google access was removed or expired. Reconnect so new calls reach the calendar again.', 'elaltillo-bookacall' ),
+			'upgrade'      => sprintf( __( 'Connected with the old, broader permission. Reconnect once so the site creates its own “%s” calendar and only uses that one.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::CALENDAR_NAME ),
 			'mismatch'     => __( 'The saved connection no longer matches this advisor’s email or the site’s OAuth client. Connect the correct account.', 'elaltillo-bookacall' ),
 			'disconnected' => __( 'Not connected. The advisor can connect from Users → Profile, or you can connect here.', 'elaltillo-bookacall' ),
 		)[ $google_state ];
-		$google_badge = array( 'setup' => array( 'info', __( 'Not set up', 'elaltillo-bookacall' ) ), 'connected' => array( 'ok', __( 'Connected', 'elaltillo-bookacall' ) ), 'revoked' => array( 'error', __( 'Reconnect', 'elaltillo-bookacall' ) ), 'mismatch' => array( 'error', __( 'Reconnect', 'elaltillo-bookacall' ) ), 'disconnected' => array( 'warn', __( 'Not connected', 'elaltillo-bookacall' ) ) )[ $google_state ];
+		$google_badge = array( 'setup' => array( 'info', __( 'Not set up', 'elaltillo-bookacall' ) ), 'connected' => array( 'ok', __( 'Connected', 'elaltillo-bookacall' ) ), 'revoked' => array( 'error', __( 'Reconnect', 'elaltillo-bookacall' ) ), 'upgrade' => array( 'error', __( 'Reconnect', 'elaltillo-bookacall' ) ), 'mismatch' => array( 'error', __( 'Reconnect', 'elaltillo-bookacall' ) ), 'disconnected' => array( 'warn', __( 'Not connected', 'elaltillo-bookacall' ) ) )[ $google_state ];
 		?>
 		<table class="form-table" role="presentation"><tbody>
 			<tr><th scope="row"><?php esc_html_e( 'Connection', 'elaltillo-bookacall' ); ?></th><td>
@@ -286,10 +304,14 @@ final class ELAB_Advisor_Admin {
 					<a class="button" href="<?php echo esc_url( ELAB_Google_Settings_Admin::url( 'google' ) ); ?>"><?php esc_html_e( 'Set up Google Calendar', 'elaltillo-bookacall' ); ?></a>
 				<?php elseif ( 'connected' === $google_state && ELAB_Google_Calendar::can_connect( $post->ID ) ) : ?>
 					<a class="button" href="<?php echo esc_url( $disconnect ); ?>"><?php esc_html_e( 'Disconnect', 'elaltillo-bookacall' ); ?></a>
-				<?php elseif ( 'connected' !== $google_state && ELAB_Google_Calendar::can_connect( $post->ID ) ) : ?>
+				<?php elseif ( 'disconnected' === $google_state && ELAB_Google_Calendar::can_connect( $post->ID ) ) : ?>
 					<a class="button button-primary" href="<?php echo esc_url( $connect ); ?>"><?php esc_html_e( 'Connect Google Calendar', 'elaltillo-bookacall' ); ?></a>
+				<?php elseif ( ELAB_Google_Calendar::can_connect( $post->ID ) ) : ?>
+					<a class="button button-primary" href="<?php echo esc_url( $connect ); ?>"><?php esc_html_e( 'Reconnect Google Calendar', 'elaltillo-bookacall' ); ?></a>
+					<a class="button" href="<?php echo esc_url( $disconnect ); ?>"><?php esc_html_e( 'Disconnect', 'elaltillo-bookacall' ); ?></a>
 				<?php endif; ?>
 				</p>
+				<?php if ( $waiting ) : ?><p class="notice notice-warning inline"><?php echo esc_html( sprintf( _n( '%d call is saved and waiting to be added to Google Calendar.', '%d calls are saved and waiting to be added to Google Calendar.', $waiting, 'elaltillo-bookacall' ), $waiting ) ); ?></p><?php endif; ?>
 				<p class="description"><?php esc_html_e( 'Weekly hours are availability rules, not calendar events. The advisor receives their schedule by email after connecting or when these settings change.', 'elaltillo-bookacall' ); ?></p>
 				<?php if ( 'failed' === get_post_meta( $post->ID, ELAB_Notifications::META_SCHEDULE_MAIL, true ) ) : ?><p class="notice notice-warning inline"><?php esc_html_e( 'The last schedule email could not be sent. Check the site email configuration.', 'elaltillo-bookacall' ); ?></p><?php endif; ?>
 			</td></tr>
@@ -401,6 +423,10 @@ final class ELAB_Advisor_Admin {
 		}
 		if ( $merged_days ) {
 			$notes[] = sprintf( __( 'Overlapping ranges were merged on: %s.', 'elaltillo-bookacall' ), implode( ', ', $merged_days ) );
+		}
+		$locale = isset( $_POST['elab_email_locale'] ) && is_string( $_POST['elab_email_locale'] ) ? sanitize_text_field( wp_unslash( $_POST['elab_email_locale'] ) ) : '';
+		if ( isset( ELAB_Notifications::locales()[ $locale ] ) ) {
+			update_post_meta( $post_id, ELAB_Notifications::META_ADVISOR_LOCALE, $locale );
 		}
 		$encoded_availability = wp_json_encode( $clean );
 		update_post_meta( $post_id, '_elab_availability', $encoded_availability );

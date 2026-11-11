@@ -101,7 +101,7 @@ final class ELAB_Blackouts {
 		$saved = get_post_meta( $advisor_id, self::META_GLOBAL_OVERRIDES, true );
 		$saved = is_array( $saved ) ? $saved : array();
 		?>
-		<p class="description"><?php esc_html_e( 'Select the global dates when this advisor will work. Regular weekly hours still apply. Personal time off and busy Google Calendar events still block slots. If global rules overlap, select every matching rule.', 'elaltillo-bookacall' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Select the global dates when this advisor will work. Regular weekly hours still apply. Personal time off and existing bookings still block slots. If global rules overlap, select every matching rule.', 'elaltillo-bookacall' ); ?></p>
 		<table class="widefat striped elab-global-overrides-table"><thead><tr><th scope="col"><?php esc_html_e( 'Global date', 'elaltillo-bookacall' ); ?></th><th scope="col"><?php esc_html_e( 'Reason', 'elaltillo-bookacall' ); ?></th><th scope="col"><?php esc_html_e( 'Work that day', 'elaltillo-bookacall' ); ?></th></tr></thead><tbody>
 		<?php foreach ( $rules as $rule ) :
 			$key = self::rule_key( $rule );

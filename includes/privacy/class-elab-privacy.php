@@ -111,6 +111,7 @@ final class ELAB_Privacy {
 				__( 'Email', 'elaltillo-bookacall' ) => get_post_meta( $id, '_elab_contact_email', true ),
 				__( 'Sector', 'elaltillo-bookacall' ) => get_post_meta( $id, '_elab_sector', true ),
 				__( 'Message', 'elaltillo-bookacall' ) => get_post_meta( $id, '_elab_message', true ),
+				__( 'Guests', 'elaltillo-bookacall' ) => implode( ', ', ELAB_Booking_Sync::guests( $id ) ),
 				__( 'Meeting language', 'elaltillo-bookacall' ) => ELAB_Booking_Service::language_label( get_post_meta( $id, '_elab_language', true ) ?: ELAB_Booking_Service::DEFAULT_LANGUAGE ),
 				__( 'Time zone', 'elaltillo-bookacall' ) => get_post_meta( $id, '_elab_visitor_timezone', true ),
 				__( 'Attachments', 'elaltillo-bookacall' ) => is_array( $files ) ? implode( ', ', wp_list_pluck( $files, 'name' ) ) : '',

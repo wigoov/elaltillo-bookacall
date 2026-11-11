@@ -7,6 +7,8 @@
  * All dynamic text is set with textContent; nothing from the API is parsed as HTML.
  */
 
+import { initGuests } from './guests.js';
+
 const DAY_BASE = 'relative flex aspect-square w-full max-w-11 justify-self-center items-center justify-center rounded-full font-secondary text-sm tabular-nums transition-[background-color,color,box-shadow,opacity] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
 const DAY_OPEN = 'cursor-pointer text-secondary shadow-[inset_0_0_0_1px_rgba(40,44,51,0.3)] hover:bg-accent hover:shadow-[inset_0_0_0_1px_#282C33]';
 const DAY_SELECTED = 'cursor-pointer bg-secondary text-primary shadow-[inset_0_0_0_1px_#282C33]';
@@ -165,6 +167,7 @@ function createCalendar(root, config) {
 		manage: $('[data-elab-manage]'),
 	};
 	let turnstileWidget = null;
+	const guests = initGuests(root, t);
 
 	/** Render the Turnstile check once, when the details step is first shown. */
 	function renderTurnstile() {
@@ -763,6 +766,10 @@ function createCalendar(root, config) {
 	async function submit(event) {
 		event.preventDefault();
 		if (ui.submit.disabled || !state.slot) return;
+		if (!guests.commit()) {
+			ui.form.querySelector('[data-elab-guest-input]').focus();
+			return;
+		}
 		const invalid = Array.from(ui.form.elements).find((field) => field.willValidate && !field.checkValidity());
 		if (invalid) {
 			invalid.reportValidity();
@@ -778,6 +785,8 @@ function createCalendar(root, config) {
 		data.set('timezone', state.timezone);
 		data.set('advisor', state.advisor);
 		data.set('page', String(config.page || ''));
+		data.set('locale', config.locale || '');
+		data.delete('guest');
 		ui.submit.disabled = true;
 		const label = ui.submit.textContent;
 		ui.submit.textContent = t('sending');
@@ -794,6 +803,7 @@ function createCalendar(root, config) {
 			showNextSteps(result.meet, result.manage);
 			await goTo('done');
 			ui.form.reset();
+			guests.reset();
 			ui.files.textContent = filesHint;
 		} catch (error) {
 			if (error.status === 409) {

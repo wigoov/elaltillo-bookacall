@@ -93,7 +93,15 @@ final class ELAB_Private_Attachments {
 			return array();
 		}
 		$upload = $_FILES['attachments'];
-		$count = count( (array) $upload['name'] );
+		// A client may send a single file instead of attachments[]; normalise to lists so every
+		// field is read the same way and malformed input is rejected cleanly.
+		foreach ( array( 'name', 'tmp_name', 'error', 'size' ) as $key ) {
+			$upload[ $key ] = isset( $upload[ $key ] ) ? array_values( (array) $upload[ $key ] ) : array();
+		}
+		$count = count( $upload['name'] );
+		if ( ! $count || count( $upload['tmp_name'] ) !== $count || count( $upload['error'] ) !== $count || count( $upload['size'] ) !== $count ) {
+			return new WP_Error( 'invalid_file', __( 'One of the files could not be accepted. Please send a different file.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
+		}
 		if ( $count > 3 ) {
 			return new WP_Error( 'too_many_files', __( 'You can attach up to 3 files.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
 		}
@@ -105,6 +113,10 @@ final class ELAB_Private_Attachments {
 		@chmod( $dir, 0700 );
 		$files = array();
 		for ( $i = 0; $i < $count; $i++ ) {
+			if ( ! is_string( $upload['name'][ $i ] ) || ! is_string( $upload['tmp_name'][ $i ] ) ) {
+				$this->remove_files( $dir, $files );
+				return new WP_Error( 'invalid_file', __( 'One of the files could not be accepted. Please send a different file.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
+			}
 			$name = sanitize_file_name( $upload['name'][ $i ] );
 			$tmp = $upload['tmp_name'][ $i ];
 			if ( UPLOAD_ERR_OK !== $upload['error'][ $i ] || $upload['size'][ $i ] > 10 * MB_IN_BYTES ) {

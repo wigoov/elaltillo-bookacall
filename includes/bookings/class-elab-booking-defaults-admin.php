@@ -19,7 +19,7 @@ final class ELAB_Booking_Defaults_Admin {
 			'notice'   => array( __( 'Minimum notice', 'elaltillo-bookacall' ), __( 'hours', 'elaltillo-bookacall' ), __( 'Visitors cannot book a call that starts sooner than this.', 'elaltillo-bookacall' ) ),
 			'horizon'  => array( __( 'Booking window', 'elaltillo-bookacall' ), __( 'days ahead', 'elaltillo-bookacall' ), __( 'How far into the future visitors can book.', 'elaltillo-bookacall' ) ),
 			'interval' => array( __( 'Start times every', 'elaltillo-bookacall' ), __( 'minutes', 'elaltillo-bookacall' ), __( '0 offers a new start time every call length (9:00, 9:30… for 30-minute calls). 15 offers 9:00, 9:15, 9:30… while each call keeps its length.', 'elaltillo-bookacall' ) ),
-			'buffer'   => array( __( 'Break between calls', 'elaltillo-bookacall' ), __( 'minutes', 'elaltillo-bookacall' ), __( 'Optional free time kept before and after each booking and each busy Google Calendar event. 0 means calls can be back to back.', 'elaltillo-bookacall' ) ),
+			'buffer'   => array( __( 'Break between calls', 'elaltillo-bookacall' ), __( 'minutes', 'elaltillo-bookacall' ), __( 'Optional free time kept before and after each booking. 0 means calls can be back to back.', 'elaltillo-bookacall' ) ),
 		);
 	}
 

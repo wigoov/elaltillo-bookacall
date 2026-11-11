@@ -2,10 +2,10 @@
 /**
  * Availability engine.
  *
- * Slots are generated in each advisor's time zone from their weekly hours, then
- * removed when they fall inside a closure, the booking notice window, beyond the
- * booking horizon, or overlap (with buffer) an existing booking or a Google busy
- * period. Public responses are grouped by the visitor's local calendar date.
+ * Everything comes from WordPress: slots are generated in each advisor's time zone from
+ * their weekly hours, then removed when they fall inside a closure, the notice window,
+ * beyond the booking horizon, or overlap (with buffer) a booking saved here. Google is
+ * never read. Public responses are grouped by the visitor's local calendar date.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -44,7 +44,9 @@ final class ELAB_Availability {
 		) );
 		$ids = array_map( 'intval', $ids );
 		if ( ELAB_Google_Calendar::configured() ) {
-			$ids = array_values( array_filter( $ids, array( 'ELAB_Google_Calendar', 'connected' ) ) );
+			// Advisors appear once they have connected Google. A broken connection does not hide
+			// them: their calls are saved here and reach Google after they reconnect.
+			$ids = array_values( array_filter( $ids, array( 'ELAB_Google_Calendar', 'linked' ) ) );
 		}
 		return $ids;
 	}
@@ -56,7 +58,7 @@ final class ELAB_Availability {
 	/**
 	 * Free start timestamps for one advisor inside [$from, $to).
 	 *
-	 * @param bool $fresh Skip the Google free/busy cache (used right before booking).
+	 * @param bool $fresh Kept for callers; availability is computed from WordPress only.
 	 * @return int[]|WP_Error
 	 */
 	public static function advisor_starts( $advisor_id, $from, $to, $fresh = false ) {
@@ -71,25 +73,6 @@ final class ELAB_Availability {
 		$buffer = $rules['buffer'] * MINUTE_IN_SECONDS;
 		$step = ( $rules['interval'] ?: $rules['duration'] ) * MINUTE_IN_SECONDS;
 		$blocked = self::booked_intervals( $advisor_id, $earliest - DAY_IN_SECONDS, $latest + DAY_IN_SECONDS );
-		if ( ELAB_Google_Calendar::configured() ) {
-			$utc = new DateTimeZone( 'UTC' );
-			$busy = ELAB_Google_Calendar::busy(
-				$advisor_id,
-				( new DateTimeImmutable( '@' . ( $earliest - $buffer ) ) )->setTimezone( $utc ),
-				( new DateTimeImmutable( '@' . ( $latest + $duration + $buffer ) ) )->setTimezone( $utc ),
-				$fresh
-			);
-			if ( is_wp_error( $busy ) ) {
-				return $busy;
-			}
-			foreach ( $busy as $period ) {
-				$start = isset( $period['start'] ) ? strtotime( $period['start'] ) : false;
-				$end = isset( $period['end'] ) ? strtotime( $period['end'] ) : false;
-				if ( $start && $end ) {
-					$blocked[] = array( $start, $end );
-				}
-			}
-		}
 		$zone = $rules['timezone'];
 		$cursor = ( new DateTimeImmutable( '@' . $earliest ) )->setTimezone( $zone )->setTime( 0, 0 );
 		$last_day = ( new DateTimeImmutable( '@' . $latest ) )->setTimezone( $zone )->format( 'Y-m-d' );
@@ -192,7 +175,7 @@ final class ELAB_Availability {
 		return $map;
 	}
 
-	/** True when the advisor can take a call starting at $start (always checks Google live). */
+	/** True when the advisor can take a call starting at $start (re-checked inside the booking lock). */
 	public static function is_available( $advisor_id, $start ) {
 		$starts = self::advisor_starts( $advisor_id, $start, $start + 1, true );
 		return is_wp_error( $starts ) ? $starts : in_array( (int) $start, $starts, true );

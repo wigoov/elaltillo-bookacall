@@ -20,3 +20,4 @@ require_once ELAB_DIR . 'includes/class-elab-plugin.php';
 
 add_action( 'plugins_loaded', array( 'ELAB_Plugin', 'instance' ) );
 register_deactivation_hook( __FILE__, array( 'ELAB_Privacy', 'unschedule' ) );
+register_deactivation_hook( __FILE__, array( 'ELAB_Booking_Sync', 'unschedule' ) );

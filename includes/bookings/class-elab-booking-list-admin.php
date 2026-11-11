@@ -96,6 +96,9 @@ final class ELAB_Booking_List_Admin {
 				break;
 			case 'elab_status':
 				echo self::status_badge( (string) get_post_meta( $post_id, '_elab_status', true ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in status_badge().
+				if ( ELAB_Booking_Sync::label( $post_id ) ) {
+					echo '<span class="elab-sync-note">' . esc_html( ELAB_Booking_Sync::label( $post_id ) ) . '</span>';
+				}
 				break;
 			case 'elab_received':
 				echo esc_html( get_the_date( get_option( 'date_format' ), $post_id ) ) . '<br><span class="description">' . esc_html( get_the_time( get_option( 'time_format' ), $post_id ) ) . '</span>';

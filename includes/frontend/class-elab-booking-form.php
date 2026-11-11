@@ -48,6 +48,7 @@ final class ELAB_Booking_Form {
 				'page'        => (int) get_queried_object_id(),
 				'turnstile'   => $turnstile,
 				'confirmMode' => $confirm_mode,
+				'locale'      => determine_locale(),
 				'i18n'        => self::strings( $confirm_mode ),
 			) ) . ';', 'before' );
 		}
@@ -101,6 +102,13 @@ final class ELAB_Booking_Form {
 			'invitedTo'      => __( 'We sent a Google Calendar invitation to %s. Accept it to keep the call in your calendar.', 'elaltillo-bookacall' ),
 			'joinMeet'       => __( 'Join with Google Meet', 'elaltillo-bookacall' ),
 			'filesChosen'    => __( '%d files selected', 'elaltillo-bookacall' ),
+			'guestAdded'     => __( '%s added.', 'elaltillo-bookacall' ),
+			'guestRemove'    => __( 'Remove %s', 'elaltillo-bookacall' ),
+			'guest_invalid'  => __( 'Enter a valid email address.', 'elaltillo-bookacall' ),
+			'guest_self'     => __( 'That is your own email; you are already invited.', 'elaltillo-bookacall' ),
+			'guest_duplicate' => __( 'That guest is already on the list.', 'elaltillo-bookacall' ),
+			'guest_full'     => __( 'You can invite up to %d guests.', 'elaltillo-bookacall' ),
+			'guest_empty'    => __( 'Type an email address first.', 'elaltillo-bookacall' ),
 		);
 	}
 }

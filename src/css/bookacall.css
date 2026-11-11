@@ -2,6 +2,7 @@
 @import "tailwindcss/utilities" source(none);
 @source "../../includes/frontend/templates/*.php";
 @source "../js/booking.js";
+@source "../js/guests.js";
 
 @theme {
   --color-primary: #FFFAF7;
