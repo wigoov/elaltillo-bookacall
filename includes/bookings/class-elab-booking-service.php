@@ -15,7 +15,7 @@ final class ELAB_Booking_Service {
 	 * Filter `elab_meeting_languages` to add or remove options.
 	 */
 	public static function languages() {
-		$languages = apply_filters( 'elab_meeting_languages', array( 'es' => 'Español', 'en' => 'English' ) );
+		$languages = apply_filters( 'elab_meeting_languages', array( 'en' => 'English', 'es' => 'Español' ) );
 		$clean = array();
 		foreach ( (array) $languages as $code => $label ) {
 			if ( is_string( $code ) && preg_match( '/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/', $code ) && is_string( $label ) && '' !== $label ) {
