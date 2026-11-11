@@ -89,8 +89,12 @@ final class ELAB_Booking_Form {
 			'changeTimezone' => __( 'Change', 'elaltillo-bookacall' ),
 			'timesCount'     => __( '%d times', 'elaltillo-bookacall' ),
 			'minutes'        => __( '%d min', 'elaltillo-bookacall' ),
+			/* translators: shortest and longest call length, for "first available" when advisors differ. */
+			'minutesRange'   => __( '%1$d–%2$d min', 'elaltillo-bookacall' ),
 			'callWith'       => __( '%1$d-minute call with %2$s', 'elaltillo-bookacall' ),
 			'callAny'        => __( '%d-minute call with the first available advisor', 'elaltillo-bookacall' ),
+			/* translators: shortest and longest call length among the advisors free at that time. */
+			'callAnyRange'   => __( '%1$d to %2$d-minute call with the first available advisor', 'elaltillo-bookacall' ),
 			'prefer'         => __( 'Prefer someone?', 'elaltillo-bookacall' ),
 			'anyone'         => __( 'First available', 'elaltillo-bookacall' ),
 			'sending'        => $confirm_mode ? __( 'Booking your call…', 'elaltillo-bookacall' ) : __( 'Sending your request…', 'elaltillo-bookacall' ),

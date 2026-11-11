@@ -2683,3 +2683,13 @@ msgstr ""
 #: includes/system/class-elab-system-status.php:197
 msgid "Needs to reconnect Google Calendar."
 msgstr ""
+
+#. translators: shortest and longest call length, for "first available" when advisors differ.
+#, php-format
+msgid "%1$d–%2$d min"
+msgstr "%1$d–%2$d min"
+
+#. translators: shortest and longest call length among the advisors free at that time.
+#, php-format
+msgid "%1$d to %2$d-minute call with the first available advisor"
+msgstr "Llamada de %1$d a %2$d minutos con el primer asesor disponible"

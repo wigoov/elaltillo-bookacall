@@ -502,14 +502,23 @@ function createCalendar(root, config) {
 		return state.advisor ? advisors.filter((advisor) => String(advisor.id) === state.advisor) : advisors;
 	}
 
-	function durationOf(advisors) {
-		return advisors.length ? Math.min(...advisors.map((advisor) => advisor.duration)) : 0;
+	/** Shortest and longest call among the advisors; differs only for "first available". */
+	function durationsOf(advisors) {
+		const lengths = advisors.map((advisor) => advisor.duration);
+		return lengths.length ? [Math.min(...lengths), Math.max(...lengths)] : [0, 0];
+	}
+
+	/** "30 min", or "30–45 min" when the server may assign an advisor with a longer call. */
+	function durationLabel(advisors) {
+		const [shortest, longest] = durationsOf(advisors);
+		return shortest === longest ? t('minutes', shortest) : t('minutesRange', shortest, longest);
 	}
 
 	function callDescription() {
 		const advisors = chosenAdvisors();
 		if (advisors.length === 1) return t('callWith', advisors[0].duration, advisors[0].name);
-		return t('callAny', durationOf(advisors));
+		const [shortest, longest] = durationsOf(advisors);
+		return shortest === longest ? t('callAny', shortest) : t('callAnyRange', shortest, longest);
 	}
 
 	async function updateChoice() {
@@ -519,7 +528,7 @@ function createCalendar(root, config) {
 		ui.choiceWhen.classList.toggle('text-secondary/70', Boolean(state.notice) && !slot);
 		const advisors = slot?.advisors || [];
 		const fillMeta = () => {
-			ui.choiceDuration.textContent = slot ? t('minutes', durationOf(chosenAdvisors())) : '';
+			ui.choiceDuration.textContent = slot ? durationLabel(chosenAdvisors()) : '';
 			ui.choiceWith.hidden = !slot;
 			ui.prefer.hidden = advisors.length < 2;
 			ui.choiceName.hidden = advisors.length !== 1;
@@ -819,7 +828,8 @@ function createCalendar(root, config) {
 			const booking = result.booking || {};
 			ui.doneTitle.textContent = t('doneTitle');
 			ui.doneWhen.textContent = `${longDate(state.date)} · ${timeLabel(state.slot.value)}`;
-			ui.doneMeta.textContent = [booking.advisor ? t('withAdvisor', booking.advisor) : '', booking.language, tzName()].filter(Boolean).join(' · ');
+			// The real length of the advisor the server assigned, which "first available" could not know.
+			ui.doneMeta.textContent = [booking.duration ? t('minutes', booking.duration) : '', booking.advisor ? t('withAdvisor', booking.advisor) : '', booking.language, tzName()].filter(Boolean).join(' · ');
 			ui.doneMessage.textContent = result.invited ? t('invitedTo', result.invited) : result.message || '';
 			showNextSteps(result.meet, result.manage);
 			await goTo('done');
@@ -874,7 +884,7 @@ function createCalendar(root, config) {
 	});
 	ui.preferSelect.addEventListener('change', () => {
 		state.advisor = ui.preferSelect.value;
-		swapText(ui.choiceDuration, t('minutes', durationOf(chosenAdvisors())));
+		swapText(ui.choiceDuration, durationLabel(chosenAdvisors()));
 	});
 	ui.tzToggle.addEventListener('click', () => toggleTimezone(ui.tzPicker.hidden));
 	ui.tzSearch.addEventListener('input', () => {
