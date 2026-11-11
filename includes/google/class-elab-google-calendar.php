@@ -429,7 +429,7 @@ final class ELAB_Google_Calendar {
 
 	public static function create_event( $advisor_id, $booking_id, DateTimeImmutable $start, $duration, $email ) {
 		$end = $start->modify( '+' . absint( $duration ) . ' minutes' );
-		$event_id = 'elab' . md5( $booking_id . '|' . wp_salt( 'nonce' ) );
+		$event_id = self::event_id_for( $booking_id );
 		$advisor = get_the_title( $advisor_id );
 		$visitor = (string) get_post_meta( $booking_id, '_elab_name', true );
 		$description = array(
@@ -485,7 +485,26 @@ final class ELAB_Google_Calendar {
 		return $event;
 	}
 
-	public static function delete_event( $advisor_id, $event_id ) {
+	/** The only event ID this plugin ever creates for a booking: "elab" + 32 hex characters. */
+	public static function event_id_for( $booking_id ) {
+		return 'elab' . md5( (int) $booking_id . '|' . wp_salt( 'nonce' ) );
+	}
+
+	/**
+	 * Delete the Google event of one booking. Refuses any ID other than the one this
+	 * plugin generated for that booking, so nothing else in the advisor's calendar can
+	 * ever be removed, even if stored data were altered.
+	 */
+	public static function delete_event( $advisor_id, $event_id, $booking_id ) {
+		// Either the ID derived for this booking, or (after a salt change) the plugin-format
+		// ID stored on this very booking. Anything else is never sent to Google.
+		$ours = is_string( $event_id ) && (
+			hash_equals( self::event_id_for( $booking_id ), $event_id )
+			|| ( preg_match( '/^elab[0-9a-f]{32}$/', $event_id ) && hash_equals( (string) get_post_meta( $booking_id, self::META_EVENT, true ), $event_id ) )
+		);
+		if ( ! $ours ) {
+			return new WP_Error( 'google_event_not_ours', __( 'This calendar event was not created for this booking, so it was not changed.', 'elaltillo-bookacall' ), array( 'status' => 409 ) );
+		}
 		$result = self::request( $advisor_id, 'DELETE', '/calendars/primary/events/' . rawurlencode( $event_id ) . '?sendUpdates=all' );
 		if ( ! is_wp_error( $result ) ) {
 			self::flush_busy_cache( $advisor_id );

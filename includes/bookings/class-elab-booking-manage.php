@@ -124,7 +124,7 @@ final class ELAB_Booking_Manage {
 		$advisor_id = (int) get_post_meta( $booking_id, '_elab_advisor', true );
 		$event_id = (string) get_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT, true );
 		if ( $event_id ) {
-			$deleted = ELAB_Google_Calendar::delete_event( $advisor_id, $event_id );
+			$deleted = ELAB_Google_Calendar::delete_event( $advisor_id, $event_id, $booking_id );
 			if ( is_wp_error( $deleted ) ) {
 				return new WP_Error( 'cancel_failed', __( 'We could not cancel the calendar event right now. Please try again in a few minutes or reply to your invitation.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
 			}

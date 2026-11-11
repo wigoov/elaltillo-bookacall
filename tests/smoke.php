@@ -354,6 +354,13 @@ try {
 	elab_smoke_assert( ELAB_Booking_Manage::can_cancel( $auto_id ) && true === ELAB_Booking_Manage::cancel( $auto_id, 'visitor' ), 'A visitor can cancel an upcoming call from the private link' );
 	elab_smoke_assert( 'cancelled' === get_post_meta( $auto_id, '_elab_status', true ) && 'visitor' === get_post_meta( $auto_id, '_elab_cancelled_by', true ) && ! get_post_meta( $auto_id, ELAB_Google_Calendar::META_EVENT, true ) && count( array_filter( $http_calls, static function ( $url ) { return false !== strpos( $url, '/events/' ); } ) ) > $deletes_before, 'Visitor cancellation removes the Google event and records who cancelled' );
 	elab_smoke_assert( ! ELAB_Booking_Manage::can_cancel( $auto_id ) && is_wp_error( ELAB_Booking_Manage::cancel( $auto_id ) ), 'A cancelled call cannot be cancelled twice' );
+	$calls_before_guard = count( $http_calls );
+	$foreign = ELAB_Google_Calendar::delete_event( $advisor_id, 'personal-event-of-the-advisor', $auto_id );
+	$other_booking = ELAB_Google_Calendar::delete_event( $advisor_id, ELAB_Google_Calendar::event_id_for( $auto_id + 1 ), $auto_id );
+	update_post_meta( $auto_id, ELAB_Google_Calendar::META_EVENT, 'personal-event-of-the-advisor' );
+	$tampered = ELAB_Google_Calendar::delete_event( $advisor_id, 'personal-event-of-the-advisor', $auto_id );
+	delete_post_meta( $auto_id, ELAB_Google_Calendar::META_EVENT );
+	elab_smoke_assert( is_wp_error( $foreign ) && is_wp_error( $other_booking ) && is_wp_error( $tampered ) && count( $http_calls ) === $calls_before_guard, 'Only the event created for that booking can ever be deleted, even with altered data; no request reaches Google otherwise' );
 	update_post_meta( $second_id, '_elab_wp_user', $created_user );
 	elab_smoke_assert( false !== strpos( ELAB_Advisor_Admin::account_problem( $created_user, $advisor_id ), 'Smoke advisor two' ), 'An account linked to one advisor cannot be linked to another' );
 	delete_post_meta( $second_id, '_elab_wp_user' );

@@ -120,7 +120,7 @@ final class ELAB_Booking_Admin {
 			}
 			if ( 'cancelled' === $status && 'cancelled' !== $current && $event_id ) {
 				$advisor_id = (int) get_post_meta( $post_id, '_elab_advisor', true );
-				$deleted = ELAB_Google_Calendar::delete_event( $advisor_id, $event_id );
+				$deleted = ELAB_Google_Calendar::delete_event( $advisor_id, $event_id, $post_id );
 				if ( is_wp_error( $deleted ) ) {
 					wp_die( esc_html__( 'Google Calendar could not cancel the event. The booking was not changed.', 'elaltillo-bookacall' ), '', array( 'response' => 503 ) );
 				}
