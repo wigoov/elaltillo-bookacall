@@ -94,4 +94,30 @@ return array(
 		T::contains( 'Llamada agendada a través de', T::$event_body['description'], 'Spanish description' );
 		T::same( 'en_US', determine_locale(), 'Language restored afterwards' );
 	},
+
+	'An event already deleted in Google (410 Gone) counts as removed' => function () use ( $event_for ) {
+		list( , $booking ) = $event_for();
+		T::$event_delete_code = 410;
+		T::same( 'deleted', ELAB_Booking_Sync::remove_event( $booking ), 'Treated as deleted' );
+		T::same( '', ELAB_Booking_Sync::state( $booking ), 'Nothing left in the queue' );
+	},
+
+	'A removal Google keeps refusing stays queued' => function () use ( $event_for ) {
+		list( , $booking ) = $event_for();
+		T::$event_delete_code = 500;
+		T::same( 'queued', ELAB_Booking_Sync::remove_event( $booking ), 'Queued' );
+		T::$event_delete_code = 410;
+		T::same( 1, ELAB_Booking_Sync::run()['deleted'], 'Cleared once Google says it is gone' );
+	},
+
+	'If the advisor deleted the site’s calendar, it is created again and the event goes there' => function () {
+		$advisor = T::connect( T::advisor() );
+		$booking = T::booking( $advisor );
+		T::$calendar_gone = true;
+		$event = ELAB_Booking_Sync::create_for( $booking );
+		T::check( ! is_wp_error( $event ), 'Event created after recreating the calendar' );
+		T::same( 1, count( T::$calendar_posts ), 'One new calendar' );
+		T::same( 'test-cal-1@group.calendar.google.com', get_post_meta( $advisor, ELAB_Google_Calendar::META_CALENDAR, true ), 'Advisor points to the new calendar' );
+		T::same( 'test-cal-1@group.calendar.google.com', get_post_meta( $booking, ELAB_Google_Calendar::META_CALENDAR, true ), 'Booking remembers it' );
+	},
 );

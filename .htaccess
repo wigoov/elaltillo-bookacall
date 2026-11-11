@@ -1,0 +1,6 @@
+# Development files are not part of the public site.
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule \.(md|json|ya?ml|mjs|po|pot)$ - [F,L]
+RewriteRule ^(src|tests)/ - [F,L]
+</IfModule>

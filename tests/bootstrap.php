@@ -26,6 +26,9 @@ final class ELAB_Test {
 	public static $revoke = false;
 	public static $insert_times_out = false;
 	public static $mail_fails = false;
+	public static $token_scope = 'openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/calendar.app.created';
+	public static $calendar_gone = false;
+	public static $event_delete_code = 204;
 	public static $identity = array( 'sub' => 'test-sub', 'email' => 'advisor@example.test', 'email_verified' => true );
 	public static $checks = 0;
 
@@ -135,6 +138,9 @@ final class ELAB_Test {
 		self::$event_path = '';
 		self::$google_down = self::$revoke = self::$insert_times_out = self::$mail_fails = false;
 		self::$identity = array( 'sub' => 'test-sub', 'email' => 'advisor@example.test', 'email_verified' => true );
+		self::$token_scope = 'openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/calendar.app.created';
+		self::$calendar_gone = false;
+		self::$event_delete_code = 204;
 		self::as_admin();
 	}
 
@@ -163,6 +169,8 @@ final class ELAB_Test {
 		$calendar_api = 0 === strpos( $url, 'https://www.googleapis.com/calendar/v3/' );
 		if ( $calendar_api && self::$google_down ) {
 			$code = 503;
+		} elseif ( false !== strpos( $url, 'oauth2.googleapis.com/tokeninfo' ) ) {
+			$data = array( 'scope' => self::$token_scope, 'expires_in' => 3000 );
 		} elseif ( false !== strpos( $url, 'oauth2.googleapis.com/token' ) ) {
 			if ( self::$revoke ) {
 				$code = 400;
@@ -184,6 +192,8 @@ final class ELAB_Test {
 			} else {
 				$data = array( 'id' => $id );
 			}
+		} elseif ( $calendar_api && self::$calendar_gone && false !== strpos( $url, '/calendars/test-cal%40group' ) ) {
+			$code = 404;
 		} elseif ( $calendar_api && false !== strpos( $url, '/events?sendUpdates=all' ) && 'POST' === $method ) {
 			self::$event_body = json_decode( $args['body'], true );
 			self::$event_path = $url;
@@ -195,7 +205,7 @@ final class ELAB_Test {
 				$data['hangoutLink'] = 'https://meet.google.com/tst-test-call';
 			}
 		} elseif ( $calendar_api && false !== strpos( $url, '/events/' ) && 'DELETE' === $method ) {
-			$code = 204;
+			$code = self::$event_delete_code;
 		} elseif ( $calendar_api && false !== strpos( $url, '/events/' ) ) {
 			$data = array( 'id' => rawurldecode( basename( wp_parse_url( $url, PHP_URL_PATH ) ) ) );
 		} elseif ( false !== strpos( $url, 'challenges.cloudflare.com/turnstile' ) ) {

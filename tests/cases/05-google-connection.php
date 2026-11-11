@@ -113,4 +113,56 @@ return array(
 		T::check( ELAB_Google_Calendar::has_saved_secret(), 'Secret saved' );
 		T::lacks( 'test-secret', (string) get_option( ELAB_Google_Calendar::OPTION_CLIENT_SECRET ), 'Option holds ciphertext only' );
 	},
+
+	'Google itself confirms the access is limited to the site’s own calendar' => function () {
+		$advisor = T::connect( T::advisor() );
+		T::check( ! ELAB_Google_Calendar::scopes_verified( $advisor ), 'Not verified before asking Google' );
+		T::same( true, ELAB_Google_Calendar::check( $advisor ), 'Live check passes' );
+		T::check( ELAB_Google_Calendar::scopes_verified( $advisor ), 'Verified after Google answered' );
+		T::same( array(), ELAB_Google_Calendar::extra_scopes( $advisor ), 'Nothing beyond the allowed permissions' );
+		T::same( 1, count( T::requests( '#^POST https://oauth2\.googleapis\.com/tokeninfo$#' ) ), 'The token is sent in the request body, never in the address' );
+	},
+
+	'Broader access than needed is reported as a failure' => function () {
+		$advisor = T::connect( T::advisor() );
+		T::$token_scope .= ' https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.freebusy';
+		$result = ELAB_Google_Calendar::check( $advisor );
+		T::error( 'google_scope_too_broad', $result, 'Live check fails' );
+		T::same( array( 'calendar.events', 'calendar.freebusy' ), ELAB_Google_Calendar::extra_scopes( $advisor ), 'Names the extra permissions' );
+		$html = T::render( static function () use ( $advisor ) { ( new ELAB_Advisor_Admin() )->render( get_post( $advisor ) ); } );
+		T::contains( 'Google reports more access than this site needs', $html, 'The advisor profile says so' );
+		T::contains( 'Reconnect Google Calendar', $html, 'And offers to reconnect' );
+	},
+
+	'Reconnecting a connection that is not in use withdraws the old grant at Google first' => function () {
+		$advisor = T::connect( T::advisor( array( '_elab_email' => 'advisor@example.test' ) ), false );
+		$catch = static function () { throw new ELAB_Test_Failure( 'redirected' ); };
+		add_filter( 'wp_redirect', $catch, 1 );
+		$_GET['advisor'] = (string) $advisor;
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'elab_google_connect_' . $advisor );
+		try {
+			( new ELAB_Google_Calendar() )->connect();
+		} catch ( ELAB_Test_Failure $redirect ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
+		} finally {
+			remove_filter( 'wp_redirect', $catch, 1 );
+			unset( $_REQUEST['_wpnonce'] );
+		}
+		T::same( 1, count( T::requests( '#oauth2\.googleapis\.com/revoke#' ) ), 'Old grant revoked before the new consent' );
+	},
+
+	'Reconnecting a healthy connection does not revoke it' => function () {
+		$advisor = T::connect( T::advisor( array( '_elab_email' => 'advisor@example.test' ) ) );
+		$catch = static function () { throw new ELAB_Test_Failure( 'redirected' ); };
+		add_filter( 'wp_redirect', $catch, 1 );
+		$_GET['advisor'] = (string) $advisor;
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'elab_google_connect_' . $advisor );
+		try {
+			( new ELAB_Google_Calendar() )->connect();
+		} catch ( ELAB_Test_Failure $redirect ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
+		} finally {
+			remove_filter( 'wp_redirect', $catch, 1 );
+			unset( $_REQUEST['_wpnonce'] );
+		}
+		T::same( array(), T::requests( '#oauth2\.googleapis\.com/revoke#' ), 'No revoke' );
+	},
 );

@@ -291,13 +291,16 @@ final class ELAB_Advisor_Admin {
 		$disconnect = wp_nonce_url( add_query_arg( array( 'action' => 'elab_google_disconnect', 'advisor' => $post->ID ), admin_url( 'admin-post.php' ) ), 'elab_google_disconnect_' . $post->ID );
 		$google_text = array(
 			'setup'        => __( 'Google Calendar is not set up for this site yet.', 'elaltillo-bookacall' ),
-			'connected'    => sprintf( __( 'Connected as %s.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::account_email( $post->ID ) ),
+			'connected'    => sprintf( __( 'Connected as %s.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::account_email( $post->ID ) ) . ' ' . ( ELAB_Google_Calendar::extra_scopes( $post->ID ) ? sprintf( __( 'Google reports more access than this site needs (%s): disconnect and connect again.', 'elaltillo-bookacall' ), implode( ', ', ELAB_Google_Calendar::extra_scopes( $post->ID ) ) ) : ( ELAB_Google_Calendar::scopes_verified( $post->ID ) ? __( 'Google confirms this site can only reach its own “El Altillo · Citas” calendar.', 'elaltillo-bookacall' ) : '' ) ),
 			'revoked'      => __( 'Google access was removed or expired. Reconnect so new calls reach the calendar again.', 'elaltillo-bookacall' ),
 			'upgrade'      => sprintf( __( 'Connected with the old, broader permission. Reconnect once so the site creates its own “%s” calendar and only uses that one.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::CALENDAR_NAME ),
 			'mismatch'     => __( 'The saved connection no longer matches this advisor’s email or the site’s OAuth client. Connect the correct account.', 'elaltillo-bookacall' ),
 			'disconnected' => __( 'Not connected. The advisor can connect from Users → Profile, or you can connect here.', 'elaltillo-bookacall' ),
 		)[ $google_state ];
-		$google_badge = array( 'setup' => array( 'info', __( 'Not set up', 'elaltillo-bookacall' ) ), 'connected' => array( 'ok', __( 'Connected', 'elaltillo-bookacall' ) ), 'revoked' => array( 'error', __( 'Reconnect', 'elaltillo-bookacall' ) ), 'upgrade' => array( 'error', __( 'Reconnect', 'elaltillo-bookacall' ) ), 'mismatch' => array( 'error', __( 'Reconnect', 'elaltillo-bookacall' ) ), 'disconnected' => array( 'warn', __( 'Not connected', 'elaltillo-bookacall' ) ) )[ $google_state ];
+		if ( 'connected' === $google_state && ELAB_Google_Calendar::extra_scopes( $post->ID ) ) {
+			$google_state = 'toobroad';
+		}
+		$google_badge = array( 'toobroad' => array( 'error', __( 'Reconnect', 'elaltillo-bookacall' ) ), 'setup' => array( 'info', __( 'Not set up', 'elaltillo-bookacall' ) ), 'connected' => array( 'ok', __( 'Connected', 'elaltillo-bookacall' ) ), 'revoked' => array( 'error', __( 'Reconnect', 'elaltillo-bookacall' ) ), 'upgrade' => array( 'error', __( 'Reconnect', 'elaltillo-bookacall' ) ), 'mismatch' => array( 'error', __( 'Reconnect', 'elaltillo-bookacall' ) ), 'disconnected' => array( 'warn', __( 'Not connected', 'elaltillo-bookacall' ) ) )[ $google_state ];
 		?>
 		<table class="form-table" role="presentation"><tbody>
 			<tr><th scope="row"><?php esc_html_e( 'Connection', 'elaltillo-bookacall' ); ?></th><td>

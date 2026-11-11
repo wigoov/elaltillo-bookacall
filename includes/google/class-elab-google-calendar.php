@@ -21,6 +21,9 @@ final class ELAB_Google_Calendar {
 	const META_REVOKED = '_elab_google_revoked';
 	/** Advisor: ID of the calendar this site created. Booking: calendar its event lives in. */
 	const META_CALENDAR = '_elab_google_calendar';
+	/** Advisor: the permissions Google says this site's access carries (space separated). */
+	const META_SCOPES = '_elab_google_scopes';
+	const TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo';
 	const SCOPE = 'https://www.googleapis.com/auth/calendar.app.created';
 	const CALENDAR_NAME = 'El Altillo · Citas';
 	const REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
@@ -143,6 +146,16 @@ final class ELAB_Google_Calendar {
 		if ( ! self::configured() || ! self::can_connect( $advisor_id ) || ELAB_Post_Types::ADVISOR !== get_post_type( $advisor_id ) || ! ELAB_Notifications::advisor_email( $advisor_id ) ) {
 			wp_die( esc_html__( 'Google Calendar is not configured or you cannot edit this advisor.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
 		}
+		// Replacing a connection that is not in use (old broader permission, expired, other
+		// account): withdraw it at Google first, so the new grant starts from nothing and
+		// carries only the permission requested below.
+		if ( self::linked( $advisor_id ) && ( ! self::connected( $advisor_id ) || self::extra_scopes( $advisor_id ) ) ) {
+			$stale = self::decrypt( (string) get_post_meta( $advisor_id, self::META_REFRESH, true ) );
+			if ( $stale ) {
+				wp_remote_post( self::REVOKE_URL, array( 'timeout' => 10, 'body' => array( 'token' => $stale ) ) );
+			}
+			delete_transient( 'elab_google_access_' . $advisor_id );
+		}
 		$state = wp_generate_password( 48, false, false );
 		$pkce = self::pkce_pair();
 		set_transient( 'elab_google_state_' . hash( 'sha256', $state ), array( 'advisor' => $advisor_id, 'user' => get_current_user_id(), 'verifier' => $pkce['verifier'] ), 10 * MINUTE_IN_SECONDS );
@@ -212,6 +225,7 @@ final class ELAB_Google_Calendar {
 		update_post_meta( (int) $data['advisor'], self::META_ACCOUNT_EMAIL, $identity['email'] );
 		update_post_meta( (int) $data['advisor'], self::META_ACCOUNT_SUB, $identity['sub'] );
 		update_post_meta( $advisor_id, self::META_CALENDAR, $calendar );
+		update_post_meta( $advisor_id, self::META_SCOPES, sanitize_text_field( implode( ' ', $granted_scopes ) ) );
 		delete_post_meta( (int) $data['advisor'], self::META_REVOKED );
 		set_transient( 'elab_google_access_' . $advisor_id, $tokens['access_token'], max( 60, min( 3300, (int) ( $tokens['expires_in'] ?? 3600 ) - 120 ) ) );
 		ELAB_Notifications::schedule_summary( (int) $data['advisor'] );
@@ -242,7 +256,7 @@ final class ELAB_Google_Calendar {
 		if ( $refresh ) {
 			wp_remote_post( self::REVOKE_URL, array( 'timeout' => 10, 'body' => array( 'token' => $refresh ) ) );
 		}
-		foreach ( array( self::META_REFRESH, self::META_CLIENT_HASH, self::META_ACCOUNT_EMAIL, self::META_ACCOUNT_SUB, self::META_REVOKED ) as $key ) {
+		foreach ( array( self::META_REFRESH, self::META_CLIENT_HASH, self::META_ACCOUNT_EMAIL, self::META_ACCOUNT_SUB, self::META_REVOKED, self::META_SCOPES ) as $key ) {
 			delete_post_meta( $advisor_id, $key );
 		}
 		delete_transient( 'elab_google_access_' . $advisor_id );
@@ -340,7 +354,48 @@ final class ELAB_Google_Calendar {
 			return new WP_Error( 'google_not_ready', __( 'The bookings calendar is missing; connect Google Calendar again.', 'elaltillo-bookacall' ) );
 		}
 		$data = self::request( $advisor_id, 'GET', '/calendars/' . rawurlencode( $calendar ) );
-		return is_wp_error( $data ) ? $data : true;
+		if ( is_wp_error( $data ) ) {
+			return $data;
+		}
+		self::refresh_scopes( $advisor_id );
+		$extra = self::extra_scopes( $advisor_id );
+		if ( $extra ) {
+			return new WP_Error( 'google_scope_too_broad', sprintf( __( 'Google reports more access than this site needs (%s). Disconnect and connect again so only the site’s own calendar is shared.', 'elaltillo-bookacall' ), implode( ', ', $extra ) ) );
+		}
+		return true;
+	}
+
+	/** Everything this site ever asks Google for. Anything else on a token is too much. */
+	public static function allowed_scopes() {
+		return array( 'openid', 'email', 'https://www.googleapis.com/auth/userinfo.email', self::SCOPE );
+	}
+
+	/** Permissions Google reported for this advisor that go beyond what the site needs. */
+	public static function extra_scopes( $advisor_id ) {
+		$stored = preg_split( '/\s+/', (string) get_post_meta( $advisor_id, self::META_SCOPES, true ), -1, PREG_SPLIT_NO_EMPTY );
+		return array_values( array_map( static function ( $scope ) {
+			return str_replace( 'https://www.googleapis.com/auth/', '', $scope );
+		}, array_diff( $stored, self::allowed_scopes() ) ) );
+	}
+
+	/** True once Google itself has confirmed the access is limited to the site's own calendar. */
+	public static function scopes_verified( $advisor_id ) {
+		return '' !== (string) get_post_meta( $advisor_id, self::META_SCOPES, true ) && ! self::extra_scopes( $advisor_id );
+	}
+
+	/** Ask Google which permissions the current access really carries, and remember the answer. */
+	public static function refresh_scopes( $advisor_id ) {
+		$token = self::access_token( $advisor_id );
+		if ( is_wp_error( $token ) ) {
+			return $token;
+		}
+		$response = wp_remote_post( self::TOKENINFO_URL, array( 'timeout' => 10, 'body' => array( 'access_token' => $token ) ) );
+		$data = is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ? null : json_decode( wp_remote_retrieve_body( $response ), true );
+		if ( ! is_array( $data ) || ! isset( $data['scope'] ) || ! is_string( $data['scope'] ) ) {
+			return new WP_Error( 'google_scope_unknown', __( 'Google did not report the permissions of this connection.', 'elaltillo-bookacall' ) );
+		}
+		update_post_meta( $advisor_id, self::META_SCOPES, sanitize_text_field( $data['scope'] ) );
+		return $data['scope'];
 	}
 
 	/**
@@ -422,11 +477,12 @@ final class ELAB_Google_Calendar {
 		}
 		$response = wp_remote_request( self::API_URL . $path, $args );
 		$code = is_wp_error( $response ) ? 0 : wp_remote_retrieve_response_code( $response );
-		if ( 'DELETE' === $method && 404 === $code ) {
+		// Already gone in Google (404), or deleted there earlier (410): the removal is done.
+		if ( 'DELETE' === $method && in_array( $code, array( 404, 410 ), true ) ) {
 			return array();
 		}
 		if ( $code < 200 || $code >= 300 ) {
-			return new WP_Error( 'google_calendar_failed', __( 'Google Calendar could not complete this action. Please try again.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
+			return new WP_Error( 'google_calendar_failed', __( 'Google Calendar could not complete this action. Please try again.', 'elaltillo-bookacall' ), array( 'status' => 503, 'http' => (int) $code ) );
 		}
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
 		return is_array( $data ) ? $data : array();
@@ -479,6 +535,17 @@ final class ELAB_Google_Calendar {
 			$path .= '&conferenceDataVersion=1';
 		}
 		$event = self::request( $advisor_id, 'POST', $path, $body );
+		// The advisor deleted the site's calendar in Google: make it again and retry once.
+		if ( is_wp_error( $event ) && 404 === (int) ( $event->get_error_data()['http'] ?? 0 ) ) {
+			$token = self::access_token( $advisor_id );
+			$replacement = is_wp_error( $token ) ? $token : self::ensure_calendar( $advisor_id, $token );
+			if ( ! is_wp_error( $replacement ) ) {
+				update_post_meta( $advisor_id, self::META_CALENDAR, $replacement );
+				$path = str_replace( '/calendars/' . rawurlencode( $calendar ) . '/', '/calendars/' . rawurlencode( $replacement ) . '/', $path );
+				$calendar = $replacement;
+				$event = self::request( $advisor_id, 'POST', $path, $body );
+			}
+		}
 		// A timed-out insert can still have created the event. Look up its stable ID before failing.
 		if ( is_wp_error( $event ) || empty( $event['id'] ) ) {
 			$existing = self::request( $advisor_id, 'GET', '/calendars/' . rawurlencode( $calendar ) . '/events/' . rawurlencode( $event_id ) );
