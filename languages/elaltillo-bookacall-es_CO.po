@@ -616,7 +616,7 @@ msgid "Invalid time zone."
 msgstr "Zona horaria no válida."
 
 #: includes/bookings/class-elab-availability.php:195
-#: includes/bookings/class-elab-booking-service.php:153
+#: includes/bookings/class-elab-booking-service.php:158
 msgid "This advisor is not available for online booking."
 msgstr "Este asesor no está disponible para reservas en línea."
 
@@ -669,13 +669,13 @@ msgid "%d minutes"
 msgstr "%d minutos"
 
 #: includes/bookings/class-elab-booking-admin.php:48
-#: includes/frontend/templates/booking-form.php:125
+#: includes/frontend/templates/booking-form.php:127
 #: includes/privacy/class-elab-privacy.php:115
 msgid "Meeting language"
 msgstr "Idioma de la reunión"
 
 #: includes/bookings/class-elab-booking-admin.php:49
-#: includes/frontend/templates/booking-form.php:132
+#: includes/frontend/templates/booking-form.php:134
 #: includes/privacy/class-elab-privacy.php:112
 msgid "Sector"
 msgstr "Sector"
@@ -687,7 +687,7 @@ msgstr ""
 
 #: includes/bookings/class-elab-booking-admin.php:51
 #: includes/bookings/class-elab-booking-admin.php:58
-#: includes/frontend/templates/booking-form.php:115
+#: includes/frontend/templates/booking-form.php:116
 #: includes/google/class-elab-booking-sync.php:339
 #: includes/notifications/class-elab-notifications.php:218
 #: includes/notifications/class-elab-notifications.php:262
@@ -843,11 +843,16 @@ msgstr ""
 msgid "You cannot change booking defaults."
 msgstr ""
 
-#: includes/bookings/class-elab-booking-guard.php:11
+#: includes/bookings/class-elab-booking-guard.php:14
 msgid "Your request could not be submitted."
 msgstr "No pudimos enviar tu solicitud."
 
 #: includes/bookings/class-elab-booking-guard.php:49
+#, php-format
+msgid "%s has received too many call invitations today. Remove this guest or try again tomorrow."
+msgstr "%s ya recibió demasiadas invitaciones hoy. Quita a esta persona o inténtalo mañana."
+
+#: includes/bookings/class-elab-booking-guard.php:84
 msgid "Too many requests. Please wait and try again."
 msgstr "Demasiados intentos. Espera un momento y vuelve a intentarlo."
 
@@ -962,26 +967,30 @@ msgstr "Completa todos los campos obligatorios."
 msgid "Invalid meeting time or time zone."
 msgstr "Hora o zona horaria no válidas."
 
-#: includes/bookings/class-elab-booking-service.php:218
+#: includes/bookings/class-elab-booking-service.php:143
+msgid "Guests cannot be added right now. Book without guests and forward the invitation."
+msgstr "Por ahora no se pueden agregar invitados. Agenda sin invitados y reenvía la invitación."
+
+#: includes/bookings/class-elab-booking-service.php:228
 #: includes/frontend/class-elab-booking-form.php:98
 msgid "That time was just taken. Please choose another."
 msgstr "Alguien acaba de reservar esa hora. Elige otra."
 
-#: includes/bookings/class-elab-booking-service.php:294
+#: includes/bookings/class-elab-booking-service.php:304
 msgid "A Google Calendar invitation is on its way to your email."
 msgstr "Te enviamos una invitación de Google Calendar a tu correo."
 
-#: includes/bookings/class-elab-booking-service.php:294
+#: includes/bookings/class-elab-booking-service.php:304
 msgid "Your call is booked. The calendar invitation will follow by email shortly."
 msgstr "Tu llamada está agendada. La invitación de calendario te llegará pronto por correo."
 
-#: includes/bookings/class-elab-booking-service.php:300
+#: includes/bookings/class-elab-booking-service.php:310
 #: includes/notifications/class-elab-notifications.php:329
 #, php-format
 msgid "Call with %s"
 msgstr "Llamada con %s"
 
-#: includes/bookings/class-elab-booking-service.php:312
+#: includes/bookings/class-elab-booking-service.php:322
 #: includes/notifications/class-elab-notifications.php:312
 msgid "We will confirm this time by email shortly."
 msgstr "Te confirmaremos esta hora por correo muy pronto."
@@ -1321,74 +1330,74 @@ msgstr "Nombre"
 msgid "Email"
 msgstr "Correo"
 
-#: includes/frontend/templates/booking-form.php:117
+#: includes/frontend/templates/booking-form.php:118
 msgid "name@company.com"
 msgstr "nombre@empresa.com"
 
-#: includes/frontend/templates/booking-form.php:118
+#: includes/frontend/templates/booking-form.php:119
 msgid "Add"
 msgstr "Agregar"
 
-#: includes/frontend/templates/booking-form.php:121
+#: includes/frontend/templates/booking-form.php:122
 #, php-format
 msgid "Up to %d people. Each one receives the calendar invitation."
 msgstr "Hasta %d personas. Cada una recibe la invitación del calendario."
 
-#: includes/frontend/templates/booking-form.php:121
+#: includes/frontend/templates/booking-form.php:122
 #, php-format
 msgid "Up to %d people. Each one is emailed when the call is confirmed."
 msgstr "Hasta %d personas. Cada una recibe un correo cuando se confirme la llamada."
 
-#: includes/frontend/templates/booking-form.php:132
+#: includes/frontend/templates/booking-form.php:134
 msgid "e.g. architecture, education"
 msgstr "p. ej. arquitectura, educación"
 
-#: includes/frontend/templates/booking-form.php:133
+#: includes/frontend/templates/booking-form.php:135
 msgid "Your project"
 msgstr "Tu proyecto"
 
-#: includes/frontend/templates/booking-form.php:133
+#: includes/frontend/templates/booking-form.php:135
 msgid "What would you like to talk about?"
 msgstr "¿De qué te gustaría hablar?"
 
-#: includes/frontend/templates/booking-form.php:135
+#: includes/frontend/templates/booking-form.php:137
 msgid "Attach files"
 msgstr "Adjuntar archivos"
 
-#: includes/frontend/templates/booking-form.php:136
+#: includes/frontend/templates/booking-form.php:138
 msgid "PDF, Word or Excel · up to 3 files, 10 MB each"
 msgstr "PDF, Word o Excel · hasta 3 archivos de 10 MB"
 
-#: includes/frontend/templates/booking-form.php:145
+#: includes/frontend/templates/booking-form.php:147
 #, php-format
 msgid "I agree that my details are used to arrange this call, as described in the <a href=\"%s\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline decoration-secondary/40 underline-offset-2 hover:decoration-secondary\">privacy policy</a>."
 msgstr "Acepto que se usen mis datos para coordinar esta llamada, como se describe en la <a href=\"%s\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline decoration-secondary/40 underline-offset-2 hover:decoration-secondary\">política de privacidad</a>."
 
-#: includes/frontend/templates/booking-form.php:147
+#: includes/frontend/templates/booking-form.php:149
 msgid "I agree that my details are used to arrange this call."
 msgstr "Acepto que se usen mis datos para coordinar esta llamada."
 
-#: includes/frontend/templates/booking-form.php:154
+#: includes/frontend/templates/booking-form.php:156
 msgid "Confirm call"
 msgstr "Confirmar llamada"
 
-#: includes/frontend/templates/booking-form.php:154
+#: includes/frontend/templates/booking-form.php:156
 msgid "Request call"
 msgstr "Solicitar llamada"
 
-#: includes/frontend/templates/booking-form.php:155
+#: includes/frontend/templates/booking-form.php:157
 msgid "You will receive a calendar invitation by email."
 msgstr "Recibirás una invitación de calendario por correo."
 
-#: includes/frontend/templates/booking-form.php:155
+#: includes/frontend/templates/booking-form.php:157
 msgid "We confirm the time by email after review."
 msgstr "Te confirmamos la hora por correo después de revisarla."
 
-#: includes/frontend/templates/booking-form.php:170
+#: includes/frontend/templates/booking-form.php:172
 msgid "Need to cancel? Manage your booking"
 msgstr "¿Necesitas cancelar? Gestiona tu reserva"
 
-#: includes/frontend/templates/booking-form.php:171
+#: includes/frontend/templates/booking-form.php:173
 #: includes/frontend/templates/manage-booking.php:61
 msgid "Book another call"
 msgstr "Agendar otra llamada"

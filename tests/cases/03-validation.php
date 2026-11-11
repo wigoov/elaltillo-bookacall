@@ -17,6 +17,7 @@ $request = static function ( array $fields = array() ) {
 
 return array(
 	'A complete request returns clean data' => function () use ( $request ) {
+		T::turnstile_on();
 		$data = ELAB_Booking_Service::validate( $request( array( 'guests' => 'b@example.test', 'locale' => 'es_CO', 'name' => ' Ana <b>Ruiz</b> ' ) ) );
 		T::check( is_array( $data ), 'Valid request accepted' );
 		T::same( 'Ana Ruiz', $data['name'], 'Name is stripped of tags' );
@@ -71,11 +72,17 @@ return array(
 		T::error( 'invalid_guests', ELAB_Booking_Service::parse_guests( 'x<script>@example.test' ), 'Address with markup' );
 	},
 
-	'Guests: at most five' => function () {
-		$six = implode( ',', array_map( static function ( $i ) { return "g{$i}@example.test"; }, range( 1, 6 ) ) );
-		T::error( 'invalid_guests', ELAB_Booking_Service::parse_guests( $six ), 'Six guests refused' );
-		T::same( 5, count( ELAB_Booking_Service::parse_guests( implode( ',', array_map( static function ( $i ) { return "g{$i}@example.test"; }, range( 1, 5 ) ) ) ) ), 'Five accepted' );
+	'Guests: at most three' => function () {
+		$list = static function ( $n ) { return implode( ',', array_map( static function ( $i ) { return "g{$i}@example.test"; }, range( 1, $n ) ) ); };
+		T::error( 'invalid_guests', ELAB_Booking_Service::parse_guests( $list( 4 ) ), 'Four guests refused' );
+		T::same( 3, count( ELAB_Booking_Service::parse_guests( $list( 3 ) ) ), 'Three accepted' );
 		T::error( 'invalid_guests', ELAB_Booking_Service::parse_guests( str_repeat( 'a', 1300 ) ), 'Huge input refused' );
+	},
+
+	'Guests are refused while the bot check is off' => function () use ( $request ) {
+		$result = ELAB_Booking_Service::validate( $request( array( 'guests' => 'g@example.test' ) ) );
+		T::error( 'invalid_guests', $result, 'Refused without Turnstile' );
+		T::check( is_array( ELAB_Booking_Service::validate( $request() ) ), 'Booking without guests still works' );
 	},
 
 	'Guests: an invalid list stops the whole booking' => function () use ( $request ) {

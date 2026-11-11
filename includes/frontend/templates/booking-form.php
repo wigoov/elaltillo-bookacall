@@ -111,6 +111,7 @@ $elab_step_dot = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full
 				<label class="<?php echo esc_attr( $elab_label ); ?>"><?php esc_html_e( 'Name', 'elaltillo-bookacall' ); ?> <input type="text" name="name" autocomplete="name" required maxlength="120" class="<?php echo esc_attr( $elab_field ); ?>"></label>
 				<label class="<?php echo esc_attr( $elab_label ); ?>"><?php esc_html_e( 'Email', 'elaltillo-bookacall' ); ?> <input type="email" name="email" autocomplete="email" required maxlength="190" class="<?php echo esc_attr( $elab_field ); ?>"></label>
 			</div>
+			<?php if ( ELAB_Security::turnstile_enabled() ) : // Guests multiply invitations: only behind the bot check. ?>
 			<div data-elab-guests class="grid gap-2">
 				<label for="<?php echo esc_attr( $elab_uid ); ?>-guest" class="font-secondary text-xs uppercase tracking-wider text-secondary/70"><?php esc_html_e( 'Guests', 'elaltillo-bookacall' ); ?> <?php echo $elab_optional; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?></label>
 				<div class="flex gap-2">
@@ -121,6 +122,7 @@ $elab_step_dot = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full
 				<p id="<?php echo esc_attr( $elab_uid ); ?>-guest-hint" data-elab-guest-hint aria-live="polite" class="font-secondary text-xs text-secondary/60"><?php echo esc_html( $confirm_mode ? sprintf( __( 'Up to %d people. Each one receives the calendar invitation.', 'elaltillo-bookacall' ), ELAB_Booking_Service::MAX_GUESTS ) : sprintf( __( 'Up to %d people. Each one is emailed when the call is confirmed.', 'elaltillo-bookacall' ), ELAB_Booking_Service::MAX_GUESTS ) ); ?></p>
 				<input type="hidden" name="guests" data-elab-guests-value>
 			</div>
+			<?php endif; ?>
 			<fieldset class="grid min-w-0 gap-2 border-0 p-0">
 				<legend class="pb-2 font-secondary text-xs uppercase tracking-wider text-secondary/70"><?php esc_html_e( 'Meeting language', 'elaltillo-bookacall' ); ?></legend>
 				<div class="flex flex-wrap gap-2">

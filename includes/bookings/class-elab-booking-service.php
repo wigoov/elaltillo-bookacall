@@ -34,7 +34,7 @@ final class ELAB_Booking_Service {
 		$this->attachments = $attachments;
 	}
 
-	const MAX_GUESTS = 5;
+	const MAX_GUESTS = 3;
 
 	/**
 	 * Optional extra people invited to the call: a comma, semicolon, space or newline
@@ -137,6 +137,11 @@ final class ELAB_Booking_Service {
 		if ( is_wp_error( $guests ) ) {
 			return $guests;
 		}
+		// Guests multiply the invitations a booking sends from the advisor's account, so they
+		// are only accepted while the bot check is on (the form hides the field otherwise).
+		if ( $guests && ! ELAB_Security::turnstile_enabled() ) {
+			return new WP_Error( 'invalid_guests', __( 'Guests cannot be added right now. Book without guests and forward the invitation.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
+		}
 		$data['guests'] = $guests;
 		$data['locale'] = self::locale_for_language( $data['language'], $data['locale'] );
 		return $data;
@@ -172,6 +177,10 @@ final class ELAB_Booking_Service {
 		if ( is_wp_error( $data ) ) {
 			return $data;
 		}
+		$allowed = ELAB_Booking_Guard::guests_allowed( $data['guests'] );
+		if ( is_wp_error( $allowed ) ) {
+			return $allowed;
+		}
 		$start_utc = $data['start_utc'];
 		$timestamp = $start_utc->getTimestamp();
 		$candidates = self::candidates( $data['advisor'], $timestamp );
@@ -205,6 +214,7 @@ final class ELAB_Booking_Service {
 					$last_error = $result;
 					continue;
 				}
+				ELAB_Booking_Guard::record_guests( $data['guests'] );
 				return $result;
 			} finally {
 				delete_option( $lock );

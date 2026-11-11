@@ -153,3 +153,8 @@
 .elab-status-control > br { display: none; }
 .elab-inline-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .elab-inline-actions .button { margin: 0; }
+
+/* Remove-range button: a quiet square icon button, centred ×, no browser border. */
+#elab-advisor-settings .elab-remove-range { -webkit-appearance: none; appearance: none; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin: 0 0 0 2px; padding: 0; border: 0; border-radius: 6px; background: transparent; box-shadow: none; color: #8c8f94; font-size: 20px; line-height: 1; text-decoration: none; cursor: pointer; transition: background-color .15s, color .15s; }
+#elab-advisor-settings .elab-remove-range:hover { background: #fcf0f1; color: #b32d2e; }
+#elab-advisor-settings .elab-remove-range:focus-visible { outline: 2px solid #2271b1; outline-offset: 1px; box-shadow: none; }

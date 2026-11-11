@@ -4,8 +4,10 @@
 use ELAB_Test as T;
 
 $render_form = static function () {
-	wp_dequeue_script( ELAB_Booking_Form::SCRIPT_HANDLE );
-	wp_deregister_script( ELAB_Booking_Form::SCRIPT_HANDLE );
+	foreach ( array( 'elab-turnstile', ELAB_Booking_Form::SCRIPT_HANDLE ) as $handle ) {
+		wp_dequeue_script( $handle );
+		wp_deregister_script( $handle );
+	}
 	return do_shortcode( '[elaltillo_bookacall]' );
 };
 $config = static function () {
@@ -24,10 +26,12 @@ return array(
 		}
 	},
 
-	'Optional guests field: input, add button, list and hidden value' => function () use ( $render_form ) {
+	'Guests field appears only while the bot check is on' => function () use ( $render_form ) {
 		T::advisor();
+		T::lacks( 'data-elab-guests', $render_form(), 'Hidden with Turnstile off' );
+		T::turnstile_on();
 		$html = $render_form();
-		foreach ( array( 'data-elab-guests', 'data-elab-guest-input', 'data-elab-guest-add', 'data-elab-guest-list', 'name="guests"', 'Up to 5 people' ) as $piece ) {
+		foreach ( array( 'data-elab-guests', 'data-elab-guest-input', 'data-elab-guest-add', 'data-elab-guest-list', 'name="guests"', 'Up to 3 people' ) as $piece ) {
 			T::contains( $piece, $html, 'Guests field contains ' . $piece );
 		}
 	},

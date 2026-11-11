@@ -77,7 +77,7 @@ if (schedule) {
 		to.appendChild(end);
 		const remove = document.createElement('button');
 		remove.type = 'button';
-		remove.className = 'button-link-delete';
+		remove.className = 'button-link button-link-delete elab-remove-range';
 		remove.dataset.elabRemoveRange = '';
 		remove.setAttribute('aria-label', 'Remove time range');
 		remove.textContent = '×';

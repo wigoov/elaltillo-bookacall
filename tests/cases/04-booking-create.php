@@ -16,6 +16,7 @@ return array(
 	},
 
 	'The booking stores everything it needs, including consent, guests and language' => function () {
+		T::turnstile_on();
 		$advisor = T::advisor();
 		$booking = T::booking_from( T::book( $advisor, T::slot_values( $advisor )[0], array( 'guests' => 'g1@example.test, g2@example.test', 'locale' => 'en_US', 'language' => 'en' ) ) );
 		T::same( 30, (int) get_post_meta( $booking, '_elab_duration', true ), 'Call length' );
@@ -85,6 +86,7 @@ return array(
 	},
 
 	'With Google the booking is confirmed and the visitor and guests are invited' => function () {
+		T::turnstile_on();
 		$advisor = T::connect( T::advisor() );
 		$response = T::book( $advisor, T::slot_values( $advisor )[0], array( 'guests' => 'guest@example.test' ) );
 		$booking = T::booking_from( $response );
@@ -92,5 +94,31 @@ return array(
 		T::check( ! empty( $response->get_data()['invited'] ), 'Response names the invited address' );
 		T::same( 2, count( T::$event_body['attendees'] ), 'Visitor and guest invited' );
 		T::check( (bool) get_post_meta( $booking, ELAB_Google_Calendar::META_EVENT, true ), 'Event ID stored' );
+	},
+
+	'One guest address can be invited at most three times a day' => function () {
+		T::turnstile_on();
+		$advisor = T::advisor();
+		$times = T::slot_values( $advisor );
+		$target = 'target+' . wp_generate_password( 8, false, false ) . '@example.test';
+		for ( $i = 0; $i < 3; $i++ ) {
+			T::same( 201, T::book( $advisor, $times[ $i ], array( 'guests' => 1 === $i ? strtoupper( $target ) : $target ) )->get_status(), 'Invitation ' . ( $i + 1 ) );
+		}
+		$fourth = T::book( $advisor, $times[3], array( 'guests' => $target ) );
+		T::same( 429, $fourth->get_status(), 'Fourth invitation to the same address (any capitalisation) refused' );
+		T::contains( $target, $fourth->get_data()['message'] ?? '', 'The message names the guest' );
+		T::same( 201, T::book( $advisor, $times[3], array( 'guests' => 'other+' . wp_generate_password( 8, false, false ) . '@example.test' ) )->get_status(), 'Other guests are not affected' );
+	},
+
+	'A booking that fails does not use up a guest’s invitations' => function () {
+		T::turnstile_on();
+		$advisor = T::advisor();
+		$time = T::slot_values( $advisor )[0];
+		T::book( $advisor, $time );
+		$spare = 'spare+' . wp_generate_password( 8, false, false ) . '@example.test';
+		for ( $i = 0; $i < 3; $i++ ) {
+			T::same( 409, T::book( $advisor, $time, array( 'guests' => $spare ) )->get_status(), 'Taken time' );
+		}
+		T::same( true, ELAB_Booking_Guard::guests_allowed( array( $spare ) ), 'No invitation counted' );
 	},
 );

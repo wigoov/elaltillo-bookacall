@@ -3,7 +3,7 @@
  * kept in a hidden "guests" field (comma separated) that the server validates again.
  */
 
-export const MAX_GUESTS = 5;
+export const MAX_GUESTS = 3;
 const EMAIL = /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]{2,}$/;
 
 /**

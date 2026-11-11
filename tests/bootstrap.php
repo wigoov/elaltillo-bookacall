@@ -119,6 +119,10 @@ final class ELAB_Test {
 			}
 		}
 		delete_transient( ELAB_System_Status::TRANSIENT_GOOGLE );
+		// Rate-limit counters (per address, per email, per guest) start empty for every test.
+		global $wpdb;
+		$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE '\\_transient\\_elab\\_limit\\_%' OR option_name LIKE '\\_transient\\_timeout\\_elab\\_limit\\_%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		wp_cache_flush();
 		$_POST = self::$original['post'] ?? array();
 		$_GET = self::$original['get'] ?? array();
 		$_COOKIE = self::$original['cookie'] ?? array();
@@ -248,6 +252,11 @@ final class ELAB_Test {
 		return $id;
 	}
 
+	/** Turn the Cloudflare bot check on (needed for guests). The mock accepts "good-token". */
+	public static function turnstile_on() {
+		update_option( ELAB_Security::OPTION, array( 'proxy' => 'direct', 'site_key' => 'site-key', 'secret' => ELAB_Google_Calendar::encrypt( 'turnstile-secret' ) ) );
+	}
+
 	public static function configure_google() {
 		if ( ! ELAB_Google_Calendar::configured() ) {
 			ELAB_Google_Calendar::save_credentials( 'test-client', 'test-secret' );
@@ -328,6 +337,7 @@ final class ELAB_Test {
 			'message'  => 'Private message',
 			'website'  => '',
 			'consent'  => '1',
+			'cf-turnstile-response' => 'good-token',
 		) );
 		self::new_ip();
 		return rest_do_request( $request );

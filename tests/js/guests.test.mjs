@@ -31,6 +31,6 @@ test(`stops at ${MAX_GUESTS} guests`, () => {
 	assert.equal(checkGuest('new@example.test', full.slice(1)).ok, true);
 });
 
-test('matches the server limit of 5', () => {
-	assert.equal(MAX_GUESTS, 5);
+test('matches the server limit of 3', () => {
+	assert.equal(MAX_GUESTS, 3);
 });
