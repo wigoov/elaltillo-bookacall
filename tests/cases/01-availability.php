@@ -172,4 +172,48 @@ return array(
 		}
 		T::error( 'rate_limited', ELAB_Booking_Guard::slots(), 'The 121st request in 10 minutes is refused' );
 	},
+
+	'Older profiles without languages take every language' => function () {
+		$advisor = T::advisor();
+		T::same( array_keys( ELAB_Booking_Service::languages() ), ELAB_Availability::languages( $advisor ), 'All languages' );
+	},
+
+	'Choosing a meeting language shows only advisors who speak it' => function () {
+		$spanish = T::advisor( array( ELAB_Availability::META_LANGUAGES => array( 'es' ) ), 'Solo español' );
+		$english = T::advisor( array( ELAB_Availability::META_LANGUAGES => array( 'en' ), '_elab_availability' => wp_json_encode( array_fill_keys( range( 1, 7 ), array( array( '14:00', '16:00' ) ) ) ) ), 'English only' );
+		$request = static function ( $language ) {
+			$request = new WP_REST_Request( 'GET', '/elab/v1/slots' );
+			$request->set_query_params( array( 'date' => T::day(), 'timezone' => 'America/Bogota', 'language' => $language ) );
+			T::new_ip();
+			return rest_do_request( $request )->get_data();
+		};
+		$ids = static function ( $slots ) {
+			return array_values( array_unique( array_merge( ...array_map( static function ( $slot ) { return array_column( $slot['advisors'], 'id' ); }, $slots ) ) ) );
+		};
+		T::same( array( $spanish ), $ids( $request( 'es' ) ), 'Spanish shows only the Spanish advisor' );
+		T::same( array( $english ), $ids( $request( 'en' ) ), 'English shows only the English advisor' );
+		$both = $ids( $request( '' ) );
+		sort( $both );
+		T::same( array( $spanish, $english ), $both, 'No language shows everyone' );
+	},
+
+	'The month view follows the language too' => function () {
+		T::advisor( array( ELAB_Availability::META_LANGUAGES => array( 'es' ) ) );
+		$request = new WP_REST_Request( 'GET', '/elab/v1/availability' );
+		$request->set_query_params( array( 'month' => substr( T::day(), 0, 7 ), 'timezone' => 'America/Bogota', 'language' => 'en' ) );
+		T::new_ip();
+		T::same( array(), (array) rest_do_request( $request )->get_data()['days'], 'No English days' );
+	},
+
+	'An unknown language is refused' => function () {
+		T::advisor();
+		$request = new WP_REST_Request( 'GET', '/elab/v1/slots' );
+		$request->set_query_params( array( 'date' => T::day(), 'timezone' => 'America/Bogota', 'language' => 'xx' ) );
+		T::same( 400, rest_do_request( $request )->get_status(), '400' );
+	},
+
+	'Offered languages are those of bookable advisors only' => function () {
+		T::advisor( array( ELAB_Availability::META_LANGUAGES => array( 'en' ) ) );
+		T::same( array( 'en' ), ELAB_Availability::offered_languages(), 'Only English offered' );
+	},
 );

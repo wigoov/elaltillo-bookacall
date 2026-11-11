@@ -130,6 +130,8 @@ final class ELAB_Advisor_Admin {
 		}
 		if ( 'elab_timezone' === $column ) {
 			echo esc_html( get_post_meta( $post_id, '_elab_timezone', true ) ?: '—' );
+			$names = array_intersect_key( ELAB_Booking_Service::languages(), array_flip( ELAB_Availability::languages( $post_id ) ) );
+			echo '<br><span class="description">' . esc_html( implode( ', ', $names ) ) . '</span>';
 		} elseif ( 'elab_google' === $column ) {
 			if ( ! ELAB_Google_Calendar::configured() ) {
 				echo '<span class="description">' . esc_html__( 'Not set up', 'elaltillo-bookacall' ) . '</span>';
@@ -251,6 +253,7 @@ final class ELAB_Advisor_Admin {
 			</select><p class="description"><?php esc_html_e( 'Only Subscriber accounts that are not linked to another advisor can be chosen. This account connects its own Google Calendar from its profile and cannot edit this advisor profile.', 'elaltillo-bookacall' ); ?></p></td></tr>
 		<?php endif; ?>
 		<tr><th scope="row"><label for="elab-timezone"><?php esc_html_e( 'Advisor time zone', 'elaltillo-bookacall' ); ?></label></th><td><label class="screen-reader-text" for="elab-timezone-search"><?php esc_html_e( 'Search time zones', 'elaltillo-bookacall' ); ?></label><input type="search" id="elab-timezone-search" class="regular-text" placeholder="<?php esc_attr_e( 'Search by city or region', 'elaltillo-bookacall' ); ?>" autocomplete="off"><br><select id="elab-timezone" name="elab_timezone" class="regular-text" required><?php echo wp_timezone_choice( $timezone ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core returns escaped options. ?></select><p class="description"><?php esc_html_e( 'Choose the city where the advisor works. Seasonal time changes are automatic.', 'elaltillo-bookacall' ); ?></p></td></tr>
+		<tr><th scope="row"><?php esc_html_e( 'Meeting languages', 'elaltillo-bookacall' ); ?></th><td><fieldset class="elab-language-choice"><legend class="screen-reader-text"><?php esc_html_e( 'Meeting languages', 'elaltillo-bookacall' ); ?></legend><?php $elab_spoken = ELAB_Availability::languages( $post->ID ); foreach ( ELAB_Booking_Service::languages() as $elab_code => $elab_name ) : ?><label><input type="checkbox" name="elab_languages[]" value="<?php echo esc_attr( $elab_code ); ?>" <?php checked( in_array( $elab_code, $elab_spoken, true ) ); ?>> <?php echo esc_html( $elab_name ); ?></label><?php endforeach; ?></fieldset><p class="description"><?php esc_html_e( 'Visitors choose the meeting language first and only see the times of advisors who speak it. Choose at least one.', 'elaltillo-bookacall' ); ?></p></td></tr>
 		<tr><th scope="row"><label for="elab-duration"><?php esc_html_e( 'Call duration', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="15" max="180" step="5" id="elab-duration" name="elab_duration" value="<?php echo esc_attr( $own['duration'] ); ?>" placeholder="<?php echo esc_attr( $defaults['duration'] ); ?>" class="small-text"> <?php esc_html_e( 'minutes', 'elaltillo-bookacall' ); ?><p class="description"><?php echo esc_html( sprintf( __( 'Leave empty to use the site default (%d). Times start every call length inside each range; existing bookings keep their length.', 'elaltillo-bookacall' ), $defaults['duration'] ) ); ?></p></td></tr>
 		</tbody></table>
 		<h3><?php esc_html_e( 'Booking rules', 'elaltillo-bookacall' ); ?></h3>
@@ -366,6 +369,14 @@ final class ELAB_Advisor_Admin {
 			$timezone = 'UTC';
 		}
 		update_post_meta( $post_id, '_elab_timezone', $timezone );
+
+		$all_languages = array_keys( ELAB_Booking_Service::languages() );
+		$languages = isset( $_POST['elab_languages'] ) && is_array( $_POST['elab_languages'] ) ? array_values( array_intersect( $all_languages, array_map( 'sanitize_key', wp_unslash( $_POST['elab_languages'] ) ) ) ) : array();
+		if ( ! $languages ) {
+			$languages = $all_languages;
+			$notes[] = __( 'At least one meeting language is needed, so every language was kept.', 'elaltillo-bookacall' );
+		}
+		update_post_meta( $post_id, ELAB_Availability::META_LANGUAGES, $languages );
 
 		foreach ( ELAB_Booking_Defaults::fields() as $rule => $field ) {
 			$input = array( 'duration' => 'elab_duration', 'notice' => 'elab_notice_hours', 'horizon' => 'elab_horizon_days', 'buffer' => 'elab_buffer_minutes', 'interval' => 'elab_slot_interval' )[ $rule ];

@@ -171,4 +171,18 @@ return array(
 		T::check( ! user_can( $editor, $advisor_type->cap->create_posts ), 'Editors cannot create advisors' );
 		T::check( ! current_user_can( get_post_type_object( ELAB_Post_Types::BOOKING )->cap->create_posts ), 'Bookings are never added by hand' );
 	},
+
+	'Advisor languages: shown, saved, and never left empty' => function () use ( $advisor_screen ) {
+		$advisor = T::advisor();
+		T::contains( 'name="elab_languages[]"', $advisor_screen( $advisor ), 'Field shown' );
+		$base = array( 'elab_nonce' => wp_create_nonce( ELAB_Advisor_Admin::NONCE_ACTION ), 'elab_email' => 'x@example.test', 'elab_timezone' => 'Europe/Lisbon', 'elab_day_active' => array( 1 => '1' ), 'elab_availability' => array( 1 => array( array( 'start' => '09:00', 'end' => '12:00' ) ) ) );
+		$_POST = $base + array( 'elab_languages' => array( 'en', 'xx' ) );
+		( new ELAB_Advisor_Admin() )->save( $advisor );
+		T::same( array( 'en' ), ELAB_Availability::languages( $advisor ), 'Only English saved, unknown dropped' );
+		$_POST = $base;
+		( new ELAB_Advisor_Admin() )->save( $advisor );
+		T::same( array_keys( ELAB_Booking_Service::languages() ), ELAB_Availability::languages( $advisor ), 'None checked keeps every language' );
+		$notes = get_transient( 'elab_advisor_saved_' . get_current_user_id() . '_' . $advisor );
+		T::check( is_array( $notes ) && (bool) preg_grep( '/meeting language/', $notes ), 'The admin is told why' );
+	},
 );

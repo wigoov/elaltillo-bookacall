@@ -35,6 +35,7 @@ final class ELAB_REST_Controller {
 		$scope = array(
 			'advisor'  => array( 'required' => false, 'sanitize_callback' => 'absint' ),
 			'timezone' => array( 'required' => true, 'sanitize_callback' => 'sanitize_text_field' ),
+			'language' => array( 'required' => false, 'sanitize_callback' => 'sanitize_key' ),
 		);
 		register_rest_route( 'elab/v1', '/availability', array(
 			'methods'             => WP_REST_Server::READABLE,

@@ -121,4 +121,21 @@ return array(
 		}
 		T::same( true, ELAB_Booking_Guard::guests_allowed( array( $spare ) ), 'No invitation counted' );
 	},
+
+	'An English booking goes to an advisor who speaks English' => function () {
+		$spanish = T::advisor( array( ELAB_Availability::META_LANGUAGES => array( 'es' ) ), 'Solo español' );
+		$english = T::advisor( array( ELAB_Availability::META_LANGUAGES => array( 'en' ) ), 'English only' );
+		$time = T::slot_values( $spanish )[0];
+		$response = T::book( 0, $time, array( 'language' => 'en' ) );
+		T::same( 'English only', $response->get_data()['booking']['advisor'] ?? '', 'Assigned to the English advisor' );
+		T::same( 409, T::book( 0, $time, array( 'language' => 'en' ) )->get_status(), 'No second English advisor at that time' );
+		T::same( 'Solo español', T::book( 0, $time, array( 'language' => 'es' ) )->get_data()['booking']['advisor'] ?? '', 'Spanish still bookable' );
+	},
+
+	'Asking an advisor for a language they do not speak is refused' => function () {
+		$spanish = T::advisor( array( ELAB_Availability::META_LANGUAGES => array( 'es' ) ) );
+		$response = T::book( $spanish, T::slot_values( $spanish )[0], array( 'language' => 'en' ) );
+		T::same( 400, $response->get_status(), 'Refused' );
+		T::contains( 'does not take calls in that language', $response->get_data()['message'] ?? '', 'Explains why' );
+	},
 );

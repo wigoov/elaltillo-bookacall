@@ -152,10 +152,13 @@ final class ELAB_Booking_Service {
 	 *
 	 * @return int[]|WP_Error
 	 */
-	public static function candidates( $advisor_id, $timestamp ) {
-		$bookable = ELAB_Availability::bookable_advisors();
-		if ( $advisor_id && ! in_array( $advisor_id, $bookable, true ) ) {
+	public static function candidates( $advisor_id, $timestamp, $language = '' ) {
+		if ( $advisor_id && ! ELAB_Availability::is_bookable( $advisor_id ) ) {
 			return new WP_Error( 'invalid_booking', __( 'This advisor is not available for online booking.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
+		}
+		$bookable = ELAB_Availability::bookable_advisors( $language );
+		if ( $advisor_id && ! in_array( $advisor_id, $bookable, true ) ) {
+			return new WP_Error( 'invalid_booking', __( 'This advisor does not take calls in that language. Choose another time or language.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
 		}
 		$map = ELAB_Availability::collect( $advisor_id ? array( $advisor_id ) : $bookable, $timestamp, $timestamp + 1 );
 		if ( is_wp_error( $map ) ) {
@@ -183,7 +186,7 @@ final class ELAB_Booking_Service {
 		}
 		$start_utc = $data['start_utc'];
 		$timestamp = $start_utc->getTimestamp();
-		$candidates = self::candidates( $data['advisor'], $timestamp );
+		$candidates = self::candidates( $data['advisor'], $timestamp, $data['language'] );
 		if ( is_wp_error( $candidates ) ) {
 			return $candidates;
 		}

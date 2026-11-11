@@ -21,6 +21,9 @@ $elab_link = 'cursor-pointer font-secondary text-xs underline decoration-seconda
 $elab_card = 'overflow-clip rounded-3xl border border-secondary/15 bg-primary shadow-[0_30px_60px_-40px_rgba(40,44,51,0.45)]';
 $elab_nav = 'flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-secondary/20 transition-[background-color,border-color,opacity] duration-200 hover:border-secondary hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:cursor-default disabled:opacity-25 disabled:hover:border-secondary/20 disabled:hover:bg-transparent';
 $elab_optional = '<span class="normal-case tracking-normal opacity-60">' . esc_html__( '(optional)', 'elaltillo-bookacall' ) . '</span>';
+// Meeting languages someone can take; Spanish first when offered.
+$elab_offered = ELAB_Availability::offered_languages();
+$elab_language = in_array( ELAB_Booking_Service::DEFAULT_LANGUAGE, $elab_offered, true ) ? ELAB_Booking_Service::DEFAULT_LANGUAGE : ( $elab_offered[0] ?? ELAB_Booking_Service::DEFAULT_LANGUAGE );
 $elab_step_dot = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-current text-[0.65rem] transition-[background-color,color,border-color] duration-300';
 ?>
 <div data-elab-booking class="not-prose alignwide grid w-[min(64rem,calc(100vw-2rem))] max-w-none scroll-mt-28 gap-6 self-center py-10 text-left text-secondary">
@@ -40,6 +43,16 @@ $elab_step_dot = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full
 	<section data-elab-step="time" aria-labelledby="<?php echo esc_attr( $elab_uid ); ?>-time" class="<?php echo esc_attr( $elab_card ); ?> grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
 		<h2 id="<?php echo esc_attr( $elab_uid ); ?>-time" class="sr-only" tabindex="-1"><?php esc_html_e( 'Choose a time', 'elaltillo-bookacall' ); ?></h2>
 		<div class="grid content-start gap-6 p-5 sm:p-8 md:border-r md:border-secondary/10">
+			<?php if ( count( $elab_offered ) > 1 ) : ?>
+			<fieldset data-elab-languages class="grid min-w-0 gap-2 border-0 p-0">
+				<legend class="pb-2 font-secondary text-xs uppercase tracking-wider text-secondary/70"><?php esc_html_e( 'Meeting language', 'elaltillo-bookacall' ); ?></legend>
+				<div class="flex flex-wrap gap-2">
+				<?php foreach ( $elab_offered as $elab_code ) : ?>
+					<label class="cursor-pointer"><input type="radio" name="elab_language_pick" value="<?php echo esc_attr( $elab_code ); ?>" class="peer sr-only" <?php checked( $elab_language, $elab_code ); ?>><span lang="<?php echo esc_attr( $elab_code ); ?>" class="inline-flex items-center rounded-full border border-secondary/25 px-4 py-2 font-secondary text-sm transition-[background-color,color,border-color] duration-200 hover:border-secondary peer-checked:border-secondary peer-checked:bg-secondary peer-checked:text-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-secondary"><?php echo esc_html( ELAB_Booking_Service::language_label( $elab_code ) ); ?></span></label>
+				<?php endforeach; ?>
+				</div>
+			</fieldset>
+			<?php endif; ?>
 			<div class="flex items-center justify-between gap-4">
 				<p data-elab-month class="translate-y-[0.1em] whitespace-nowrap font-primary text-2xl leading-none first-letter:uppercase" aria-live="polite">&nbsp;</p>
 				<div class="flex gap-2">
@@ -123,14 +136,7 @@ $elab_step_dot = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full
 				<input type="hidden" name="guests" data-elab-guests-value>
 			</div>
 			<?php endif; ?>
-			<fieldset class="grid min-w-0 gap-2 border-0 p-0">
-				<legend class="pb-2 font-secondary text-xs uppercase tracking-wider text-secondary/70"><?php esc_html_e( 'Meeting language', 'elaltillo-bookacall' ); ?></legend>
-				<div class="flex flex-wrap gap-2">
-				<?php foreach ( ELAB_Booking_Service::languages() as $elab_code => $elab_language ) : ?>
-					<label class="cursor-pointer"><input type="radio" name="language" value="<?php echo esc_attr( $elab_code ); ?>" class="peer sr-only" <?php checked( ELAB_Booking_Service::DEFAULT_LANGUAGE, $elab_code ); ?>><span lang="<?php echo esc_attr( $elab_code ); ?>" class="inline-flex items-center rounded-full border border-secondary/25 px-5 py-2.5 font-secondary text-sm transition-[background-color,color,border-color] duration-200 hover:border-secondary peer-checked:border-secondary peer-checked:bg-secondary peer-checked:text-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-secondary"><?php echo esc_html( $elab_language ); ?></span></label>
-				<?php endforeach; ?>
-				</div>
-			</fieldset>
+			<input type="hidden" name="language" data-elab-language-value value="<?php echo esc_attr( $elab_language ); ?>">
 			<label class="<?php echo esc_attr( $elab_label ); ?>"><span><?php esc_html_e( 'Sector', 'elaltillo-bookacall' ); ?> <?php echo $elab_optional; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?></span> <input type="text" name="sector" maxlength="120" placeholder="<?php esc_attr_e( 'e.g. architecture, education', 'elaltillo-bookacall' ); ?>" class="<?php echo esc_attr( $elab_field ); ?>"></label>
 			<label class="<?php echo esc_attr( $elab_label ); ?>"><span><?php esc_html_e( 'Your project', 'elaltillo-bookacall' ); ?> <?php echo $elab_optional; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?></span> <textarea name="message" rows="4" maxlength="5000" placeholder="<?php esc_attr_e( 'What would you like to talk about?', 'elaltillo-bookacall' ); ?>" class="<?php echo esc_attr( $elab_field ); ?> resize-y"></textarea></label>
 			<label class="grid cursor-pointer gap-1 rounded-xl border border-dashed border-secondary/30 px-4 py-4 transition-[border-color,box-shadow] duration-200 hover:border-secondary focus-within:border-secondary focus-within:shadow-[0_0_0_4px_#FFFD88]">

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-11T13:51:42+00:00\n"
+"POT-Creation-Date: 2026-11-11T14:05:37+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: elaltillo-bookacall\n"
@@ -78,7 +78,7 @@ msgid "Time zone"
 msgstr ""
 
 #: includes/advisors/class-elab-advisor-admin.php:111
-#: includes/advisors/class-elab-advisor-admin.php:282
+#: includes/advisors/class-elab-advisor-admin.php:285
 #: includes/google/class-elab-google-settings-admin.php:52
 #: includes/system/class-elab-system-status.php:141
 msgid "Google Calendar"
@@ -101,400 +101,412 @@ msgstr ""
 msgid "Hidden"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:135
-#: includes/advisors/class-elab-advisor-admin.php:297
+#: includes/advisors/class-elab-advisor-admin.php:137
+#: includes/advisors/class-elab-advisor-admin.php:300
 msgid "Not set up"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:137
+#: includes/advisors/class-elab-advisor-admin.php:139
 #: includes/google/class-elab-google-calendar.php:66
 #, php-format
 msgid "Connected as %s"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:139
+#: includes/advisors/class-elab-advisor-admin.php:141
 msgid "Reconnect required"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:141
-#: includes/advisors/class-elab-advisor-admin.php:297
+#: includes/advisors/class-elab-advisor-admin.php:143
+#: includes/advisors/class-elab-advisor-admin.php:300
 msgid "Not connected"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:147
+#: includes/advisors/class-elab-advisor-admin.php:149
 msgid "Advisor availability"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:148
+#: includes/advisors/class-elab-advisor-admin.php:150
 msgid "What visitors see: next 7 days"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:168
+#: includes/advisors/class-elab-advisor-admin.php:170
 msgid "Save the advisor to preview their times."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:175
+#: includes/advisors/class-elab-advisor-admin.php:177
 #, php-format
 msgid "Shown in the advisor’s time zone (%1$s), %2$d-minute calls. Visitors see the same times converted to their own zone. Reflects the last saved settings."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:177
+#: includes/advisors/class-elab-advisor-admin.php:179
 msgid "Visitors do not see these times until the issues listed above are fixed."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:194
+#: includes/advisors/class-elab-advisor-admin.php:196
 msgid "No times"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:219
+#: includes/advisors/class-elab-advisor-admin.php:221
 msgid "Monday"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:219
+#: includes/advisors/class-elab-advisor-admin.php:221
 msgid "Tuesday"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:220
+#: includes/advisors/class-elab-advisor-admin.php:222
 msgid "Wednesday"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:220
+#: includes/advisors/class-elab-advisor-admin.php:222
 msgid "Thursday"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:221
+#: includes/advisors/class-elab-advisor-admin.php:223
 msgid "Friday"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:221
+#: includes/advisors/class-elab-advisor-admin.php:223
 msgid "Saturday"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:222
+#: includes/advisors/class-elab-advisor-admin.php:224
 msgid "Sunday"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:227
+#: includes/advisors/class-elab-advisor-admin.php:229
 msgid "Not shown in the booking calendar yet:"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:229
+#: includes/advisors/class-elab-advisor-admin.php:231
 #: includes/system/class-elab-system-status.php:117
 msgid "Bookable."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:229
-#: includes/advisors/class-elab-advisor-admin.php:297
+#: includes/advisors/class-elab-advisor-admin.php:231
+#: includes/advisors/class-elab-advisor-admin.php:300
 msgid "Reconnect"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:231
+#: includes/advisors/class-elab-advisor-admin.php:233
 msgid "Bookable: this advisor’s times appear in the booking calendar."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:234
+#: includes/advisors/class-elab-advisor-admin.php:236
 msgid "Set the hours when this advisor can receive calls. Visitors will see these times in their own time zone."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:236
+#: includes/advisors/class-elab-advisor-admin.php:238
 msgid "Advisor Google email"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:236
+#: includes/advisors/class-elab-advisor-admin.php:238
 msgid "Enter the Google account that this advisor will authorize. The account must match during connection; booking and schedule emails are sent here."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:237
+#: includes/advisors/class-elab-advisor-admin.php:239
 msgid "Email language"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:237
+#: includes/advisors/class-elab-advisor-admin.php:239
 msgid "Language of the booking, reconnection and schedule emails this advisor receives."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:244
+#: includes/advisors/class-elab-advisor-admin.php:246
 msgid "Advisor WordPress account"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:244
+#: includes/advisors/class-elab-advisor-admin.php:246
 msgid "No account"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:246
+#: includes/advisors/class-elab-advisor-admin.php:248
 #, php-format
 msgid "%s (not a Subscriber, reassign)"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:249
+#: includes/advisors/class-elab-advisor-admin.php:251
 #, php-format
 msgid "linked to %s"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:251
+#: includes/advisors/class-elab-advisor-admin.php:253
 msgid "Only Subscriber accounts that are not linked to another advisor can be chosen. This account connects its own Google Calendar from its profile and cannot edit this advisor profile."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:253
+#: includes/advisors/class-elab-advisor-admin.php:255
 msgid "Advisor time zone"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:253
-#: includes/frontend/templates/booking-form.php:64
+#: includes/advisors/class-elab-advisor-admin.php:255
+#: includes/frontend/templates/booking-form.php:77
 msgid "Search time zones"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:253
+#: includes/advisors/class-elab-advisor-admin.php:255
 msgid "Search by city or region"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:253
+#: includes/advisors/class-elab-advisor-admin.php:255
 msgid "Choose the city where the advisor works. Seasonal time changes are automatic."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:254
+#: includes/advisors/class-elab-advisor-admin.php:256
+msgid "Meeting languages"
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:256
+msgid "Visitors choose the meeting language first and only see the times of advisors who speak it. Choose at least one."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:257
 #: includes/bookings/class-elab-booking-defaults-admin.php:18
 msgid "Call duration"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:254
-#: includes/advisors/class-elab-advisor-admin.php:261
-#: includes/advisors/class-elab-advisor-admin.php:262
+#: includes/advisors/class-elab-advisor-admin.php:257
+#: includes/advisors/class-elab-advisor-admin.php:264
+#: includes/advisors/class-elab-advisor-admin.php:265
 #: includes/bookings/class-elab-booking-defaults-admin.php:18
 #: includes/bookings/class-elab-booking-defaults-admin.php:21
 #: includes/bookings/class-elab-booking-defaults-admin.php:22
 msgid "minutes"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:254
+#: includes/advisors/class-elab-advisor-admin.php:257
 #, php-format
 msgid "Leave empty to use the site default (%d). Times start every call length inside each range; existing bookings keep their length."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:256
+#: includes/advisors/class-elab-advisor-admin.php:259
 msgid "Booking rules"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:257
+#: includes/advisors/class-elab-advisor-admin.php:260
 #, php-format
 msgid "Empty fields follow the <a href=\"%s\">site booking defaults</a>."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:259
+#: includes/advisors/class-elab-advisor-admin.php:262
 #: includes/bookings/class-elab-booking-defaults-admin.php:19
 #: includes/notifications/class-elab-notifications.php:123
 msgid "Minimum notice"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:259
+#: includes/advisors/class-elab-advisor-admin.php:262
 #: includes/bookings/class-elab-booking-defaults-admin.php:19
 msgid "hours"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:259
+#: includes/advisors/class-elab-advisor-admin.php:262
 #, php-format
 msgid "Visitors cannot book a call that starts sooner than this. Leave empty to use the site default (%d)."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:260
+#: includes/advisors/class-elab-advisor-admin.php:263
 #: includes/bookings/class-elab-booking-defaults-admin.php:20
 msgid "Booking window"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:260
+#: includes/advisors/class-elab-advisor-admin.php:263
 #: includes/bookings/class-elab-booking-defaults-admin.php:20
 msgid "days ahead"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:260
+#: includes/advisors/class-elab-advisor-admin.php:263
 #, php-format
 msgid "How far into the future visitors can book. Leave empty to use the site default (%d)."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:261
+#: includes/advisors/class-elab-advisor-admin.php:264
 #: includes/bookings/class-elab-booking-defaults-admin.php:21
 msgid "Start times every"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:261
+#: includes/advisors/class-elab-advisor-admin.php:264
 #, php-format
 msgid "0 offers a start every call length; 15 offers 9:00, 9:15, 9:30… with the same call length. Leave empty to use the site default (%d)."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:262
+#: includes/advisors/class-elab-advisor-admin.php:265
 #: includes/bookings/class-elab-booking-defaults-admin.php:22
 #: includes/notifications/class-elab-notifications.php:125
 msgid "Break between calls"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:262
+#: includes/advisors/class-elab-advisor-admin.php:265
 #, php-format
 msgid "Free time kept before and after each booking. Leave empty to use the site default (%d)."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:264
+#: includes/advisors/class-elab-advisor-admin.php:267
 msgid "Weekly hours"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:265
+#: includes/advisors/class-elab-advisor-admin.php:268
 msgid "Turn on each working day. Add separate time ranges for breaks. Overlapping ranges are merged when you save."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:266
+#: includes/advisors/class-elab-advisor-admin.php:269
 msgid "Day"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:266
+#: includes/advisors/class-elab-advisor-admin.php:269
 msgid "Available hours"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:274
+#: includes/advisors/class-elab-advisor-admin.php:277
 #: includes/blackouts/class-elab-blackouts.php:124
 msgid "From"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:274
+#: includes/advisors/class-elab-advisor-admin.php:277
 #, php-format
 msgid "%s start time"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:274
+#: includes/advisors/class-elab-advisor-admin.php:277
 #: includes/blackouts/class-elab-blackouts.php:124
 msgid "To"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:274
+#: includes/advisors/class-elab-advisor-admin.php:277
 #, php-format
 msgid "%s end time"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:274
+#: includes/advisors/class-elab-advisor-admin.php:277
 msgid "Remove time range"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:276
+#: includes/advisors/class-elab-advisor-admin.php:279
 msgid "Add another interval"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:279
+#: includes/advisors/class-elab-advisor-admin.php:282
 msgid "Unavailable dates for this advisor"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:280
+#: includes/advisors/class-elab-advisor-admin.php:283
 msgid "Use this for vacations, personal holidays or specific days off. Global unavailable dates also apply."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:283
+#: includes/advisors/class-elab-advisor-admin.php:286
 #, php-format
 msgid "Each booked call is added to a separate calendar, “%s”, created by this site in the advisor’s Google account, with the visitor invited as a guest. The site cannot see or change any other calendar or event."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:290
+#: includes/advisors/class-elab-advisor-admin.php:293
 msgid "Google Calendar is not set up for this site yet."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:291
+#: includes/advisors/class-elab-advisor-admin.php:294
 #, php-format
 msgid "Connected as %s."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:292
+#: includes/advisors/class-elab-advisor-admin.php:295
 msgid "Google access was removed or expired. Reconnect so new calls reach the calendar again."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:293
+#: includes/advisors/class-elab-advisor-admin.php:296
 #, php-format
 msgid "Connected with the old, broader permission. Reconnect once so the site creates its own “%s” calendar and only uses that one."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:294
+#: includes/advisors/class-elab-advisor-admin.php:297
 msgid "The saved connection no longer matches this advisor’s email or the site’s OAuth client. Connect the correct account."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:295
+#: includes/advisors/class-elab-advisor-admin.php:298
 msgid "Not connected. The advisor can connect from Users → Profile, or you can connect here."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:297
+#: includes/advisors/class-elab-advisor-admin.php:300
 msgid "Connected"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:300
+#: includes/advisors/class-elab-advisor-admin.php:303
 #: includes/google/class-elab-google-settings-admin.php:113
 msgid "Connection"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:304
+#: includes/advisors/class-elab-advisor-admin.php:307
 msgid "Set up Google Calendar"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:306
-#: includes/advisors/class-elab-advisor-admin.php:311
+#: includes/advisors/class-elab-advisor-admin.php:309
+#: includes/advisors/class-elab-advisor-admin.php:314
 msgid "Disconnect"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:308
+#: includes/advisors/class-elab-advisor-admin.php:311
 #: includes/google/class-elab-google-calendar.php:70
 msgid "Connect Google Calendar"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:310
+#: includes/advisors/class-elab-advisor-admin.php:313
 #: includes/google/class-elab-google-calendar.php:70
 #: includes/notifications/class-elab-notifications.php:195
 #: includes/notifications/class-elab-notifications.php:247
 msgid "Reconnect Google Calendar"
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:314
+#: includes/advisors/class-elab-advisor-admin.php:317
 #, php-format
 msgid "%d call is saved and waiting to be added to Google Calendar."
 msgid_plural "%d calls are saved and waiting to be added to Google Calendar."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/advisors/class-elab-advisor-admin.php:315
+#: includes/advisors/class-elab-advisor-admin.php:318
 msgid "Weekly hours are availability rules, not calendar events. The advisor receives their schedule by email after connecting or when these settings change."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:316
+#: includes/advisors/class-elab-advisor-admin.php:319
 msgid "The last schedule email could not be sent. Check the site email configuration."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:342
+#: includes/advisors/class-elab-advisor-admin.php:345
 msgid "The advisor email was not a valid address and was cleared."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:354
+#: includes/advisors/class-elab-advisor-admin.php:357
 msgid "The previous account link was kept."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:365
+#: includes/advisors/class-elab-advisor-admin.php:368
 #, php-format
 msgid "The time zone “%s” is not recognised; UTC was used."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:381
+#: includes/advisors/class-elab-advisor-admin.php:377
+msgid "At least one meeting language is needed, so every language was kept."
+msgstr ""
+
+#: includes/advisors/class-elab-advisor-admin.php:392
 #, php-format
 msgid "%s was not a number; the site default is used."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:387
+#: includes/advisors/class-elab-advisor-admin.php:398
 #, php-format
 msgid "%1$s must be between %2$d and %3$d; it was set to %4$d."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:415
+#: includes/advisors/class-elab-advisor-admin.php:426
 #, php-format
 msgid "%d time range was removed because it ended before it started or was incomplete."
 msgid_plural "%d time ranges were removed because they ended before they started or were incomplete."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/advisors/class-elab-advisor-admin.php:425
+#: includes/advisors/class-elab-advisor-admin.php:436
 #, php-format
 msgid "Overlapping ranges were merged on: %s."
 msgstr ""
 
-#: includes/advisors/class-elab-advisor-admin.php:438
+#: includes/advisors/class-elab-advisor-admin.php:449
 #, php-format
 msgid "%d unavailable date was ignored because its dates were invalid."
 msgid_plural "%d unavailable dates were ignored because their dates were invalid."
@@ -603,24 +615,29 @@ msgstr ""
 msgid "Availability on global unavailable dates"
 msgstr ""
 
-#: includes/bookings/class-elab-availability.php:172
+#: includes/bookings/class-elab-availability.php:195
 msgid "Availability could not be loaded. Please try again shortly."
 msgstr ""
 
-#: includes/bookings/class-elab-availability.php:189
+#: includes/bookings/class-elab-availability.php:212
 msgid "Invalid time zone."
 msgstr ""
 
-#: includes/bookings/class-elab-availability.php:195
-#: includes/bookings/class-elab-booking-service.php:158
+#: includes/bookings/class-elab-availability.php:216
+#: includes/bookings/class-elab-booking-service.php:125
+msgid "Please choose a meeting language."
+msgstr ""
+
+#: includes/bookings/class-elab-availability.php:222
+#: includes/bookings/class-elab-booking-service.php:157
 msgid "This advisor is not available for online booking."
 msgstr ""
 
-#: includes/bookings/class-elab-availability.php:211
+#: includes/bookings/class-elab-availability.php:238
 msgid "Invalid month."
 msgstr ""
 
-#: includes/bookings/class-elab-availability.php:248
+#: includes/bookings/class-elab-availability.php:275
 msgid "Invalid advisor or date."
 msgstr ""
 
@@ -665,13 +682,13 @@ msgid "%d minutes"
 msgstr ""
 
 #: includes/bookings/class-elab-booking-admin.php:48
-#: includes/frontend/templates/booking-form.php:127
+#: includes/frontend/templates/booking-form.php:48
 #: includes/privacy/class-elab-privacy.php:115
 msgid "Meeting language"
 msgstr ""
 
 #: includes/bookings/class-elab-booking-admin.php:49
-#: includes/frontend/templates/booking-form.php:134
+#: includes/frontend/templates/booking-form.php:140
 #: includes/privacy/class-elab-privacy.php:112
 msgid "Sector"
 msgstr ""
@@ -683,7 +700,7 @@ msgstr ""
 
 #: includes/bookings/class-elab-booking-admin.php:51
 #: includes/bookings/class-elab-booking-admin.php:58
-#: includes/frontend/templates/booking-form.php:116
+#: includes/frontend/templates/booking-form.php:129
 #: includes/google/class-elab-booking-sync.php:339
 #: includes/notifications/class-elab-notifications.php:218
 #: includes/notifications/class-elab-notifications.php:262
@@ -951,10 +968,6 @@ msgstr ""
 msgid "Please accept the privacy policy to book a call."
 msgstr ""
 
-#: includes/bookings/class-elab-booking-service.php:125
-msgid "Please choose a meeting language."
-msgstr ""
-
 #: includes/bookings/class-elab-booking-service.php:128
 msgid "Please complete all required fields."
 msgstr ""
@@ -967,26 +980,30 @@ msgstr ""
 msgid "Guests cannot be added right now. Book without guests and forward the invitation."
 msgstr ""
 
-#: includes/bookings/class-elab-booking-service.php:228
+#: includes/bookings/class-elab-booking-service.php:161
+msgid "This advisor does not take calls in that language. Choose another time or language."
+msgstr ""
+
+#: includes/bookings/class-elab-booking-service.php:231
 #: includes/frontend/class-elab-booking-form.php:98
 msgid "That time was just taken. Please choose another."
 msgstr ""
 
-#: includes/bookings/class-elab-booking-service.php:304
+#: includes/bookings/class-elab-booking-service.php:307
 msgid "A Google Calendar invitation is on its way to your email."
 msgstr ""
 
-#: includes/bookings/class-elab-booking-service.php:304
+#: includes/bookings/class-elab-booking-service.php:307
 msgid "Your call is booked. The calendar invitation will follow by email shortly."
 msgstr ""
 
-#: includes/bookings/class-elab-booking-service.php:310
+#: includes/bookings/class-elab-booking-service.php:313
 #: includes/notifications/class-elab-notifications.php:329
 #, php-format
 msgid "Call with %s"
 msgstr ""
 
-#: includes/bookings/class-elab-booking-service.php:322
+#: includes/bookings/class-elab-booking-service.php:325
 #: includes/notifications/class-elab-notifications.php:312
 msgid "We will confirm this time by email shortly."
 msgstr ""
@@ -1061,12 +1078,12 @@ msgid "Attachment not found."
 msgstr ""
 
 #: includes/frontend/class-elab-booking-form.php:72
-#: includes/frontend/templates/booking-form.php:46
+#: includes/frontend/templates/booking-form.php:59
 msgid "Previous month"
 msgstr ""
 
 #: includes/frontend/class-elab-booking-form.php:73
-#: includes/frontend/templates/booking-form.php:47
+#: includes/frontend/templates/booking-form.php:60
 msgid "Next month"
 msgstr ""
 
@@ -1097,7 +1114,7 @@ msgid "No openings this month."
 msgstr ""
 
 #: includes/frontend/class-elab-booking-form.php:80
-#: includes/frontend/templates/booking-form.php:28
+#: includes/frontend/templates/booking-form.php:31
 msgid "There are no openings right now. Please check back soon."
 msgstr ""
 
@@ -1115,17 +1132,17 @@ msgid "Times in %s"
 msgstr ""
 
 #: includes/frontend/class-elab-booking-form.php:84
-#: includes/frontend/templates/booking-form.php:72
+#: includes/frontend/templates/booking-form.php:85
 msgid "Morning"
 msgstr ""
 
 #: includes/frontend/class-elab-booking-form.php:85
-#: includes/frontend/templates/booking-form.php:72
+#: includes/frontend/templates/booking-form.php:85
 msgid "Afternoon"
 msgstr ""
 
 #: includes/frontend/class-elab-booking-form.php:86
-#: includes/frontend/templates/booking-form.php:72
+#: includes/frontend/templates/booking-form.php:85
 msgid "Evening"
 msgstr ""
 
@@ -1139,7 +1156,7 @@ msgid "Use my location · %s"
 msgstr ""
 
 #: includes/frontend/class-elab-booking-form.php:89
-#: includes/frontend/templates/booking-form.php:61
+#: includes/frontend/templates/booking-form.php:74
 msgid "Change"
 msgstr ""
 
@@ -1165,7 +1182,7 @@ msgid "%d-minute call with the first available advisor"
 msgstr ""
 
 #: includes/frontend/class-elab-booking-form.php:94
-#: includes/frontend/templates/booking-form.php:86
+#: includes/frontend/templates/booking-form.php:99
 msgid "Prefer someone?"
 msgstr ""
 
@@ -1250,150 +1267,150 @@ msgstr ""
 msgid "(optional)"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:30
+#: includes/frontend/templates/booking-form.php:33
 msgid "Booking steps"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:31
+#: includes/frontend/templates/booking-form.php:34
 msgid "Time"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:33
+#: includes/frontend/templates/booking-form.php:36
 msgid "Details"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:35
+#: includes/frontend/templates/booking-form.php:38
 msgid "Booked"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:35
+#: includes/frontend/templates/booking-form.php:38
 msgid "Sent"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:41
+#: includes/frontend/templates/booking-form.php:44
 msgid "Choose a time"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:54
+#: includes/frontend/templates/booking-form.php:67
 msgid "Days with open times"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:63
+#: includes/frontend/templates/booking-form.php:76
 msgid "Your time zone"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:65
+#: includes/frontend/templates/booking-form.php:78
 msgid "Search a city or region"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:67
+#: includes/frontend/templates/booking-form.php:80
 msgid "Time zones"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:80
+#: includes/frontend/templates/booking-form.php:93
 msgid "Pick a time"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:83
+#: includes/frontend/templates/booking-form.php:96
 msgid "with"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:92
+#: includes/frontend/templates/booking-form.php:105
 msgid "Continue"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:100
+#: includes/frontend/templates/booking-form.php:113
 #: includes/frontend/templates/manage-booking.php:36
 msgid "Your call"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:105
+#: includes/frontend/templates/booking-form.php:118
 msgid "Change time"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:108
+#: includes/frontend/templates/booking-form.php:121
 msgid "Tell us about you"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:111
+#: includes/frontend/templates/booking-form.php:124
 #: includes/privacy/class-elab-privacy.php:110
 msgid "Name"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:112
+#: includes/frontend/templates/booking-form.php:125
 #: includes/privacy/class-elab-privacy.php:111
 #: includes/system/class-elab-system-status.php:140
 msgid "Email"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:118
+#: includes/frontend/templates/booking-form.php:131
 msgid "name@company.com"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:119
+#: includes/frontend/templates/booking-form.php:132
 msgid "Add"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:122
+#: includes/frontend/templates/booking-form.php:135
 #, php-format
 msgid "Up to %d people. Each one receives the calendar invitation."
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:122
+#: includes/frontend/templates/booking-form.php:135
 #, php-format
 msgid "Up to %d people. Each one is emailed when the call is confirmed."
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:134
+#: includes/frontend/templates/booking-form.php:140
 msgid "e.g. architecture, education"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:135
+#: includes/frontend/templates/booking-form.php:141
 msgid "Your project"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:135
+#: includes/frontend/templates/booking-form.php:141
 msgid "What would you like to talk about?"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:137
+#: includes/frontend/templates/booking-form.php:143
 msgid "Attach files"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:138
+#: includes/frontend/templates/booking-form.php:144
 msgid "PDF, Word or Excel · up to 3 files, 10 MB each"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:147
+#: includes/frontend/templates/booking-form.php:153
 #, php-format
 msgid "I agree that my details are used to arrange this call, as described in the <a href=\"%s\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"underline decoration-secondary/40 underline-offset-2 hover:decoration-secondary\">privacy policy</a>."
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:149
+#: includes/frontend/templates/booking-form.php:155
 msgid "I agree that my details are used to arrange this call."
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:156
+#: includes/frontend/templates/booking-form.php:162
 msgid "Confirm call"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:156
+#: includes/frontend/templates/booking-form.php:162
 msgid "Request call"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:157
+#: includes/frontend/templates/booking-form.php:163
 msgid "You will receive a calendar invitation by email."
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:157
+#: includes/frontend/templates/booking-form.php:163
 msgid "We confirm the time by email after review."
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:172
+#: includes/frontend/templates/booking-form.php:178
 msgid "Need to cancel? Manage your booking"
 msgstr ""
 
-#: includes/frontend/templates/booking-form.php:173
+#: includes/frontend/templates/booking-form.php:179
 #: includes/frontend/templates/manage-booking.php:61
 msgid "Book another call"
 msgstr ""

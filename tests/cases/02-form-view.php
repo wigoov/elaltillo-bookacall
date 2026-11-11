@@ -121,4 +121,20 @@ return array(
 		T::check( ELAB_Booking_Manage::verify( $booking, $query['elab_token'] ), 'Token verifies for its booking' );
 		T::check( ! ELAB_Booking_Manage::verify( $booking + 1, $query['elab_token'] ), 'Token does not open another booking' );
 	},
+
+	'The meeting language is chosen in step 1, before the times' => function () use ( $render_form ) {
+		T::advisor();
+		$html = $render_form();
+		$time_step = substr( $html, strpos( $html, 'data-elab-step="time"' ), strpos( $html, 'data-elab-step="details"' ) - strpos( $html, 'data-elab-step="time"' ) );
+		T::contains( 'data-elab-languages', $time_step, 'Language chooser in the time step' );
+		T::contains( 'name="language" data-elab-language-value value="es"', $html, 'Form carries the chosen language' );
+		T::lacks( 'type="radio" name="language"', $html, 'No second language question in step 2' );
+	},
+
+	'With a single offered language there is nothing to choose' => function () use ( $render_form ) {
+		T::advisor( array( ELAB_Availability::META_LANGUAGES => array( 'en' ) ) );
+		$html = $render_form();
+		T::lacks( 'data-elab-languages', $html, 'No chooser' );
+		T::contains( 'data-elab-language-value value="en"', $html, 'English preset' );
+	},
 );

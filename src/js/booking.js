@@ -185,7 +185,10 @@ function createCalendar(root, config) {
 	}
 	const filesHint = ui.files.textContent;
 	const pickTime = ui.choiceWhen.textContent;
+	const languageValue = $('[data-elab-language-value]');
+	const languageRadios = Array.from(root.querySelectorAll('input[name="elab_language_pick"]'));
 	const state = {
+		language: languageValue?.value || '',
 		timezone: detectTimezone(),
 		year: 0,
 		month: 0,
@@ -322,7 +325,7 @@ function createCalendar(root, config) {
 		swapText(ui.month, monthLabel());
 		renderMonth(true);
 		try {
-			const params = new URLSearchParams({ month: monthKey(state.year, state.month), timezone: state.timezone });
+			const params = new URLSearchParams({ month: monthKey(state.year, state.month), timezone: state.timezone, language: state.language });
 			const data = await api(`/availability?${params}&_=${Date.now()}`);
 			if (request !== state.monthRequest || data?.month !== monthKey(state.year, state.month)) return;
 			state.days = data.days || {};
@@ -428,7 +431,7 @@ function createCalendar(root, config) {
 		else fillTimes(skeleton(), request);
 		announce(t('loadingTimes'));
 		try {
-			const params = new URLSearchParams({ date: state.date, timezone: state.timezone });
+			const params = new URLSearchParams({ date: state.date, timezone: state.timezone, language: state.language });
 			const slots = await api(`/slots?${params}&_=${Date.now()}`);
 			if (request !== state.slotRequest) return;
 			state.slots = (Array.isArray(slots) ? slots : []).map((slot) => ({ ...slot, period: periodOf(slot.value) }));
@@ -728,10 +731,27 @@ function createCalendar(root, config) {
 		return state.transition;
 	}
 
+	/** Name of the chosen meeting language, only when the visitor had a choice. */
+	function languageName() {
+		const radio = languageRadios.find((input) => input.value === state.language);
+		return radio ? radio.nextElementSibling.textContent.trim() : '';
+	}
+
+	/** The meeting language decides which advisors (and so which days and times) are shown. */
+	function setLanguage(language) {
+		if (!language || language === state.language) return;
+		state.language = language;
+		if (languageValue) languageValue.value = language;
+		state.date = '';
+		state.days = {};
+		clearSelection();
+		loadMonth();
+	}
+
 	function fillSummary() {
 		ui.summaryDay.textContent = longDate(state.date);
 		ui.summaryTime.textContent = timeLabel(state.slot.value);
-		ui.summaryMeta.textContent = `${callDescription()} · ${tzName()}`;
+		ui.summaryMeta.textContent = [callDescription(), languageName(), tzName()].filter(Boolean).join(' · ');
 	}
 
 	function showError(text) {
@@ -786,6 +806,7 @@ function createCalendar(root, config) {
 		data.set('advisor', state.advisor);
 		data.set('page', String(config.page || ''));
 		data.set('locale', config.locale || '');
+		data.set('language', state.language);
 		data.delete('guest');
 		ui.submit.disabled = true;
 		const label = ui.submit.textContent;
@@ -879,6 +900,7 @@ function createCalendar(root, config) {
 		if (item && Number(item.dataset.index) !== zoneActive) highlightZone(Number(item.dataset.index));
 	});
 	ui.tzDetected.addEventListener('click', () => setTimezone(detectedZone));
+	languageRadios.forEach((input) => input.addEventListener('change', () => setLanguage(input.value)));
 	root.addEventListener('keydown', (event) => {
 		if (event.key === 'Escape' && !ui.tzPicker.hidden) {
 			toggleTimezone(false);

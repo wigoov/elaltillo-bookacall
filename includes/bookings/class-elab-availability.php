@@ -16,6 +16,24 @@ final class ELAB_Availability {
 	const META_NOTICE = '_elab_notice_hours';
 	const META_HORIZON = '_elab_horizon_days';
 	const META_BUFFER = '_elab_buffer_minutes';
+	const META_LANGUAGES = '_elab_languages';
+
+	/** Meeting languages this advisor takes calls in. Never set (older profiles) means all of them. */
+	public static function languages( $advisor_id ) {
+		$all = array_keys( ELAB_Booking_Service::languages() );
+		$saved = get_post_meta( $advisor_id, self::META_LANGUAGES, true );
+		$chosen = is_array( $saved ) ? array_values( array_intersect( $all, $saved ) ) : array();
+		return $chosen ?: $all;
+	}
+
+	/** Meeting languages at least one bookable advisor offers, in the site's order. */
+	public static function offered_languages() {
+		$offered = array();
+		foreach ( self::bookable_advisors() as $advisor_id ) {
+			$offered = array_merge( $offered, self::languages( $advisor_id ) );
+		}
+		return array_values( array_intersect( array_keys( ELAB_Booking_Service::languages() ), $offered ) );
+	}
 	/** Normalized booking rules for one advisor: its own values, else the site defaults. */
 	public static function rules( $advisor_id ) {
 		try {
@@ -33,8 +51,8 @@ final class ELAB_Availability {
 		return $rules;
 	}
 
-	/** Published advisors that can take bookings right now. */
-	public static function bookable_advisors() {
+	/** Published advisors that can take bookings right now, optionally only those who speak $language. */
+	public static function bookable_advisors( $language = '' ) {
 		$ids = get_posts( array(
 			'post_type'   => ELAB_Post_Types::ADVISOR,
 			'post_status' => 'publish',
@@ -47,6 +65,11 @@ final class ELAB_Availability {
 			// Advisors appear once they have connected Google. A broken connection does not hide
 			// them: their calls are saved here and reach Google after they reconnect.
 			$ids = array_values( array_filter( $ids, array( 'ELAB_Google_Calendar', 'linked' ) ) );
+		}
+		if ( $language ) {
+			$ids = array_values( array_filter( $ids, static function ( $id ) use ( $language ) {
+				return in_array( $language, self::languages( $id ), true );
+			} ) );
 		}
 		return $ids;
 	}
@@ -188,7 +211,11 @@ final class ELAB_Availability {
 		} catch ( Exception $exception ) {
 			return new WP_Error( 'invalid_timezone', __( 'Invalid time zone.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
 		}
-		$bookable = self::bookable_advisors();
+		$language = sanitize_key( (string) $request['language'] );
+		if ( $language && ! array_key_exists( $language, ELAB_Booking_Service::languages() ) ) {
+			return new WP_Error( 'invalid_request', __( 'Please choose a meeting language.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
+		}
+		$bookable = self::bookable_advisors( $language );
 		$advisor_id = absint( $request['advisor'] );
 		if ( $advisor_id ) {
 			if ( ! in_array( $advisor_id, $bookable, true ) ) {
