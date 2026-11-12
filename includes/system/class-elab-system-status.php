@@ -123,6 +123,8 @@ final class ELAB_System_Status {
 		// Privacy and files.
 		$storage = ELAB_Private_Attachments::storage_ready();
 		$checks[] = array( 'privacy', __( 'Private document storage', 'elaltillo-bookacall' ), $storage ? 'ok' : 'error', $storage ? __( 'Uploads are stored outside the public web folder.', 'elaltillo-bookacall' ) : __( 'No writable folder outside the web root. Visitors cannot attach files until ELAB_PRIVATE_UPLOAD_DIR is set.', 'elaltillo-bookacall' ), '' );
+		$office = class_exists( 'ZipArchive' ) && class_exists( 'DOMDocument' );
+		$checks[] = array( 'privacy', __( 'Safe document viewer', 'elaltillo-bookacall' ), $office ? 'ok' : 'error', $office ? __( 'PDF, Word, Excel and PowerPoint attachments open in a safe viewer; they are never downloaded.', 'elaltillo-bookacall' ) : __( 'The PHP zip or dom extension is missing, so Word, Excel and PowerPoint files are refused. Ask the host to enable them.', 'elaltillo-bookacall' ), '' );
 		$months = ELAB_Privacy::retention_months();
 		$checks[] = array( 'privacy', __( 'Retention', 'elaltillo-bookacall' ), $months ? 'ok' : 'warn', $months ? sprintf( _n( 'Bookings are deleted %d month after the call.', 'Bookings are deleted %d months after the call.', $months, 'elaltillo-bookacall' ), $months ) : __( 'Bookings are kept forever. Set a retention period to comply with data minimisation.', 'elaltillo-bookacall' ), '<a class="button" href="' . esc_url( $settings_privacy ) . '">' . esc_html__( 'Settings', 'elaltillo-bookacall' ) . '</a>' );
 		$policy = (int) get_option( 'wp_page_for_privacy_policy' );

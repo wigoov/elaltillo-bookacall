@@ -2944,3 +2944,12 @@ msgstr "Ver"
 
 msgid "You are not allowed to view booking attachments."
 msgstr "No tienes permiso para ver los adjuntos de las reservas."
+
+msgid "Safe document viewer"
+msgstr "Visor seguro de documentos"
+
+msgid "PDF, Word, Excel and PowerPoint attachments open in a safe viewer; they are never downloaded."
+msgstr "Los adjuntos PDF, Word, Excel y PowerPoint se abren en un visor seguro; nunca se descargan."
+
+msgid "The PHP zip or dom extension is missing, so Word, Excel and PowerPoint files are refused. Ask the host to enable them."
+msgstr "Falta la extensión zip o dom de PHP, así que se rechazan los archivos de Word, Excel y PowerPoint. Pide al hosting que las active."
