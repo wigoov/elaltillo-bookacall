@@ -7,9 +7,9 @@
  * hour and right after the advisor reconnects. Cancellations work the same way: the call is
  * cancelled here at once and its Google event is removed as soon as Google answers.
  *
- * While a call waits, the advisor can add it to their calendar by hand from the email. That
- * takes the call off the queue first, so there is only ever one event: the site's or the
- * advisor's, never both. Both paths hold the same per-booking lock.
+ * The only way to bring a waiting call into Google is to reconnect: the site then creates
+ * every waiting event itself, so it stays in sync (cancel here or delete in Google). Calls an
+ * advisor added by hand under an earlier version are still respected and never duplicated.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,15 +22,15 @@ final class ELAB_Booking_Sync {
 	const META_MANUAL = '_elab_google_manual';
 	const META_BY_ADVISOR = '_elab_google_by_advisor';
 	const CRON = 'elab_google_sync';
-	const ACTION = 'elab_advisor_event';
+	const OLD_ACTION = 'elab_advisor_event';
 	const CREATE = 'create';
 	const DELETE = 'delete';
 
 	public function __construct() {
 		add_action( 'init', array( __CLASS__, 'schedule' ) );
 		add_action( self::CRON, array( __CLASS__, 'run' ) );
-		add_action( 'admin_post_nopriv_' . self::ACTION, array( __CLASS__, 'handle_advisor_event' ) );
-		add_action( 'admin_post_' . self::ACTION, array( __CLASS__, 'handle_advisor_event' ) );
+		add_action( 'admin_post_nopriv_' . self::OLD_ACTION, array( __CLASS__, 'handle_old_link' ) );
+		add_action( 'admin_post_' . self::OLD_ACTION, array( __CLASS__, 'handle_old_link' ) );
 	}
 
 	public static function schedule() {
@@ -54,7 +54,7 @@ final class ELAB_Booking_Sync {
 		return is_array( $guests ) ? array_values( array_filter( $guests, 'is_email' ) ) : array();
 	}
 
-	/** When the advisor added this call to their calendar by hand (0 if they did not). */
+	/** When the advisor added this call by hand under an earlier version (0 if they did not). */
 	public static function by_advisor( $booking_id ) {
 		return (int) get_post_meta( $booking_id, self::META_BY_ADVISOR, true );
 	}
@@ -264,130 +264,22 @@ final class ELAB_Booking_Sync {
 		return $done;
 	}
 
-	/* ---------- The advisor adds a waiting call to their calendar by hand ---------- */
-
-	private static function signature( $booking_id ) {
-		$advisor_id = (int) get_post_meta( $booking_id, '_elab_advisor', true );
-		return substr( hash_hmac( 'sha256', 'elab-advisor-event|' . (int) $booking_id . '|' . $advisor_id, wp_salt( 'auth' ) ), 0, 40 );
-	}
-
-	public static function valid_link( $booking_id, $sig ) {
-		return $booking_id && is_string( $sig ) && ELAB_Post_Types::BOOKING === get_post_type( $booking_id ) && hash_equals( self::signature( $booking_id ), $sig );
-	}
-
-	/** Private link for the advisor's email: opens a confirmation page, never acts on its own. */
-	public static function advisor_url( $booking_id ) {
-		return add_query_arg( array( 'action' => self::ACTION, 'booking' => (int) $booking_id, 'sig' => self::signature( $booking_id ) ), admin_url( 'admin-post.php' ) );
-	}
-
-	/** Google Calendar "new event" page, filled in, with the visitor and guests invited. */
-	public static function google_template_url( $booking_id ) {
-		$advisor_id = (int) get_post_meta( $booking_id, '_elab_advisor', true );
-		$start = new DateTimeImmutable( (string) get_post_meta( $booking_id, '_elab_start_utc', true ), new DateTimeZone( 'UTC' ) );
-		$end = $start->modify( '+' . ELAB_Booking_Admin::duration( $booking_id ) . ' minutes' );
-		$name = (string) get_post_meta( $booking_id, '_elab_name', true );
-		$details = array(
-			sprintf( __( 'Call booked through %s.', 'elaltillo-bookacall' ), get_bloginfo( 'name' ) ),
-			sprintf( __( 'Meeting language: %s', 'elaltillo-bookacall' ), ELAB_Booking_Service::language_label( get_post_meta( $booking_id, '_elab_language', true ) ?: ELAB_Booking_Service::DEFAULT_LANGUAGE ) ),
-		);
-		$args = array(
-			'action'  => 'TEMPLATE',
-			'text'    => sprintf( __( '%1$s · %2$s and %3$s', 'elaltillo-bookacall' ), get_bloginfo( 'name' ), $name ?: __( 'Visitor', 'elaltillo-bookacall' ), get_the_title( $advisor_id ) ),
-			'dates'   => $start->format( 'Ymd\THis\Z' ) . '/' . $end->format( 'Ymd\THis\Z' ),
-			'details' => implode( "\n", $details ),
-			'add'     => implode( ',', array_merge( array( (string) get_post_meta( $booking_id, '_elab_contact_email', true ) ), self::guests( $booking_id ) ) ),
-		);
-		return 'https://calendar.google.com/calendar/render?' . http_build_query( $args, '', '&', PHP_QUERY_RFC3986 );
-	}
+	/* ---------- Links from older emails ---------- */
 
 	/**
-	 * GET shows what will happen; POST takes the call off the queue and opens Google.
-	 * The two-step page keeps email link scanners from acting for the advisor.
+	 * Emails sent before the manual step was removed carry a link here. It changes nothing
+	 * and explains that the call is added when the advisor reconnects.
 	 */
-	public static function handle_advisor_event() {
-		// phpcs:disable WordPress.Security.NonceVerification -- The HMAC signature authenticates this link.
-		$booking_id = isset( $_REQUEST['booking'] ) ? absint( $_REQUEST['booking'] ) : 0;
-		$sig = isset( $_REQUEST['sig'] ) ? sanitize_key( wp_unslash( $_REQUEST['sig'] ) ) : '';
-		// phpcs:enable
+	public static function handle_old_link() {
 		nocache_headers();
 		header( 'X-Robots-Tag: noindex, nofollow' );
 		header( 'Referrer-Policy: no-referrer' );
-		if ( ! self::valid_link( $booking_id, $sig ) ) {
-			self::page( 403, __( 'This link is not valid', 'elaltillo-bookacall' ), __( 'Open the button from the most recent email about this call.', 'elaltillo-bookacall' ) );
-		}
-		if ( 'POST' === ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
-			if ( 'claimed' === self::claim( $booking_id ) ) {
-				wp_redirect( self::google_template_url( $booking_id ) ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- Fixed Google Calendar host.
-				exit;
-			}
-			wp_safe_redirect( self::advisor_url( $booking_id ) );
-			exit;
-		}
-		// The advisor reads this page in the language of their emails.
-		$locale = ELAB_Notifications::advisor_locale( (int) get_post_meta( $booking_id, '_elab_advisor', true ) );
-		$html = ELAB_Notifications::in_locale( $locale, static function () use ( $booking_id ) {
-			$view = self::advisor_page( $booking_id );
-			return ELAB_Mailer::page( array( 'title' => $view[0], 'intro' => $view[1], 'rows' => $view[2], 'button' => $view[3], 'form' => $view[4] ) );
-		} );
-		status_header( 200 );
-		header( 'Content-Type: text/html; charset=utf-8' );
-		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in ELAB_Mailer.
-		exit;
+		self::page( 410, ...self::old_link_message() );
 	}
 
-	/**
-	 * Hand the event over to the advisor, unless the site already created it.
-	 *
-	 * @return string 'claimed', 'exists', 'closed' or 'busy'.
-	 */
-	public static function claim( $booking_id ) {
-		$status = (string) get_post_meta( $booking_id, '_elab_status', true );
-		$start = strtotime( get_post_meta( $booking_id, '_elab_start_utc', true ) . ' UTC' );
-		if ( 'cancelled' === $status || ! $start || $start <= time() ) {
-			return 'closed';
-		}
-		$lock = self::lock( $booking_id );
-		if ( ! $lock ) {
-			return 'busy';
-		}
-		try {
-			if ( get_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT, true ) ) {
-				return 'exists';
-			}
-			if ( ! self::by_advisor( $booking_id ) ) {
-				update_post_meta( $booking_id, self::META_BY_ADVISOR, time() );
-			}
-			self::clear( $booking_id );
-			return 'claimed';
-		} finally {
-			delete_option( $lock );
-		}
-	}
-
-	/**
-	 * What the advisor's page says for this booking right now.
-	 *
-	 * @return array [title, intro, rows, button|null, form|null]
-	 */
-	public static function advisor_page( $booking_id ) {
-		$advisor_id = (int) get_post_meta( $booking_id, '_elab_advisor', true );
-		$rows = array(
-			__( 'When', 'elaltillo-bookacall' )    => ELAB_Notifications::when( $booking_id, (string) get_post_meta( $advisor_id, '_elab_timezone', true ) ),
-			__( 'Visitor', 'elaltillo-bookacall' ) => (string) get_post_meta( $booking_id, '_elab_name', true ),
-			__( 'Guests', 'elaltillo-bookacall' )  => implode( ', ', self::guests( $booking_id ) ),
-		);
-		$status = (string) get_post_meta( $booking_id, '_elab_status', true );
-		$start = strtotime( get_post_meta( $booking_id, '_elab_start_utc', true ) . ' UTC' );
-		if ( 'cancelled' === $status || ! $start || $start <= time() ) {
-			return array( __( 'Nothing to add', 'elaltillo-bookacall' ), __( 'This call was cancelled or has already taken place.', 'elaltillo-bookacall' ), $rows, null, null );
-		}
-		if ( get_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT, true ) ) {
-			return array( __( 'Already in your calendar', 'elaltillo-bookacall' ), __( 'Google answered again and the site added this call to your “El Altillo · Citas” calendar. There is nothing left to do: do not add it again.', 'elaltillo-bookacall' ), $rows, null, null );
-		}
-		if ( self::by_advisor( $booking_id ) ) {
-			return array( __( 'You already took care of this call', 'elaltillo-bookacall' ), sprintf( __( 'You chose to add it to your calendar yourself on %s, so the site will not add it. Only open Google Calendar again if you did not save the event.', 'elaltillo-bookacall' ), wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), self::by_advisor( $booking_id ) ) ), $rows, array( __( 'Open Google Calendar again', 'elaltillo-bookacall' ), self::google_template_url( $booking_id ) ), null );
-		}
-		return array( __( 'Add this call to your calendar', 'elaltillo-bookacall' ), __( 'Google Calendar opens with everything filled in and the visitor invited: select Save and send the invitations. From that moment the site stops trying to add this call, so it appears only once.', 'elaltillo-bookacall' ), $rows, null, array( __( 'Open Google Calendar', 'elaltillo-bookacall' ), self::advisor_url( $booking_id ) ) );
+	/** @return string[] [title, text] of the page old manual links open. */
+	public static function old_link_message() {
+		return array( __( 'This option is no longer available', 'elaltillo-bookacall' ), __( 'Calls waiting for Google are added to your calendar automatically as soon as you reconnect Google Calendar. Open the most recent email about this call to reconnect.', 'elaltillo-bookacall' ) );
 	}
 
 	private static function page( $code, $title, $intro, $rows = array(), $button = null, $form = null ) {

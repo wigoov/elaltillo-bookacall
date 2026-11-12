@@ -70,11 +70,9 @@ final class ELAB_Booking_Admin {
 		if ( ELAB_Booking_Sync::CREATE === $sync ) {
 			$broken = ! ELAB_Google_Calendar::connected( $advisor_id );
 			echo '<div class="notice notice-warning inline"><p><strong>' . esc_html__( 'Saved, waiting for Google.', 'elaltillo-bookacall' ) . '</strong> ' . esc_html( $broken ? __( 'The advisor’s Google connection is not working, so the calendar event and the visitor’s invitation are not created yet. They are added automatically when the advisor reconnects. The advisor was emailed.', 'elaltillo-bookacall' ) : __( 'Google did not answer. The event is retried every hour.', 'elaltillo-bookacall' ) ) . '</p>';
-			echo '<p class="elab-inline-actions">';
 			if ( $broken && current_user_can( 'edit_post', $advisor_id ) ) {
-				echo '<a class="button button-primary" href="' . esc_url( admin_url( 'post.php?post=' . $advisor_id . '&action=edit#elab-google-connection' ) ) . '">' . esc_html__( 'Open advisor connection', 'elaltillo-bookacall' ) . '</a> ';
+				echo '<p class="elab-inline-actions"><a class="button button-primary" href="' . esc_url( admin_url( 'post.php?post=' . $advisor_id . '&action=edit#elab-google-connection' ) ) . '">' . esc_html__( 'Open advisor connection', 'elaltillo-bookacall' ) . '</a></p>';
 			}
-			echo '<a class="button" href="' . esc_url( ELAB_Booking_Sync::advisor_url( $post->ID ) ) . '" target="_blank" rel="noopener">' . esc_html__( 'Add to the advisor’s calendar by hand', 'elaltillo-bookacall' ) . '</a></p>';
 			echo '</div>';
 		} elseif ( ELAB_Booking_Sync::DELETE === $sync ) {
 			echo '<p class="notice notice-warning inline">' . esc_html__( 'Cancelled here. Google did not answer yet, so the event is removed from the advisor’s calendar as soon as it does.', 'elaltillo-bookacall' ) . '</p>';

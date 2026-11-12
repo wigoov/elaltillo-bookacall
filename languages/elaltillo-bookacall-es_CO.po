@@ -2757,3 +2757,9 @@ msgid "%d call is up to date in WordPress but not in Google yet (an event to add
 msgid_plural "%d calls are up to date in WordPress but not in Google yet (events to add or remove). They are retried every hour."
 msgstr[0] "%d llamada está al día en WordPress pero aún no en Google (un evento por crear o borrar). Se reintenta cada hora."
 msgstr[1] "%d llamadas están al día en WordPress pero aún no en Google (eventos por crear o borrar). Se reintentan cada hora."
+
+msgid "This option is no longer available"
+msgstr "Esta opción ya no está disponible"
+
+msgid "Calls waiting for Google are added to your calendar automatically as soon as you reconnect Google Calendar. Open the most recent email about this call to reconnect."
+msgstr "Las llamadas que esperan a Google se agregan a tu calendario automáticamente en cuanto vuelves a conectar Google Calendar. Abre el correo más reciente sobre esta llamada para reconectar."

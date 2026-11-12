@@ -188,7 +188,6 @@ final class ELAB_Notifications {
 		list( $title, $intro ) = $titles[ $status ] ?? $titles['pending'];
 		$notice = '';
 		$button = array();
-		$secondary = array();
 		$body = array();
 		if ( $waiting ) {
 			$notice = $broken
@@ -197,8 +196,6 @@ final class ELAB_Notifications {
 			if ( $broken ) {
 				$button = array( __( 'Reconnect Google Calendar', 'elaltillo-bookacall' ), self::reconnect_url( $advisor_id ) );
 			}
-			$secondary = array( __( 'Add it to my calendar myself', 'elaltillo-bookacall' ), ELAB_Booking_Sync::advisor_url( $booking_id ) );
-			$body[] = __( 'Can’t wait? Add it to your calendar yourself. The site then stops trying to add it, so the call appears only once.', 'elaltillo-bookacall' );
 		} elseif ( 'cancelled' === $status && get_post_meta( $booking_id, ELAB_Booking_Sync::META_MANUAL, true ) ) {
 			$notice = ELAB_Booking_Sync::by_advisor( $booking_id )
 				? __( 'You added this call to your calendar yourself, so the site cannot remove it. Please delete that event in your calendar.', 'elaltillo-bookacall' )
@@ -222,7 +219,6 @@ final class ELAB_Notifications {
 				__( 'Video call', 'elaltillo-bookacall' )    => 'cancelled' === $status ? '' : (string) get_post_meta( $booking_id, '_elab_meet_url', true ),
 			),
 			'button'    => $button,
-			'secondary' => $secondary,
 			'body'      => $body,
 		) );
 	}
@@ -239,7 +235,7 @@ final class ELAB_Notifications {
 				$rows = array();
 				foreach ( ELAB_Booking_Sync::pending( $advisor_id ) as $booking_id ) {
 					if ( ELAB_Booking_Sync::CREATE === ELAB_Booking_Sync::state( $booking_id ) ) {
-						$rows[ self::when( $booking_id, (string) get_post_meta( $advisor_id, '_elab_timezone', true ) ) ] = array( sprintf( __( '%s · add it myself', 'elaltillo-bookacall' ), get_post_meta( $booking_id, '_elab_name', true ) ), ELAB_Booking_Sync::advisor_url( $booking_id ) );
+						$rows[ self::when( $booking_id, (string) get_post_meta( $advisor_id, '_elab_timezone', true ) ) ] = (string) get_post_meta( $booking_id, '_elab_name', true );
 					}
 				}
 				ELAB_Mailer::send( $recipient, sprintf( __( 'Reconnect Google Calendar for %s', 'elaltillo-bookacall' ), $subject_name ), array(

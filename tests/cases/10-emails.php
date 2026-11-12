@@ -54,18 +54,18 @@ return array(
 		T::contains( 'cancelled the call from their private link', $advisor_mail( $advisor )['message'], 'Says the visitor cancelled' );
 	},
 
-	'Advisor — Google slow: event follows within the hour, manual step offered, no reconnect' => function () use ( $advisor_mail ) {
+	'Advisor — Google slow: event follows within the hour, no manual step, no reconnect' => function () use ( $advisor_mail ) {
 		$advisor = T::connect( T::advisor() );
 		$booking = T::booking( $advisor );
 		ELAB_Booking_Sync::queue_create( $booking, new WP_Error( 'google_calendar_failed' ) );
 		ELAB_Notifications::booking_notice( $booking, 'confirmed' );
 		$mail = $advisor_mail( $advisor );
 		T::contains( 'within the hour', $mail['message'], 'Explains the retry' );
-		T::contains( 'Add it to my calendar myself', $mail['message'], 'Manual step' );
+		T::lacks( 'Add it to my calendar myself', $mail['message'], 'No manual step' );
 		T::lacks( 'Reconnect Google Calendar', $mail['message'], 'No reconnect when the connection is fine' );
 	},
 
-	'Advisor — connection broken: action needed, reconnect and manual buttons' => function () use ( $advisor_mail ) {
+	'Advisor — connection broken: action needed, reconnect is the only button' => function () use ( $advisor_mail ) {
 		$advisor = T::connect( T::advisor() );
 		update_post_meta( $advisor, ELAB_Google_Calendar::META_REVOKED, time() );
 		$booking = T::booking( $advisor );
@@ -75,6 +75,7 @@ return array(
 		T::same( 'Action needed: new call waiting for Google Calendar', $mail['subject'], 'Subject' );
 		T::contains( 'Reconnect Google Calendar', $mail['message'], 'Reconnect button' );
 		T::contains( 'post.php?post=' . $advisor, $mail['message'], 'Reconnect goes to the advisor profile' );
+		T::lacks( 'elab_advisor_event', $mail['message'], 'No link to add it by hand' );
 	},
 
 	'Advisor — reconnect email goes to advisor and site admin, listing waiting calls' => function () {

@@ -68,7 +68,7 @@ return array(
 		$action = T::mail_with_subject( 'Action needed: new call waiting for Google Calendar' );
 		T::same( 1, count( $action ), 'Action-needed email' );
 		T::contains( 'Reconnect Google Calendar', $action[0]['message'], 'Reconnect button' );
-		T::contains( 'Add it to my calendar myself', $action[0]['message'], 'Manual-add button' );
+		T::lacks( 'Add it to my calendar myself', $action[0]['message'], 'No manual step: reconnecting is the only way' );
 	},
 
 	'Never two events: create_for skips when an event exists or another request holds the lock' => function () {
