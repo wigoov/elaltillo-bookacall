@@ -21,6 +21,14 @@ final class ELAB_Google_Calendar {
 	const META_REVOKED = '_elab_google_revoked';
 	/** Advisor: ID of the calendar this site created. Booking: calendar its event lives in. */
 	const META_CALENDAR = '_elab_google_calendar';
+	/**
+	 * Advisor: who owns that calendar (Google account + OAuth client, hashed). Kept on
+	 * Disconnect, so connecting the same account again reuses the calendar instead of
+	 * piling up copies.
+	 */
+	const META_CALENDAR_OWNER = '_elab_google_calendar_owner';
+	/** Advisor: calendars of this site that were deleted in Google; their calls get restored. */
+	const META_GONE_CALENDARS = '_elab_google_gone_calendars';
 	/** Advisor: the permissions Google says this site's access carries (space separated). */
 	const META_SCOPES = '_elab_google_scopes';
 	/** Advisor: the emailed connection link (encrypted token and expiry). */
@@ -230,8 +238,9 @@ final class ELAB_Google_Calendar {
 			wp_die( esc_html( sprintf( __( 'You connected %1$s, but this advisor expects %2$s. Choose the correct Google account or ask an administrator to update the advisor email.', 'elaltillo-bookacall' ), $identity['email'], $expected_email ) ), '', array( 'response' => 403 ) );
 		}
 		$advisor_id = (int) $data['advisor'];
-		$same_account = hash_equals( (string) get_post_meta( $advisor_id, self::META_ACCOUNT_SUB, true ), (string) $identity['sub'] );
-		$calendar = self::ensure_calendar( $advisor_id, $tokens['access_token'], $same_account ? self::calendar_id( $advisor_id ) : '' );
+		$same_owner = self::owns_calendar( $advisor_id, (string) $identity['sub'] );
+		$previous = $same_owner ? self::calendar_id( $advisor_id ) : '';
+		$calendar = self::ensure_calendar( $advisor_id, $tokens['access_token'], $previous );
 		if ( is_wp_error( $calendar ) ) {
 			wp_die( esc_html( $calendar->get_error_message() ), '', array( 'response' => 503 ) );
 		}
@@ -244,10 +253,15 @@ final class ELAB_Google_Calendar {
 		update_post_meta( (int) $data['advisor'], self::META_ACCOUNT_EMAIL, $identity['email'] );
 		update_post_meta( (int) $data['advisor'], self::META_ACCOUNT_SUB, $identity['sub'] );
 		update_post_meta( $advisor_id, self::META_CALENDAR, $calendar );
+		update_post_meta( $advisor_id, self::META_CALENDAR_OWNER, self::owner_key( (string) $identity['sub'] ) );
 		update_post_meta( $advisor_id, self::META_SCOPES, sanitize_text_field( implode( ' ', $granted_scopes ) ) );
 		delete_post_meta( (int) $data['advisor'], self::META_REVOKED );
 		set_transient( 'elab_google_access_' . $advisor_id, $tokens['access_token'], max( 60, min( 3300, (int) ( $tokens['expires_in'] ?? 3600 ) - 120 ) ) );
 		ELAB_Notifications::schedule_summary( (int) $data['advisor'] );
+		// Same account and app, but its calendar was deleted in Google: the new one gets the calls back.
+		if ( $previous && $previous !== $calendar ) {
+			self::calendar_replaced( $advisor_id, $previous );
+		}
 		// Calls saved while the connection was broken go to Google now.
 		ELAB_Booking_Sync::run( $advisor_id );
 		if ( $invite ) {
@@ -370,9 +384,20 @@ final class ELAB_Google_Calendar {
 	/** Cron: ask Google about every connected advisor, so a removed grant is noticed (and the advisor told) within minutes. */
 	public static function watch_connections() {
 		foreach ( get_posts( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids' ) ) as $advisor_id ) {
-			if ( self::connected( $advisor_id ) ) {
-				self::check( $advisor_id );
+			if ( ! self::connected( $advisor_id ) ) {
+				continue;
 			}
+			// Connected before owners were recorded: record it now, while the connection proves it.
+			if ( ! get_post_meta( $advisor_id, self::META_CALENDAR_OWNER, true ) ) {
+				update_post_meta( $advisor_id, self::META_CALENDAR_OWNER, self::owner_key( (string) get_post_meta( $advisor_id, self::META_ACCOUNT_SUB, true ) ) );
+			}
+			$check = self::check( $advisor_id );
+			if ( is_wp_error( $check ) && in_array( (int) ( $check->get_error_data()['http'] ?? 0 ), array( 404, 410 ), true ) ) {
+				self::recover_calendar( $advisor_id );
+				continue;
+			}
+			// Calls a previous run could not put back yet.
+			self::restore_events( $advisor_id );
 		}
 	}
 
@@ -489,6 +514,116 @@ final class ELAB_Google_Calendar {
 			return new WP_Error( 'google_calendar_unavailable', __( 'Google did not allow creating the bookings calendar. Allow the requested permission and try again.', 'elaltillo-bookacall' ) );
 		}
 		return $data['id'];
+	}
+
+	private static function owner_key( $sub ) {
+		return hash( 'sha256', $sub . '|' . self::client_id() );
+	}
+
+	/**
+	 * Whether this Google account, through this same Google app, created the advisor's saved
+	 * calendar. Only then can the site still see it: a different account or app means a
+	 * different calendar.
+	 */
+	private static function owns_calendar( $advisor_id, $sub ) {
+		$owner = (string) get_post_meta( $advisor_id, self::META_CALENDAR_OWNER, true );
+		if ( '' !== $owner ) {
+			return hash_equals( $owner, self::owner_key( $sub ) );
+		}
+		// Connected before the owner was recorded: the live connection tells the same.
+		return hash_equals( (string) get_post_meta( $advisor_id, self::META_ACCOUNT_SUB, true ), $sub )
+			&& hash_equals( (string) get_post_meta( $advisor_id, self::META_CLIENT_HASH, true ), hash( 'sha256', self::client_id() ) );
+	}
+
+	/**
+	 * The advisor deleted the site's calendar in Google. Confirm it is really gone, create it
+	 * again, and put the upcoming calls back in it.
+	 *
+	 * @return string|WP_Error The new calendar ID.
+	 */
+	public static function recover_calendar( $advisor_id ) {
+		$missing = self::calendar_id( $advisor_id );
+		$token = self::access_token( $advisor_id );
+		if ( is_wp_error( $token ) ) {
+			return $token;
+		}
+		list( $code ) = self::api( $token, 'GET', '/calendars/' . rawurlencode( $missing ) );
+		if ( ! in_array( $code, array( 404, 410 ), true ) ) {
+			return new WP_Error( 'google_calendar_present', __( 'The bookings calendar is still in Google.', 'elaltillo-bookacall' ) );
+		}
+		$replacement = self::ensure_calendar( $advisor_id, $token );
+		if ( is_wp_error( $replacement ) ) {
+			return $replacement;
+		}
+		update_post_meta( $advisor_id, self::META_CALENDAR, $replacement );
+		self::calendar_replaced( $advisor_id, $missing );
+		return $replacement;
+	}
+
+	/** Remember the deleted calendar, restore its upcoming calls and tell the advisor and the admin. */
+	private static function calendar_replaced( $advisor_id, $missing ) {
+		$gone = array_filter( (array) get_post_meta( $advisor_id, self::META_GONE_CALENDARS, true ) );
+		$gone[] = $missing;
+		update_post_meta( $advisor_id, self::META_GONE_CALENDARS, array_slice( array_values( array_unique( $gone ) ), -10 ) );
+		$result = self::restore_events( $advisor_id );
+		ELAB_Notifications::calendar_restored( $advisor_id, $result['restored'], $result['waiting'] );
+	}
+
+	/**
+	 * Put upcoming confirmed calls whose calendar was deleted into the advisor's current one,
+	 * same time, guests and video call. Calls that fail stay listed and are tried again by the
+	 * next sync. Calls of an older Google app's calendar are never touched: that calendar
+	 * still exists, only out of this site's reach.
+	 *
+	 * @return array{restored:int[],waiting:int}
+	 */
+	public static function restore_events( $advisor_id ) {
+		$gone = array_values( array_filter( (array) get_post_meta( $advisor_id, self::META_GONE_CALENDARS, true ) ) );
+		$result = array( 'restored' => array(), 'waiting' => 0 );
+		if ( ! $gone || ! self::connected( $advisor_id ) ) {
+			return $result;
+		}
+		$bookings = get_posts( array( 'post_type' => ELAB_Post_Types::BOOKING, 'post_status' => 'any', 'numberposts' => 200, 'fields' => 'ids', 'orderby' => 'meta_value', 'meta_key' => '_elab_start_utc', 'order' => 'ASC', 'meta_query' => array(
+			array( 'key' => '_elab_advisor', 'value' => (int) $advisor_id ),
+			array( 'key' => '_elab_status', 'value' => 'confirmed' ),
+			array( 'key' => self::META_CALENDAR, 'value' => $gone, 'compare' => 'IN' ),
+			array( 'key' => '_elab_start_utc', 'value' => gmdate( 'Y-m-d H:i:s' ), 'compare' => '>', 'type' => 'DATETIME' ),
+		) ) );
+		foreach ( $bookings as $booking_id ) {
+			$lock = ELAB_Booking_Sync::lock( $booking_id );
+			if ( ! $lock ) {
+				$result['waiting']++;
+				continue;
+			}
+			try {
+				$start = date_create_immutable( get_post_meta( $booking_id, '_elab_start_utc', true ), new DateTimeZone( 'UTC' ) );
+				$event = $start ? self::create_event( $advisor_id, $booking_id, $start, ELAB_Booking_Admin::duration( $booking_id ), (string) get_post_meta( $booking_id, '_elab_contact_email', true ), true ) : new WP_Error( 'elab_bad_time', 'Unreadable time' );
+				if ( is_wp_error( $event ) ) {
+					$result['waiting']++;
+				} else {
+					$result['restored'][] = (int) $booking_id;
+				}
+			} finally {
+				delete_option( $lock );
+			}
+		}
+		if ( ! $result['waiting'] ) {
+			delete_post_meta( $advisor_id, self::META_GONE_CALENDARS );
+		}
+		return $result;
+	}
+
+	/** The booking's existing Meet, in the form Google accepts to attach it to a new event. */
+	private static function meet_copy( $booking_id ) {
+		$url = (string) get_post_meta( $booking_id, '_elab_meet_url', true );
+		if ( ! preg_match( '#^https://meet\.google\.com/([a-z]+(?:-[a-z]+)+)$#', $url, $match ) ) {
+			return null;
+		}
+		return array(
+			'conferenceId'       => $match[1],
+			'conferenceSolution' => array( 'key' => array( 'type' => 'hangoutsMeet' ) ),
+			'entryPoints'        => array( array( 'entryPointType' => 'video', 'uri' => $url, 'label' => 'meet.google.com/' . $match[1] ) ),
+		);
 	}
 
 	/** Live check used by the admin tests: the site's own calendar still answers. */
@@ -643,7 +778,11 @@ final class ELAB_Google_Calendar {
 		return '0' !== (string) get_option( 'elab_google_meet', '1' );
 	}
 
-	public static function create_event( $advisor_id, $booking_id, DateTimeImmutable $start, $duration, $email ) {
+	/**
+	 * @param bool $restore Put an existing call back after its calendar was deleted: keep its
+	 *                      Meet link, and never recreate the calendar from here.
+	 */
+	public static function create_event( $advisor_id, $booking_id, DateTimeImmutable $start, $duration, $email, $restore = false ) {
 		if ( ! self::connected( $advisor_id ) ) {
 			return new WP_Error( 'google_not_ready', __( 'This advisor needs to connect Google Calendar again.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
 		}
@@ -675,22 +814,38 @@ final class ELAB_Google_Calendar {
 			'attendees' => array_map( static function ( $address ) { return array( 'email' => $address ); }, array_merge( array( $email ), ELAB_Booking_Sync::guests( $booking_id ) ) ),
 		);
 		$path = '/calendars/' . rawurlencode( $calendar ) . '/events?sendUpdates=all';
+		$new_meet = array( 'createRequest' => array( 'requestId' => $event_id, 'conferenceSolutionKey' => array( 'type' => 'hangoutsMeet' ) ) );
+		$kept_meet = $restore ? self::meet_copy( $booking_id ) : null;
 		if ( self::meet_enabled() ) {
 			// The event ID doubles as the idempotent request ID, so a retried insert reuses the same Meet.
-			$body['conferenceData'] = array( 'createRequest' => array( 'requestId' => $event_id, 'conferenceSolutionKey' => array( 'type' => 'hangoutsMeet' ) ) );
+			$body['conferenceData'] = $kept_meet ?: $new_meet;
 			$path .= '&conferenceDataVersion=1';
 		}
 		$event = self::request( $advisor_id, 'POST', $path, $body );
-		// The advisor deleted the site's calendar in Google: make it again and retry once.
-		if ( is_wp_error( $event ) && 404 === (int) ( $event->get_error_data()['http'] ?? 0 ) ) {
-			$token = self::access_token( $advisor_id );
-			$replacement = is_wp_error( $token ) ? $token : self::ensure_calendar( $advisor_id, $token );
+		$http = is_wp_error( $event ) ? (int) ( $event->get_error_data()['http'] ?? 0 ) : 0;
+		// The advisor deleted the site's calendar in Google: make it again (with its calls) and retry once.
+		if ( 404 === $http && ! $restore ) {
+			$replacement = self::recover_calendar( $advisor_id );
 			if ( ! is_wp_error( $replacement ) ) {
-				update_post_meta( $advisor_id, self::META_CALENDAR, $replacement );
 				$path = str_replace( '/calendars/' . rawurlencode( $calendar ) . '/', '/calendars/' . rawurlencode( $replacement ) . '/', $path );
 				$calendar = $replacement;
 				$event = self::request( $advisor_id, 'POST', $path, $body );
 			}
+		}
+		if ( $restore && 400 === $http && isset( $body['conferenceData'] ) && $kept_meet ) {
+			// Google would not attach the old Meet: the call gets a new one, sent in Google's invitation.
+			$body['conferenceData'] = $new_meet;
+			$event = self::request( $advisor_id, 'POST', $path, $body );
+			$http = is_wp_error( $event ) ? (int) ( $event->get_error_data()['http'] ?? 0 ) : 0;
+		}
+		if ( $restore && 409 === $http ) {
+			// Google still holds the old ID: same booking, fresh ID in the plugin's own format.
+			$event_id = 'elab' . md5( $event_id . '|' . $calendar );
+			$body['id'] = $event_id;
+			if ( isset( $body['conferenceData']['createRequest'] ) ) {
+				$body['conferenceData']['createRequest']['requestId'] = $event_id;
+			}
+			$event = self::request( $advisor_id, 'POST', $path, $body );
 		}
 		// A timed-out insert can still have created the event. Look up its stable ID before failing.
 		if ( is_wp_error( $event ) || empty( $event['id'] ) ) {

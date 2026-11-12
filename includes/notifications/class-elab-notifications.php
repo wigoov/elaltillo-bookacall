@@ -376,6 +376,54 @@ final class ELAB_Notifications {
 		} );
 	}
 
+	/**
+	 * The site's calendar was deleted in Google and has been created again. The advisor and the
+	 * administrator read which calls were put back, in the advisor's language.
+	 *
+	 * @param int[] $restored Bookings now in the new calendar.
+	 * @param int   $waiting  Calls not put back yet (tried again every sync).
+	 */
+	public static function calendar_restored( $advisor_id, array $restored, $waiting = 0 ) {
+		$advisor_email = self::advisor_email( $advisor_id );
+		$recipients = array_unique( array_filter( array( $advisor_email, sanitize_email( (string) get_option( 'admin_email' ) ) ) ) );
+		foreach ( $recipients as $recipient ) {
+			self::in_locale( self::advisor_locale( $advisor_id ), static function () use ( $advisor_id, $restored, $waiting, $recipient, $advisor_email ) {
+				$name = get_the_title( $advisor_id );
+				$calendar = ELAB_Google_Calendar::CALENDAR_NAME;
+				$rows = array();
+				foreach ( $restored as $booking_id ) {
+					$rows[ self::when( $booking_id, (string) get_post_meta( $advisor_id, '_elab_timezone', true ) ) ] = (string) get_post_meta( $booking_id, '_elab_name', true );
+				}
+				$notice = $restored
+					? sprintf( _n( '%d upcoming call was put back in it, at the same time and with the same video call link. Google may send the visitor its invitation again; nothing about the call changes.', '%d upcoming calls were put back in it, at the same time and with the same video call links. Google may send the visitors their invitations again; nothing about the calls changes.', count( $restored ), 'elaltillo-bookacall' ), count( $restored ) )
+					: __( 'There were no upcoming calls to put back. New bookings will appear there as usual.', 'elaltillo-bookacall' );
+				$body = array();
+				if ( $waiting ) {
+					$body[] = sprintf( _n( '%d call could not be put back yet. The site tries again every 15 minutes.', '%d calls could not be put back yet. The site tries again every 15 minutes.', $waiting, 'elaltillo-bookacall' ), $waiting );
+				}
+				if ( $recipient === $advisor_email ) {
+					$body[] = sprintf( __( 'Please keep the “%s” calendar: it is where the site places your calls. To see less of it, hide it or change its colour in Google Calendar instead of deleting it.', 'elaltillo-bookacall' ), $calendar );
+					ELAB_Mailer::send( $recipient, sprintf( __( 'Your “%s” calendar was created again', 'elaltillo-bookacall' ), $calendar ), array(
+						'title'  => sprintf( __( 'Your “%s” calendar was created again', 'elaltillo-bookacall' ), $calendar ),
+						'intro'  => sprintf( __( 'The “%s” calendar was deleted from your Google account, so the site created it again.', 'elaltillo-bookacall' ), $calendar ),
+						'notice' => $notice,
+						'rows'   => $rows,
+						'body'   => $body,
+					) );
+					return;
+				}
+				ELAB_Mailer::send( $recipient, sprintf( __( '%s: bookings calendar created again', 'elaltillo-bookacall' ), $name ), array(
+					'title'  => sprintf( __( '%s: bookings calendar created again', 'elaltillo-bookacall' ), $name ),
+					'intro'  => sprintf( __( 'The “%1$s” calendar of %2$s was deleted in Google, so the site created it again. They were told by email.', 'elaltillo-bookacall' ), $calendar, $name ),
+					'notice' => $notice,
+					'rows'   => $rows,
+					'button' => array( __( 'Open the advisor', 'elaltillo-bookacall' ), admin_url( 'post.php?post=' . (int) $advisor_id . '&action=edit#elab-google-connection' ) ),
+					'body'   => $body,
+				) );
+			} );
+		}
+	}
+
 	/* ---------- Visitor and guests ---------- */
 
 	private static function visitor_rows( $booking_id, $with_guests = true ) {

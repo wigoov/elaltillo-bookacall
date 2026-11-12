@@ -33,6 +33,8 @@ final class ELAB_Test {
 	public static $event_status = 'confirmed';
 	public static $unauthorized_once = false;
 	public static $event_get_extra = array();
+	/** HTTP codes for the next event inserts, in order (empty = 200). */
+	public static $event_insert_codes = array();
 	public static $identity = array( 'sub' => 'test-sub', 'email' => 'advisor@example.test', 'email_verified' => true );
 	public static $checks = 0;
 
@@ -150,6 +152,7 @@ final class ELAB_Test {
 		self::$event_status = 'confirmed';
 		self::$unauthorized_once = false;
 		self::$event_get_extra = array();
+		self::$event_insert_codes = array();
 		self::as_admin();
 	}
 
@@ -215,9 +218,12 @@ final class ELAB_Test {
 			if ( self::$insert_times_out ) {
 				return new WP_Error( 'http_request_failed', 'Operation timed out' );
 			}
+			$code = self::$event_insert_codes ? (int) array_shift( self::$event_insert_codes ) : 200;
 			$data = array( 'id' => self::$event_body['id'], 'iCalUID' => 'test@example.test', 'htmlLink' => 'https://calendar.google.com/calendar/event?eid=test' );
 			if ( ! empty( self::$event_body['conferenceData']['createRequest'] ) ) {
 				$data['hangoutLink'] = 'https://meet.google.com/tst-test-call';
+			} elseif ( ! empty( self::$event_body['conferenceData']['conferenceId'] ) ) {
+				$data['hangoutLink'] = 'https://meet.google.com/' . self::$event_body['conferenceData']['conferenceId'];
 			}
 		} elseif ( $calendar_api && false !== strpos( $url, '/events/' ) && 'DELETE' === $method ) {
 			$code = self::$event_delete_code;

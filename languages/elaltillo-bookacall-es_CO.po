@@ -2578,3 +2578,34 @@ msgstr "Tu llamada es pronto"
 
 msgid "Your call is saved and the time is reserved for you. The calendar invitation arrives as soon as the advisor confirms their calendar; you do not need to do anything."
 msgstr "Tu llamada está guardada y la hora reservada para ti. La invitación del calendario llegará en cuanto el asesor confirme su calendario; no tienes que hacer nada."
+
+msgid "The bookings calendar is still in Google."
+msgstr "El calendario de citas sigue en Google."
+
+msgid "%d upcoming call was put back in it, at the same time and with the same video call link. Google may send the visitor its invitation again; nothing about the call changes."
+msgid_plural "%d upcoming calls were put back in it, at the same time and with the same video call links. Google may send the visitors their invitations again; nothing about the calls changes."
+msgstr[0] "Se volvió a poner en él %d llamada próxima, a la misma hora y con el mismo enlace de videollamada. Es posible que Google le envíe de nuevo la invitación al visitante; la llamada no cambia en nada."
+msgstr[1] "Se volvieron a poner en él %d llamadas próximas, a la misma hora y con los mismos enlaces de videollamada. Es posible que Google les envíe de nuevo la invitación a los visitantes; las llamadas no cambian en nada."
+
+msgid "There were no upcoming calls to put back. New bookings will appear there as usual."
+msgstr "No había llamadas próximas que volver a poner. Las nuevas reservas aparecerán ahí como siempre."
+
+msgid "%d call could not be put back yet. The site tries again every 15 minutes."
+msgid_plural "%d calls could not be put back yet. The site tries again every 15 minutes."
+msgstr[0] "%d llamada aún no se pudo volver a poner. El sitio lo intenta de nuevo cada 15 minutos."
+msgstr[1] "%d llamadas aún no se pudieron volver a poner. El sitio lo intenta de nuevo cada 15 minutos."
+
+msgid "Please keep the “%s” calendar: it is where the site places your calls. To see less of it, hide it or change its colour in Google Calendar instead of deleting it."
+msgstr "Por favor conserva el calendario «%s»: es donde el sitio pone tus llamadas. Si quieres verlo menos, ocúltalo o cámbiale el color en Google Calendar en lugar de borrarlo."
+
+msgid "Your “%s” calendar was created again"
+msgstr "Tu calendario «%s» se creó de nuevo"
+
+msgid "The “%s” calendar was deleted from your Google account, so the site created it again."
+msgstr "El calendario «%s» se borró de tu cuenta de Google, así que el sitio lo creó de nuevo."
+
+msgid "%s: bookings calendar created again"
+msgstr "%s: calendario de citas creado de nuevo"
+
+msgid "The “%1$s” calendar of %2$s was deleted in Google, so the site created it again. They were told by email."
+msgstr "El calendario «%1$s» de %2$s se borró en Google, así que el sitio lo creó de nuevo. Se le avisó por correo."

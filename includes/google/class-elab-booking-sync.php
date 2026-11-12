@@ -88,7 +88,7 @@ final class ELAB_Booking_Sync {
 		update_post_meta( $booking_id, self::META_ERROR, $error->get_error_code() );
 	}
 
-	private static function lock( $booking_id ) {
+	public static function lock( $booking_id ) {
 		$name = 'elab_sync_lock_' . (int) $booking_id;
 		$held = (int) get_option( $name );
 		if ( $held && $held < time() - MINUTE_IN_SECONDS ) {
