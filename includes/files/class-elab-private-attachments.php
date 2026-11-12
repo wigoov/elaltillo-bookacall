@@ -59,6 +59,23 @@ final class ELAB_Private_Attachments {
 		return is_wp_error( $result ) ? $result : new WP_Error( 'file_rejected', __( 'One of the files could not be accepted. Please send a different file.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
 	}
 
+	/** 'none' (no scanner configured), 'ready' (clamd answers PING) or 'down'. */
+	public static function scanner_state() {
+		if ( ! defined( 'ELAB_CLAMD_SOCKET' ) || ! ELAB_CLAMD_SOCKET ) {
+			return 'none';
+		}
+		$socket = (string) ELAB_CLAMD_SOCKET;
+		$stream = @stream_socket_client( 0 === strpos( $socket, '/' ) ? 'unix://' . $socket : 'tcp://' . $socket, $errno, $error, 3 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Reported as "down".
+		if ( ! $stream ) {
+			return 'down';
+		}
+		stream_set_timeout( $stream, 3 );
+		fwrite( $stream, "zPING\0" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+		$reply = trim( (string) stream_get_contents( $stream ), "\0\r\n " );
+		fclose( $stream ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+		return 'PONG' === $reply ? 'ready' : 'down';
+	}
+
 	private static function clamd_scan( $path, $socket ) {
 		$unavailable = new WP_Error( 'scan_unavailable', __( 'Documents cannot be checked right now. Please try again later or book without attachments.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
 		$target = 0 === strpos( $socket, '/' ) ? 'unix://' . $socket : 'tcp://' . $socket;

@@ -133,5 +133,15 @@ return array(
 		T::error( 'invalid_file_type', $try( 'tool.exe', "MZ\x90\x00" ), 'Program refused' );
 		T::error( 'invalid_file_type', $try( 'shell.php', '<?php system($_GET["c"]); ?>' ), 'PHP refused' );
 	},
+
+	'System status says whether attachments are scanned for viruses' => function () {
+		if ( defined( 'ELAB_CLAMD_SOCKET' ) ) {
+			return;
+		}
+		T::same( 'none', ELAB_Private_Attachments::scanner_state(), 'No scanner configured' );
+		$html = T::render( static function () { ( new ELAB_System_Status() )->render(); } );
+		T::contains( 'Virus scan of attachments', $html, 'Row shown' );
+		T::contains( 'ELAB_CLAMD_SOCKET', $html, 'Explains how to turn it on' );
+	},
 );
 

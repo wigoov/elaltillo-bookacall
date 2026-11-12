@@ -125,6 +125,12 @@ final class ELAB_System_Status {
 		$checks[] = array( 'privacy', __( 'Private document storage', 'elaltillo-bookacall' ), $storage ? 'ok' : 'error', $storage ? __( 'Uploads are stored outside the public web folder.', 'elaltillo-bookacall' ) : __( 'No writable folder outside the web root. Visitors cannot attach files until ELAB_PRIVATE_UPLOAD_DIR is set.', 'elaltillo-bookacall' ), '' );
 		$office = class_exists( 'ZipArchive' ) && class_exists( 'DOMDocument' );
 		$checks[] = array( 'privacy', __( 'Safe document viewer', 'elaltillo-bookacall' ), $office ? 'ok' : 'error', $office ? __( 'PDF, Word, Excel and PowerPoint attachments open in a safe viewer; they are never downloaded.', 'elaltillo-bookacall' ) : __( 'The PHP zip or dom extension is missing, so Word, Excel and PowerPoint files are refused. Ask the host to enable them.', 'elaltillo-bookacall' ), '' );
+		$scanner = ELAB_Private_Attachments::scanner_state();
+		$checks[] = array( 'privacy', __( 'Virus scan of attachments', 'elaltillo-bookacall' ), array( 'ready' => 'ok', 'down' => 'error', 'none' => 'info' )[ $scanner ], array(
+			'ready' => __( 'ClamAV checks every attachment before it is kept.', 'elaltillo-bookacall' ),
+			'down'  => __( 'ClamAV is configured but does not answer, so attachments are refused until it does. Check the ELAB_CLAMD_SOCKET setting and the clamd service.', 'elaltillo-bookacall' ),
+			'none'  => __( 'Optional. Attachments are not scanned for viruses: they are limited to real PDF and Office files without macros and open only in the safe viewer, where nothing in them runs. To scan them, run ClamAV (clamd) on the server and define ELAB_CLAMD_SOCKET in wp-config.php. Shared hosting usually cannot run it; a VPS can.', 'elaltillo-bookacall' ),
+		)[ $scanner ], '' );
 		$months = ELAB_Privacy::retention_months();
 		$checks[] = array( 'privacy', __( 'Retention', 'elaltillo-bookacall' ), $months ? 'ok' : 'warn', $months ? sprintf( _n( 'Bookings are deleted %d month after the call.', 'Bookings are deleted %d months after the call.', $months, 'elaltillo-bookacall' ), $months ) : __( 'Bookings are kept forever. Set a retention period to comply with data minimisation.', 'elaltillo-bookacall' ), '<a class="button" href="' . esc_url( $settings_privacy ) . '">' . esc_html__( 'Settings', 'elaltillo-bookacall' ) . '</a>' );
 		$policy = (int) get_option( 'wp_page_for_privacy_policy' );

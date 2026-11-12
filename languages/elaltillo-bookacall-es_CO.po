@@ -2745,3 +2745,15 @@ msgstr "nunca"
 
 msgid "Booking details"
 msgstr "Detalles de la reserva"
+
+msgid "Virus scan of attachments"
+msgstr "Análisis antivirus de adjuntos"
+
+msgid "ClamAV checks every attachment before it is kept."
+msgstr "ClamAV revisa cada adjunto antes de guardarlo."
+
+msgid "ClamAV is configured but does not answer, so attachments are refused until it does. Check the ELAB_CLAMD_SOCKET setting and the clamd service."
+msgstr "ClamAV está configurado pero no responde, así que los adjuntos se rechazan hasta que responda. Revisa el ajuste ELAB_CLAMD_SOCKET y el servicio clamd."
+
+msgid "Optional. Attachments are not scanned for viruses: they are limited to real PDF and Office files without macros and open only in the safe viewer, where nothing in them runs. To scan them, run ClamAV (clamd) on the server and define ELAB_CLAMD_SOCKET in wp-config.php. Shared hosting usually cannot run it; a VPS can."
+msgstr "Opcional. Los adjuntos no se analizan con antivirus: se limitan a PDF y archivos de Office reales sin macros y solo se abren en el visor seguro, donde nada de su contenido se ejecuta. Para analizarlos, instala ClamAV (clamd) en el servidor y define ELAB_CLAMD_SOCKET en wp-config.php. El hosting compartido no suele permitirlo; un VPS sí."
