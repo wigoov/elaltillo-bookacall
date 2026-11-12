@@ -49,6 +49,9 @@ final class ELAB_Booking_Form {
 				'turnstile'   => $turnstile,
 				'confirmMode' => $confirm_mode,
 				'locale'      => determine_locale(),
+				// PDF.js draws a thumbnail of a chosen PDF; it loads only when one is picked.
+				'pdfjs'       => plugins_url( 'assets/js/vendor/pdfjs/pdf.min.js', ELAB_FILE ) . '?ver=' . rawurlencode( ELAB_VERSION ),
+				'pdfWorker'   => plugins_url( 'assets/js/vendor/pdfjs/pdf.worker.min.js', ELAB_FILE ) . '?ver=' . rawurlencode( ELAB_VERSION ),
 				'i18n'        => self::strings( $confirm_mode ),
 			) ) . ';', 'before' );
 		}
@@ -106,6 +109,17 @@ final class ELAB_Booking_Form {
 			'invitedTo'      => __( 'We sent a Google Calendar invitation to %s. Accept it to keep the call in your calendar.', 'elaltillo-bookacall' ),
 			'joinMeet'       => __( 'Join with Google Meet', 'elaltillo-bookacall' ),
 			'filesChosen'    => __( '%d files selected', 'elaltillo-bookacall' ),
+			'filesAddMore'   => __( 'Add another file', 'elaltillo-bookacall' ),
+			'filesFull'      => __( 'You attached the maximum of %d files.', 'elaltillo-bookacall' ),
+			'fileReady'      => __( 'Ready: it will be sent with your booking', 'elaltillo-bookacall' ),
+			'fileOnePage'    => __( '1 page', 'elaltillo-bookacall' ),
+			'filePages'      => __( '%d pages', 'elaltillo-bookacall' ),
+			'fileRemove'     => __( 'Remove %s', 'elaltillo-bookacall' ),
+			'filePreviewFailed' => __( 'We could not open this PDF. If it has a password, remove it so the advisor can read it.', 'elaltillo-bookacall' ),
+			'file_type'      => __( '%s is not a PDF, Word, Excel or PowerPoint file.', 'elaltillo-bookacall' ),
+			'file_size'      => __( '%s is larger than 10 MB.', 'elaltillo-bookacall' ),
+			'file_duplicate' => __( '%s is already attached.', 'elaltillo-bookacall' ),
+			'file_count'     => __( 'You can attach up to %2$d files; %1$s was not added.', 'elaltillo-bookacall' ),
 			'guestAdded'     => __( '%s added.', 'elaltillo-bookacall' ),
 			'guestRemove'    => __( 'Remove %s', 'elaltillo-bookacall' ),
 			'guest_invalid'  => __( 'Enter a valid email address.', 'elaltillo-bookacall' ),

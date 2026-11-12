@@ -149,11 +149,15 @@ $elab_step_dot = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full
 			<input type="hidden" name="language" data-elab-language-value value="<?php echo esc_attr( $elab_language ); ?>">
 			<label class="<?php echo esc_attr( $elab_label ); ?>"><span><?php esc_html_e( 'Sector', 'elaltillo-bookacall' ); ?> <?php echo $elab_optional; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?></span> <input type="text" name="sector" maxlength="120" placeholder="<?php esc_attr_e( 'e.g. architecture, education', 'elaltillo-bookacall' ); ?>" class="<?php echo esc_attr( $elab_field ); ?>"></label>
 			<label class="<?php echo esc_attr( $elab_label ); ?>"><span><?php esc_html_e( 'Your project', 'elaltillo-bookacall' ); ?> <?php echo $elab_optional; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?></span> <textarea name="message" rows="4" maxlength="5000" placeholder="<?php esc_attr_e( 'What would you like to talk about?', 'elaltillo-bookacall' ); ?>" class="<?php echo esc_attr( $elab_field ); ?> resize-y"></textarea></label>
-			<label class="grid cursor-pointer gap-1 rounded-xl border border-dashed border-secondary/30 px-4 py-4 transition-[border-color,box-shadow] duration-200 hover:border-secondary focus-within:border-secondary focus-within:shadow-[0_0_0_4px_#FFFD88]">
-				<span class="font-secondary text-xs uppercase tracking-wider text-secondary/70"><?php esc_html_e( 'Attach files', 'elaltillo-bookacall' ); ?> <?php echo $elab_optional; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?></span>
-				<span data-elab-files class="font-primary text-sm text-secondary/70"><?php esc_html_e( 'PDF, Word, Excel or PowerPoint · up to 3 files, 10 MB each', 'elaltillo-bookacall' ); ?></span>
-				<input type="file" name="attachments[]" accept=".pdf,.docx,.xlsx,.pptx" multiple class="sr-only">
-			</label>
+			<div data-elab-files-box class="grid gap-2">
+				<label data-elab-dropzone class="grid cursor-pointer gap-1 rounded-xl border border-dashed border-secondary/30 px-4 py-4 transition-[border-color,box-shadow,background-color,opacity] duration-200 hover:border-secondary focus-within:border-secondary focus-within:shadow-[0_0_0_4px_#FFFD88]">
+					<span class="font-secondary text-xs uppercase tracking-wider text-secondary/70"><?php esc_html_e( 'Attach files', 'elaltillo-bookacall' ); ?> <?php echo $elab_optional; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?></span>
+					<span data-elab-files class="font-primary text-sm text-secondary/70"><?php esc_html_e( 'PDF, Word, Excel or PowerPoint · up to 3 files, 10 MB each', 'elaltillo-bookacall' ); ?></span>
+					<input type="file" name="attachments[]" accept=".pdf,.docx,.xlsx,.pptx" multiple class="sr-only">
+				</label>
+				<ul data-elab-file-list aria-live="polite" class="grid list-none gap-2 p-0 empty:hidden"></ul>
+				<p data-elab-file-error role="alert" hidden class="font-secondary text-xs text-red-800"></p>
+			</div>
 			<label class="flex cursor-pointer items-start gap-3 font-secondary text-xs leading-relaxed text-secondary/70">
 				<input type="checkbox" name="consent" value="1" required class="peer sr-only">
 				<span aria-hidden="true" class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-secondary/40 bg-white/70 text-[0.7rem] text-transparent transition-[background-color,border-color,color] duration-200 peer-checked:border-secondary peer-checked:bg-secondary peer-checked:text-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-secondary">✓</span>

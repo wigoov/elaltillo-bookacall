@@ -3005,3 +3005,35 @@ msgstr "El correo de Google cambió, así que se quitó la conexión con %1$s. S
 #, php-format
 msgid "The Google email changed, so the connection with %1$s was removed. Send %2$s a connection link: until they connect, the advisor is hidden from the booking calendar."
 msgstr "El correo de Google cambió, así que se quitó la conexión con %1$s. Envía un enlace de conexión a %2$s: hasta que se conecte, el asesor no aparece en el calendario de reservas."
+
+msgid "Add another file"
+msgstr "Añadir otro archivo"
+
+#, php-format
+msgid "You attached the maximum of %d files."
+msgstr "Ya adjuntaste el máximo de %d archivos."
+
+msgid "Ready: it will be sent with your booking"
+msgstr "Listo: se enviará con tu reserva"
+
+msgid "1 page"
+msgstr "1 página"
+
+msgid "We could not open this PDF. If it has a password, remove it so the advisor can read it."
+msgstr "No pudimos abrir este PDF. Si tiene contraseña, quítasela para que el asesor pueda leerlo."
+
+#, php-format
+msgid "%s is not a PDF, Word, Excel or PowerPoint file."
+msgstr "%s no es un archivo PDF, Word, Excel o PowerPoint."
+
+#, php-format
+msgid "%s is larger than 10 MB."
+msgstr "%s pesa más de 10 MB."
+
+#, php-format
+msgid "%s is already attached."
+msgstr "%s ya está adjunto."
+
+#, php-format
+msgid "You can attach up to %2$d files; %1$s was not added."
+msgstr "Puedes adjuntar hasta %2$d archivos; %1$s no se añadió."

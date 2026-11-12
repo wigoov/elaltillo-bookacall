@@ -8,6 +8,7 @@
  */
 
 import { initGuests } from './guests.js';
+import { initFiles } from './files.js';
 
 const DAY_BASE = 'relative flex aspect-square w-full max-w-11 justify-self-center items-center justify-center rounded-full font-secondary text-sm tabular-nums transition-[background-color,color,box-shadow,opacity] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary';
 const DAY_OPEN = 'cursor-pointer text-secondary shadow-[inset_0_0_0_1px_rgba(40,44,51,0.3)] hover:bg-accent hover:shadow-[inset_0_0_0_1px_#282C33]';
@@ -168,6 +169,7 @@ function createCalendar(root, config) {
 	};
 	let turnstileWidget = null;
 	const guests = initGuests(root, t);
+	const attachments = initFiles(root, t, config, locale);
 
 	/** Render the Turnstile check once, when the details step is first shown. */
 	function renderTurnstile() {
@@ -183,7 +185,6 @@ function createCalendar(root, config) {
 	function resetTurnstile() {
 		if (turnstileWidget !== null && window.turnstile) window.turnstile.reset(turnstileWidget);
 	}
-	const filesHint = ui.files.textContent;
 	const pickTime = ui.choiceWhen.textContent;
 	const languageValue = $('[data-elab-language-value]');
 	const languageRadios = Array.from(root.querySelectorAll('input[name="elab_language_pick"]'));
@@ -852,7 +853,7 @@ function createCalendar(root, config) {
 			await goTo('done');
 			ui.form.reset();
 			guests.reset();
-			ui.files.textContent = filesHint;
+			attachments.reset();
 		} catch (error) {
 			if (error.status === 409) {
 				await goTo('time');
@@ -945,10 +946,6 @@ function createCalendar(root, config) {
 	});
 	ui.back.addEventListener('click', () => goTo('time'));
 	ui.form.addEventListener('submit', submit);
-	ui.form.querySelector('input[type="file"]').addEventListener('change', (event) => {
-		const files = Array.from(event.target.files || []);
-		swapText(ui.files, files.length === 1 ? files[0].name : files.length ? t('filesChosen', files.length) : filesHint);
-	});
 	ui.again.addEventListener('click', async () => {
 		state.date = '';
 		state.days = {};

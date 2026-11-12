@@ -148,4 +148,15 @@ return array(
 		$script = (string) file_get_contents( ELAB_DIR . 'src/js/guests.js' );
 		T::contains( 'toggle && !toggle.checked ? true', $script, 'Switched off: nothing is sent' );
 	},
+
+	'Attachments show a preview list and PDF.js is offered only for thumbnails' => function () {
+		T::advisor();
+		$html = T::render( static function () { echo do_shortcode( '[elaltillo_bookacall]' ); } );
+		T::contains( 'data-elab-file-list', $html, 'Preview list' );
+		T::contains( 'data-elab-dropzone', $html, 'Drop zone' );
+		T::contains( 'data-elab-file-error', $html, 'Immediate errors' );
+		$inline = implode( ' ', (array) ( wp_scripts()->registered[ ELAB_Booking_Form::SCRIPT_HANDLE ]->extra['before'] ?? array() ) );
+		T::contains( 'vendor\\/pdfjs\\/pdf.min.js', $inline, 'PDF.js URL for thumbnails in the page settings' );
+		T::lacks( '<script src="' . plugins_url( 'assets/js/vendor/pdfjs/pdf.min.js', ELAB_FILE ), $html, 'Not loaded up front' );
+	},
 );

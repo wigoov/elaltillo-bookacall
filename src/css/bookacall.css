@@ -3,6 +3,7 @@
 @source "../../includes/frontend/templates/*.php";
 @source "../js/booking.js";
 @source "../js/guests.js";
+@source "../js/files.js";
 
 @theme {
   --color-primary: #FFFAF7;
