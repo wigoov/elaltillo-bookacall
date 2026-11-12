@@ -31,6 +31,7 @@ require_once __DIR__ . '/frontend/class-elab-booking-form.php';
 require_once __DIR__ . '/privacy/class-elab-privacy.php';
 require_once __DIR__ . '/security/class-elab-security.php';
 require_once __DIR__ . '/system/class-elab-system-status.php';
+require_once __DIR__ . '/portal/class-elab-advisor-portal.php';
 
 final class ELAB_Plugin {
 	private static $instance;
@@ -70,5 +71,6 @@ final class ELAB_Plugin {
 		new ELAB_Privacy();
 		new ELAB_Security();
 		new ELAB_System_Status();
+		new ELAB_Advisor_Portal();
 	}
 }

@@ -61,6 +61,16 @@ final class ELAB_Notifications {
 		return isset( $locales['es_CO'] ) ? 'es_CO' : get_locale();
 	}
 
+	/** The installed locale for a meeting language code ("es" → es_CO), English otherwise. */
+	public static function locale_for_language( $language ) {
+		foreach ( array_keys( self::locales() ) as $locale ) {
+			if ( 0 === strpos( $locale, $language . '_' ) || $locale === $language ) {
+				return $locale;
+			}
+		}
+		return 'en_US';
+	}
+
 	/** Run $callback with WordPress switched to $locale, then switch back. */
 	public static function in_locale( $locale, callable $callback ) {
 		if ( ! $locale || $locale === determine_locale() ) {
@@ -267,7 +277,10 @@ final class ELAB_Notifications {
 				? __( 'Google did not answer, so the event will be removed from your calendar automatically as soon as it does.', 'elaltillo-bookacall' )
 				: __( 'Your Google Calendar is not connected, so the event stays in your calendar until you reconnect; the site then removes it automatically.', 'elaltillo-bookacall' );
 		}
-		$body[] = __( 'The sector, message and attachments are in the private booking record, visible only to site administrators.', 'elaltillo-bookacall' );
+		if ( ! $button ) {
+			$button = array( __( 'View the booking', 'elaltillo-bookacall' ), ELAB_Advisor_Portal::url( $booking_id ) );
+		}
+		$body[] = sprintf( __( 'The sector, message and attachments are in the booking. Open it with your Google account (%s); no website account is needed, and only you can see your bookings.', 'elaltillo-bookacall' ), self::advisor_email( $advisor_id ) );
 		$subject = $broken ? __( 'Action needed: new call waiting for Google Calendar', 'elaltillo-bookacall' ) : $title;
 		return array( $subject, array(
 			'title'     => $title,

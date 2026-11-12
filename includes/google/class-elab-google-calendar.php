@@ -213,6 +213,51 @@ final class ELAB_Google_Calendar {
 		exit;
 	}
 
+	/**
+	 * Advisor portal sign-in: send the browser to Google asking only who they are (no calendar
+	 * access, nothing stored at Google's side for this site).
+	 */
+	public static function start_sign_in( array $state_data, $hint = '' ) {
+		$state = wp_generate_password( 48, false, false );
+		$pkce = self::pkce_pair();
+		set_transient( 'elab_google_state_' . hash( 'sha256', $state ), $state_data + array( 'portal' => true, 'verifier' => $pkce['verifier'] ), 10 * MINUTE_IN_SECONDS );
+		$query = array(
+			'client_id' => self::client_id(),
+			'redirect_uri' => self::redirect_uri(),
+			'response_type' => 'code',
+			'scope' => 'openid email',
+			'prompt' => 'select_account',
+			'state' => $state,
+			'code_challenge' => $pkce['challenge'],
+			'code_challenge_method' => 'S256',
+		);
+		if ( $hint ) {
+			$query['login_hint'] = $hint;
+		}
+		return add_query_arg( $query, 'https://accounts.google.com/o/oauth2/v2/auth' );
+	}
+
+	/**
+	 * The verified Google account behind a sign-in code (PKCE-checked).
+	 *
+	 * @return array{sub:string,email:string}|WP_Error
+	 */
+	public static function identity_from_code( $code, $verifier ) {
+		if ( ! $code ) {
+			return new WP_Error( 'google_cancelled', __( 'Google authorization was cancelled.', 'elaltillo-bookacall' ) );
+		}
+		$tokens = self::token_request( array( 'grant_type' => 'authorization_code', 'code' => $code, 'redirect_uri' => self::redirect_uri(), 'code_verifier' => (string) $verifier ) );
+		if ( is_wp_error( $tokens ) ) {
+			return $tokens;
+		}
+		$identity = self::account_identity( $tokens['access_token'] ?? '' );
+		// Sign-in only: the short access token is withdrawn at once, so nothing stays usable.
+		if ( ! empty( $tokens['access_token'] ) ) {
+			wp_remote_post( self::REVOKE_URL, array( 'timeout' => 5, 'blocking' => false, 'body' => array( 'token' => $tokens['access_token'] ) ) );
+		}
+		return $identity;
+	}
+
 	/** PKCE (RFC 7636): the authorization code is useless without this request's secret verifier. */
 	public static function pkce_pair() {
 		$verifier = rtrim( strtr( base64_encode( random_bytes( 48 ) ), '+/', '-_' ), '=' );
@@ -224,6 +269,11 @@ final class ELAB_Google_Calendar {
 		$state = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : '';
 		$data = $state ? get_transient( 'elab_google_state_' . hash( 'sha256', $state ) ) : false;
 		delete_transient( 'elab_google_state_' . hash( 'sha256', $state ) );
+		// "Sign in with Google" for the advisor portal shares this redirect URI.
+		if ( is_array( $data ) && ! empty( $data['portal'] ) ) {
+			ELAB_Advisor_Portal::finish_login( $data, isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '' );
+			return;
+		}
 		$invite = is_array( $data ) && ! empty( $data['invite'] );
 		// From an emailed link nobody is signed in: the link was checked before Google, and
 		// below Google must confirm the advisor's own account, so no one else can connect it.
@@ -932,18 +982,27 @@ final class ELAB_Google_Calendar {
 		$event_id = self::event_id_for( $booking_id );
 		$advisor = get_the_title( $advisor_id );
 		$visitor = (string) get_post_meta( $booking_id, '_elab_name', true );
-		$description = array(
-			sprintf( __( 'Call booked through %s.', 'elaltillo-bookacall' ), ELAB_Mailer::brand() ),
-			sprintf( __( 'Length: %d minutes', 'elaltillo-bookacall' ), absint( $duration ) ),
-			sprintf( __( 'Meeting language: %s', 'elaltillo-bookacall' ), ELAB_Booking_Service::language_label( get_post_meta( $booking_id, '_elab_language', true ) ?: ELAB_Booking_Service::DEFAULT_LANGUAGE ) ),
-		);
+		// Title and description in the meeting language: everyone in the call reads it, and Meet
+		// shows the same title.
+		$language = (string) get_post_meta( $booking_id, '_elab_language', true ) ?: ELAB_Booking_Service::DEFAULT_LANGUAGE;
+		list( $summary, $description ) = ELAB_Notifications::in_locale( ELAB_Notifications::locale_for_language( $language ), static function () use ( $duration, $visitor, $advisor, $language ) {
+			return array(
+				/* translators: 1: minutes, 2: advisor, 3: visitor, 4: brand. Also the Google Meet title. */
+				sprintf( __( '%1$d-min call with %2$s · %3$s · %4$s', 'elaltillo-bookacall' ), absint( $duration ), $advisor, $visitor ?: __( 'Visitor', 'elaltillo-bookacall' ), ELAB_Mailer::brand() ),
+				array(
+					sprintf( __( 'Call booked through %s.', 'elaltillo-bookacall' ), ELAB_Mailer::brand() ),
+					sprintf( __( 'Length: %d minutes', 'elaltillo-bookacall' ), absint( $duration ) ),
+					sprintf( __( 'Meeting language: %s', 'elaltillo-bookacall' ), ELAB_Booking_Service::language_label( $language ) ),
+				),
+			);
+		} );
 		// No private cancel link here: Google shows the description to every guest. The visitor
 		// gets it by email only.
 		// The visitor is an invited guest: Google emails the invitation, nothing to set up on their side.
 		// Sector, message and files stay out of the event; it lives only in the site's own calendar.
 		$body = array(
 			'id' => $event_id,
-			'summary' => sprintf( __( '%1$s · %2$s and %3$s', 'elaltillo-bookacall' ), ELAB_Mailer::brand(), $visitor ?: __( 'Visitor', 'elaltillo-bookacall' ), $advisor ),
+			'summary' => $summary,
 			'description' => implode( "\n", $description ),
 			'visibility' => 'private',
 			'guestsCanInviteOthers' => false,

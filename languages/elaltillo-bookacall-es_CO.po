@@ -2660,3 +2660,85 @@ msgstr "Reconectar para tomar la zona horaria de Google"
 
 msgid "It does not read the time zone yet: reconnect once so it follows the advisor’s Google Calendar. The calendar and calls are kept."
 msgstr "Todavía no lee la zona horaria: reconecta una vez para que siga el Google Calendar del asesor. El calendario y las llamadas se conservan."
+
+#. translators: 1: minutes, 2: advisor, 3: visitor, 4: brand. Also the Google Meet title.
+msgid "%1$d-min call with %2$s · %3$s · %4$s"
+msgstr "Llamada de %1$d min con %2$s · %3$s · %4$s"
+
+msgid "%s is not the Google account of any advisor. Sign in with the account where you receive your bookings."
+msgstr "%s no es la cuenta de Google de ningún asesor. Entra con la cuenta donde recibes tus reservas."
+
+msgid "Advisor portal"
+msgstr "Portal de asesores"
+
+msgid "Advisor portal: %1$s shows this advisor their bookings after signing in with Google, no website account needed. Last sign-in: %2$s."
+msgstr "Portal de asesores: en %1$s este asesor ve sus reservas tras entrar con Google, sin cuenta en el sitio. Último acceso: %2$s."
+
+msgid "All calls"
+msgstr "Todas las llamadas"
+
+msgid "Back to the portal"
+msgstr "Volver al portal"
+
+msgid "Booking not found"
+msgstr "Reserva no encontrada"
+
+msgid "Calls of %s"
+msgstr "Llamadas de %s"
+
+msgid "File not available"
+msgstr "Archivo no disponible"
+
+msgid "Files open in a safe view: nothing is downloaded and nothing in them runs."
+msgstr "Los archivos se abren en una vista segura: no se descarga nada y nada de su contenido se ejecuta."
+
+msgid "Google only tells the site your name and email address. No website account is needed."
+msgstr "Google solo le indica al sitio tu nombre y tu correo. No necesitas una cuenta en el sitio."
+
+msgid "Google sign-in did not finish"
+msgstr "El inicio de sesión con Google no terminó"
+
+msgid "No past calls yet."
+msgstr "Aún no hay llamadas pasadas."
+
+msgid "No upcoming calls."
+msgstr "No hay próximas llamadas."
+
+msgid "Past calls"
+msgstr "Llamadas pasadas"
+
+msgid "Sign in again to view this file."
+msgstr "Vuelve a entrar para ver este archivo."
+
+msgid "Sign in with Google"
+msgstr "Entrar con Google"
+
+msgid "Sign in with the Google account where you receive your bookings to see them, with everything the visitor sent."
+msgstr "Entra con la cuenta de Google donde recibes tus reservas para verlas, con todo lo que envió el visitante."
+
+msgid "Sign out"
+msgstr "Cerrar sesión"
+
+msgid "The advisor portal is not available yet."
+msgstr "El portal de asesores aún no está disponible."
+
+msgid "The sector, message and attachments are in the booking. Open it with your Google account (%s); no website account is needed, and only you can see your bookings."
+msgstr "El sector, el mensaje y los adjuntos están en la reserva. Ábrela con tu cuenta de Google (%s): no necesitas una cuenta en el sitio y solo tú puedes ver tus reservas."
+
+msgid "This account is not an advisor"
+msgstr "Esta cuenta no es de un asesor"
+
+msgid "This booking does not exist or belongs to another advisor."
+msgstr "Esta reserva no existe o pertenece a otro asesor."
+
+msgid "Upcoming calls"
+msgstr "Próximas llamadas"
+
+msgid "View the booking"
+msgstr "Ver la reserva"
+
+msgid "Visitor’s time"
+msgstr "Hora del visitante"
+
+msgid "never"
+msgstr "nunca"

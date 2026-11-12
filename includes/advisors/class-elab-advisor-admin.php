@@ -335,6 +335,8 @@ final class ELAB_Advisor_Admin {
 				<?php if ( 'invite_failed' === $elab_invite_result ) : ?><p class="notice notice-error inline"><?php esc_html_e( 'The connection link could not be emailed. Check the site email configuration.', 'elaltillo-bookacall' ); ?></p><?php endif; ?>
 				<?php if ( $waiting ) : ?><p class="notice notice-warning inline"><?php echo esc_html( sprintf( _n( '%d call is saved and waiting to be added to Google Calendar.', '%d calls are saved and waiting to be added to Google Calendar.', $waiting, 'elaltillo-bookacall' ), $waiting ) ); ?></p><?php endif; ?>
 				<p class="description"><?php esc_html_e( 'Weekly hours are availability rules, not calendar events. The advisor receives their schedule by email after connecting or when these settings change.', 'elaltillo-bookacall' ); ?></p>
+				<?php $elab_portal_log = (array) get_post_meta( $post->ID, ELAB_Advisor_Portal::META_LOG, true ); ?>
+				<p class="description"><?php echo esc_html( sprintf( __( 'Advisor portal: %1$s shows this advisor their bookings after signing in with Google, no website account needed. Last sign-in: %2$s.', 'elaltillo-bookacall' ), home_url( '/' . ELAB_Advisor_Portal::SLUG . '/' ), ! empty( $elab_portal_log[0] ) ? wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), (int) $elab_portal_log[0] ) : __( 'never', 'elaltillo-bookacall' ) ) ); ?></p>
 				<?php if ( 'failed' === get_post_meta( $post->ID, ELAB_Notifications::META_SCHEDULE_MAIL, true ) ) : ?><p class="notice notice-warning inline"><?php esc_html_e( 'The last schedule email could not be sent. Check the site email configuration.', 'elaltillo-bookacall' ); ?></p><?php endif; ?>
 			</td></tr>
 		</tbody></table>

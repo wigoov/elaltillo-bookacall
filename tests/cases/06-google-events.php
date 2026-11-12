@@ -83,14 +83,17 @@ return array(
 		T::check( (bool) get_post_meta( $booking, ELAB_Booking_Sync::META_MANUAL, true ), 'Flag stored' );
 	},
 
-	'The event is written in the visitor’s language' => function () {
+	'The event and its Meet are named in the meeting language' => function () {
 		if ( ! in_array( 'es_CO', get_available_languages(), true ) ) {
 			return;
 		}
 		$advisor = T::connect( T::advisor( array(), 'Marta' ) );
-		$booking = T::booking( $advisor, array( '_elab_locale' => 'es_CO', '_elab_name' => 'Ana' ) );
+		$english = T::booking( $advisor, array( '_elab_locale' => 'es_CO', '_elab_language' => 'en', '_elab_name' => 'Ana' ) );
+		ELAB_Booking_Sync::create_for( $english );
+		T::same( '30-min call with Marta · Ana · El Altillo', T::$event_body['summary'], 'English meeting, English title (whatever the page language)' );
+		$booking = T::booking( $advisor, array( '_elab_locale' => 'en_US', '_elab_language' => 'es', '_elab_name' => 'Ana' ) );
 		ELAB_Booking_Sync::create_for( $booking );
-		T::contains( 'Ana y Marta', T::$event_body['summary'], 'Spanish title' );
+		T::same( 'Llamada de 30 min con Marta · Ana · El Altillo', T::$event_body['summary'], 'Spanish meeting, Spanish title' );
 		T::contains( 'Llamada agendada a través de', T::$event_body['description'], 'Spanish description' );
 		T::same( 'en_US', determine_locale(), 'Language restored afterwards' );
 	},
