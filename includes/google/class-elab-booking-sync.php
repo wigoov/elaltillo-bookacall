@@ -27,15 +27,24 @@ final class ELAB_Booking_Sync {
 	const DELETE = 'delete';
 
 	public function __construct() {
+		add_filter( 'cron_schedules', array( __CLASS__, 'cron_schedules' ) );
 		add_action( 'init', array( __CLASS__, 'schedule' ) );
+		add_action( self::CRON, array( 'ELAB_Google_Calendar', 'watch_connections' ), 5 );
 		add_action( self::CRON, array( __CLASS__, 'run' ) );
 		add_action( 'admin_post_nopriv_' . self::OLD_ACTION, array( __CLASS__, 'handle_old_link' ) );
 		add_action( 'admin_post_' . self::OLD_ACTION, array( __CLASS__, 'handle_old_link' ) );
 	}
 
+	/** Changes made in Google reach WordPress within about 15 minutes. */
+	public static function cron_schedules( $schedules ) {
+		$schedules['elab_quarter_hour'] = array( 'interval' => 15 * MINUTE_IN_SECONDS, 'display' => 'Every 15 minutes (El Altillo Book a Call)' );
+		return $schedules;
+	}
+
 	public static function schedule() {
-		if ( ! wp_next_scheduled( self::CRON ) ) {
-			wp_schedule_event( time() + 10 * MINUTE_IN_SECONDS, 'hourly', self::CRON );
+		if ( 'elab_quarter_hour' !== wp_get_schedule( self::CRON ) ) {
+			wp_clear_scheduled_hook( self::CRON );
+			wp_schedule_event( time() + MINUTE_IN_SECONDS, 'elab_quarter_hour', self::CRON );
 		}
 	}
 
@@ -184,10 +193,13 @@ final class ELAB_Booking_Sync {
 	}
 
 	/**
-	 * Upcoming calls whose event the advisor deleted in Google Calendar are cancelled here
-	 * too: the time is freed and the visitor and advisor are emailed.
+	 * Bring Google's changes to upcoming calls into WordPress:
+	 * - event deleted by the advisor: the call is cancelled, the visitor and advisor emailed;
+	 * - invitation declined by the visitor: the call is cancelled, the advisor emailed;
+	 * - event moved by the advisor: the call takes the new time, the visitor emailed;
+	 * - the visitor's answer (accepted, maybe) is shown on the booking.
 	 *
-	 * @return int Calls cancelled.
+	 * @return array{cancelled:int,declined:int,moved:int}
 	 */
 	public static function reconcile( $advisor_id = 0 ) {
 		$meta = array(
@@ -198,9 +210,13 @@ final class ELAB_Booking_Sync {
 		if ( $advisor_id ) {
 			$meta[] = array( 'key' => '_elab_advisor', 'value' => (int) $advisor_id );
 		}
-		$cancelled = 0;
+		$done = array( 'cancelled' => 0, 'declined' => 0, 'moved' => 0 );
 		foreach ( get_posts( array( 'post_type' => ELAB_Post_Types::BOOKING, 'post_status' => 'any', 'numberposts' => 200, 'fields' => 'ids', 'meta_query' => $meta ) ) as $booking_id ) {
-			if ( ! ELAB_Google_Calendar::connected( (int) get_post_meta( $booking_id, '_elab_advisor', true ) ) || true !== ELAB_Google_Calendar::event_deleted( $booking_id ) ) {
+			if ( ! ELAB_Google_Calendar::connected( (int) get_post_meta( $booking_id, '_elab_advisor', true ) ) ) {
+				continue;
+			}
+			$state = ELAB_Google_Calendar::event_state( $booking_id );
+			if ( is_wp_error( $state ) ) {
 				continue;
 			}
 			$lock = self::lock( $booking_id );
@@ -208,25 +224,42 @@ final class ELAB_Booking_Sync {
 				continue;
 			}
 			try {
-				if ( 'confirmed' === get_post_meta( $booking_id, '_elab_status', true ) && get_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT, true ) ) {
+				if ( 'confirmed' !== get_post_meta( $booking_id, '_elab_status', true ) || ! get_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT, true ) ) {
+					continue;
+				}
+				if ( $state['deleted'] ) {
 					ELAB_Booking_Manage::cancelled_in_google( $booking_id );
-					$cancelled++;
+					$done['cancelled']++;
+					continue;
+				}
+				if ( 'declined' === $state['response'] ) {
+					ELAB_Booking_Manage::declined_in_google( $booking_id );
+					$done['declined']++;
+					continue;
+				}
+				if ( $state['response'] ) {
+					update_post_meta( $booking_id, ELAB_Booking_Manage::META_RESPONSE, $state['response'] );
+				}
+				$start = strtotime( get_post_meta( $booking_id, '_elab_start_utc', true ) . ' UTC' );
+				if ( $state['start'] && $state['end'] > $state['start'] && ( $state['start'] !== $start || (int) round( ( $state['end'] - $state['start'] ) / MINUTE_IN_SECONDS ) !== ELAB_Booking_Admin::duration( $booking_id ) ) ) {
+					ELAB_Booking_Manage::moved_in_google( $booking_id, $state['start'], $state['end'] );
+					$done['moved']++;
 				}
 			} finally {
 				delete_option( $lock );
 			}
 		}
-		return $cancelled;
+		return $done;
 	}
 
 	/**
 	 * Retry everything queued (for one advisor after they reconnect, or all from cron), then
 	 * cancel the calls the advisor deleted in Google.
 	 *
-	 * @return array{created:int,deleted:int,waiting:int,cancelled:int}
+	 * @return array{created:int,deleted:int,waiting:int,cancelled:int,declined:int,moved:int}
 	 */
 	public static function run( $advisor_id = 0 ) {
-		$done = array( 'created' => 0, 'deleted' => 0, 'waiting' => 0, 'cancelled' => 0 );
+		$done = array( 'created' => 0, 'deleted' => 0, 'waiting' => 0 );
 		foreach ( self::pending( (int) $advisor_id ) as $booking_id ) {
 			$owner = (int) get_post_meta( $booking_id, '_elab_advisor', true );
 			if ( ! ELAB_Google_Calendar::connected( $owner ) ) {
@@ -260,8 +293,7 @@ final class ELAB_Booking_Sync {
 			}
 			$done['created']++;
 		}
-		$done['cancelled'] = self::reconcile( (int) $advisor_id );
-		return $done;
+		return array_merge( $done, self::reconcile( (int) $advisor_id ) );
 	}
 
 	/* ---------- Links from older emails ---------- */

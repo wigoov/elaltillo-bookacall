@@ -74,7 +74,7 @@ return array(
 		$mail = $advisor_mail( $advisor );
 		T::same( 'Action needed: new call waiting for Google Calendar', $mail['subject'], 'Subject' );
 		T::contains( 'Reconnect Google Calendar', $mail['message'], 'Reconnect button' );
-		T::contains( 'post.php?post=' . $advisor, $mail['message'], 'Reconnect goes to the advisor profile' );
+		T::contains( 'elab_google_invite', $mail['message'], 'Reconnect link needs no WordPress login' );
 		T::lacks( 'elab_advisor_event', $mail['message'], 'No link to add it by hand' );
 	},
 

@@ -2769,3 +2769,117 @@ msgstr "Cancelada aquí. El Google Calendar del asesor no está conectado, así 
 
 msgid "Your Google Calendar is not connected, so the event stays in your calendar until you reconnect; the site then removes it automatically."
 msgstr "Tu Google Calendar no está conectado, así que el evento sigue en tu calendario hasta que vuelvas a conectarte; entonces el sitio lo borra automáticamente."
+
+#, php-format
+msgid "%s declined the calendar invitation, so the call was cancelled and the time is free again."
+msgstr "%s rechazó la invitación del calendario, así que la llamada se canceló y la hora vuelve a estar libre."
+
+msgid "Accepted by the visitor"
+msgstr "Aceptada por el visitante"
+
+msgid "Ask the site administrator to send you a new connection link."
+msgstr "Pide al administrador del sitio que te envíe un nuevo enlace de conexión."
+
+msgid "Connect again: until then you do not appear in the booking calendar. Calls already booked are kept."
+msgstr "Vuelve a conectar: hasta entonces no apareces en el calendario de reservas. Las llamadas ya reservadas se conservan."
+
+msgid "Connect your Google Calendar"
+msgstr "Conecta tu Google Calendar"
+
+#, php-format
+msgid "Connect your Google Calendar to %s"
+msgstr "Conecta tu Google Calendar a %s"
+
+#, php-format
+msgid "Connect your Google account so visitors can book calls with you on %s and every booked call appears in your calendar automatically."
+msgstr "Conecta tu cuenta de Google para que los visitantes puedan reservar llamadas contigo en %s y cada llamada aparezca en tu calendario automáticamente."
+
+#, php-format
+msgid "Connection link sent to %1$s. It works until %2$s, without a website login."
+msgstr "Enlace de conexión enviado a %1$s. Funciona hasta el %2$s, sin iniciar sesión en el sitio."
+
+msgid "Continue to Google"
+msgstr "Continuar a Google"
+
+msgid "Declined by the visitor"
+msgstr "Rechazada por el visitante"
+
+msgid "Email a connection link"
+msgstr "Enviar enlace de conexión por correo"
+
+msgid "Google Calendar connected"
+msgstr "Google Calendar conectado"
+
+msgid "Google access was removed or expired, so this advisor is hidden from the booking calendar until they reconnect. Calls already booked are kept. The advisor was emailed a link to reconnect."
+msgstr "El acceso a Google se retiró o caducó, así que este asesor no aparece en el calendario de reservas hasta que vuelva a conectarse. Las llamadas ya reservadas se conservan. Se le envió al asesor un enlace para reconectar."
+
+msgid "Google account to use"
+msgstr "Cuenta de Google que debes usar"
+
+msgid "If the new time does not suit you, use the button above to cancel so the time is freed."
+msgstr "Si la nueva hora no te sirve, usa el botón de arriba para cancelar y liberar la hora."
+
+msgid "Invitation"
+msgstr "Invitación"
+
+msgid "It may have expired, been used already, or been replaced by a newer one. Ask the site administrator to send you a new connection link."
+msgstr "Puede que haya caducado, que ya se haya usado o que lo haya reemplazado uno más reciente. Pide al administrador del sitio que te envíe un nuevo enlace de conexión."
+
+msgid "Link valid until"
+msgstr "Enlace válido hasta"
+
+msgid "Maybe, says the visitor"
+msgstr "Quizás, según el visitante"
+
+msgid "Moved in Google"
+msgstr "Movida en Google"
+
+msgid "No answer yet"
+msgstr "Sin respuesta todavía"
+
+msgid "Not connected, so hidden from the booking calendar. Email the advisor a connection link (no website login needed), or connect here."
+msgstr "No conectado, así que no aparece en el calendario de reservas. Envía al asesor un enlace de conexión por correo (no necesita iniciar sesión en el sitio) o conéctalo aquí."
+
+#, php-format
+msgid "Sign in with %1$s. %2$s creates one calendar in it, “%3$s”, and can only add and remove your booked calls there: it cannot see or change any other calendar or event."
+msgstr "Inicia sesión con %1$s. %2$s crea un calendario en esa cuenta, «%3$s», y solo puede agregar y quitar ahí tus llamadas reservadas: no puede ver ni cambiar ningún otro calendario ni evento."
+
+#, php-format
+msgid "The advisor changed the time in Google Calendar; noticed %s UTC"
+msgstr "El asesor cambió la hora en Google Calendar; detectado el %s UTC"
+
+msgid "The advisor moved your call. Here are the new details; your calendar invitation is updated too."
+msgstr "El asesor cambió tu llamada. Estos son los nuevos datos; tu invitación del calendario también se actualizó."
+
+msgid "The connection link could not be emailed. Check the site email configuration."
+msgstr "No se pudo enviar el enlace de conexión. Revisa la configuración de correo del sitio."
+
+msgid "The saved connection no longer matches this advisor’s email or the site’s OAuth client, so the advisor is hidden from the booking calendar. Connect the correct account."
+msgstr "La conexión guardada ya no coincide con el correo de este asesor o con el cliente OAuth del sitio, así que el asesor no aparece en el calendario de reservas. Conecta la cuenta correcta."
+
+#, php-format
+msgid "The site creates one calendar in your account, “%s”, and can only add and remove your booked calls there. It cannot see or change any other calendar or event."
+msgstr "El sitio crea un calendario en tu cuenta, «%s», y solo puede agregar y quitar ahí tus llamadas reservadas. No puede ver ni cambiar ningún otro calendario ni evento."
+
+#, php-format
+msgid "The visitor declined the Google invitation, noticed %s UTC"
+msgstr "El visitante rechazó la invitación de Google, detectado el %s UTC"
+
+msgid "This booking has no event in the site’s calendar."
+msgstr "Esta reserva no tiene evento en el calendario del sitio."
+
+msgid "This happens when access is removed in the Google account, the password changes, or the Google app is still in Testing mode (access then expires after 7 days). Reconnecting takes one click, needs no website login, and adds any waiting calls automatically."
+msgstr "Esto ocurre cuando se retira el acceso en la cuenta de Google, cambia la contraseña o la app de Google sigue en modo de prueba (el acceso caduca a los 7 días). Reconectar es un clic, no necesita iniciar sesión en el sitio y agrega automáticamente las llamadas pendientes."
+
+msgid "Until you reconnect, you do not appear in the booking calendar and visitors cannot book new calls with you. Calls already booked are kept."
+msgstr "Hasta que vuelvas a conectarte, no apareces en el calendario de reservas y los visitantes no pueden reservar llamadas nuevas contigo. Las llamadas ya reservadas se conservan."
+
+#, php-format
+msgid "Visitors can book calls with you again. Each booked call appears in the “%s” calendar of your Google account. You can close this page."
+msgstr "Los visitantes ya pueden reservar llamadas contigo. Cada llamada reservada aparece en el calendario «%s» de tu cuenta de Google. Puedes cerrar esta página."
+
+msgid "You do not need a website account. This link is personal: please do not forward it."
+msgstr "No necesitas una cuenta en el sitio. Este enlace es personal: no lo reenvíes."
+
+msgid "Your call has a new time"
+msgstr "Tu llamada tiene una nueva hora"

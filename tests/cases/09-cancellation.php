@@ -119,7 +119,7 @@ return array(
 		$advisor = T::connect( T::advisor() );
 		$booking = T::booking( $advisor );
 		ELAB_Booking_Sync::create_for( $booking );
-		T::same( 0, ELAB_Booking_Sync::reconcile(), 'An event still in Google changes nothing' );
+		T::same( 0, ELAB_Booking_Sync::reconcile()['cancelled'], 'An event still in Google changes nothing' );
 		T::same( 'confirmed', get_post_meta( $booking, '_elab_status', true ), 'Still confirmed' );
 		T::$event_status = 'cancelled';
 		T::same( 1, ELAB_Booking_Sync::run()['cancelled'], 'The hourly run cancels it' );
@@ -129,7 +129,7 @@ return array(
 		T::same( 0, count( T::requests( '#^DELETE #' ) ), 'Nothing sent back to Google' );
 		T::same( 1, count( T::mail_with_subject( 'Your call was cancelled' ) ), 'Visitor emailed' );
 		T::contains( 'deleted from your Google Calendar', wp_json_encode( T::mail_with_subject( 'Call cancelled' ) ), 'Advisor told why' );
-		T::same( 0, ELAB_Booking_Sync::reconcile(), 'Only once' );
+		T::same( 0, ELAB_Booking_Sync::reconcile()['cancelled'], 'Only once' );
 	},
 
 	'A 404 or 410 for the event counts as deleted, but a missing calendar never cancels calls' => function () {
@@ -140,10 +140,10 @@ return array(
 		T::same( true, ELAB_Google_Calendar::event_deleted( $booking ), '410 Gone' );
 		T::$calendar_gone = true;
 		T::error( 'google_calendar_gone', ELAB_Google_Calendar::event_deleted( $booking ), 'Calendar missing is not a cancellation' );
-		T::same( 0, ELAB_Booking_Sync::reconcile(), 'Nothing cancelled' );
+		T::same( 0, ELAB_Booking_Sync::reconcile()['cancelled'], 'Nothing cancelled' );
 		T::$calendar_gone = false;
 		T::$google_down = true;
-		T::same( 0, ELAB_Booking_Sync::reconcile(), 'Google down: nothing cancelled' );
+		T::same( 0, ELAB_Booking_Sync::reconcile()['cancelled'], 'Google down: nothing cancelled' );
 		T::same( 'confirmed', get_post_meta( $booking, '_elab_status', true ), 'Still confirmed' );
 	},
 );

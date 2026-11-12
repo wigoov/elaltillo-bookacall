@@ -79,9 +79,36 @@ final class ELAB_Notifications {
 		return is_email( $email ) ? $email : '';
 	}
 
-	/** Where the advisor (or an admin) reconnects Google. Works from cron, without a logged-in user. */
+	/**
+	 * Where the advisor reconnects Google: their personal emailed link, which needs no
+	 * WordPress login. Works from cron.
+	 */
 	public static function reconnect_url( $advisor_id ) {
-		return (int) get_post_meta( $advisor_id, '_elab_wp_user', true ) ? admin_url( 'profile.php#elab-google' ) : admin_url( 'post.php?post=' . (int) $advisor_id . '&action=edit' );
+		return ELAB_Google_Calendar::invite_url( $advisor_id ) ?: ( (int) get_post_meta( $advisor_id, '_elab_wp_user', true ) ? admin_url( 'profile.php#elab-google' ) : admin_url( 'post.php?post=' . (int) $advisor_id . '&action=edit' ) );
+	}
+
+	/** Sent from the advisor's admin screen: a link to connect Google without signing in to WordPress. */
+	public static function connect_invite( $advisor_id ) {
+		$email = self::advisor_email( $advisor_id );
+		$url = ELAB_Google_Calendar::invite_url( $advisor_id );
+		if ( ! $email || ! $url ) {
+			return false;
+		}
+		return self::in_locale( self::advisor_locale( $advisor_id ), static function () use ( $advisor_id, $email, $url ) {
+			return ELAB_Mailer::send( $email, sprintf( __( 'Connect your Google Calendar to %s', 'elaltillo-bookacall' ), get_bloginfo( 'name' ) ), array(
+				'title'  => __( 'Connect your Google Calendar', 'elaltillo-bookacall' ),
+				'intro'  => sprintf( __( 'Connect your Google account so visitors can book calls with you on %s and every booked call appears in your calendar automatically.', 'elaltillo-bookacall' ), get_bloginfo( 'name' ) ),
+				'rows'   => array(
+					__( 'Google account to use', 'elaltillo-bookacall' ) => $email,
+					__( 'Link valid until', 'elaltillo-bookacall' )      => wp_date( get_option( 'date_format' ), ELAB_Google_Calendar::invite_expires( $advisor_id ) ),
+				),
+				'button' => array( __( 'Connect Google Calendar', 'elaltillo-bookacall' ), $url ),
+				'body'   => array(
+					sprintf( __( 'The site creates one calendar in your account, “%s”, and can only add and remove your booked calls there. It cannot see or change any other calendar or event.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::CALENDAR_NAME ),
+					__( 'You do not need a website account. This link is personal: please do not forward it.', 'elaltillo-bookacall' ),
+				),
+			) );
+		} );
 	}
 
 	private static function zone( $name ) {
@@ -182,6 +209,7 @@ final class ELAB_Notifications {
 			'cancelled' => array( __( 'Call cancelled', 'elaltillo-bookacall' ), array(
 				'visitor' => sprintf( __( '%s cancelled the call from their private link. The time is free again.', 'elaltillo-bookacall' ), $name ),
 				'google'  => __( 'The event was deleted from your Google Calendar, so the call was cancelled on the site too. The time is free again and the visitor was emailed.', 'elaltillo-bookacall' ),
+				'declined' => sprintf( __( '%s declined the calendar invitation, so the call was cancelled and the time is free again.', 'elaltillo-bookacall' ), $name ),
 			)[ get_post_meta( $booking_id, '_elab_cancelled_by', true ) ] ?? __( 'This call was cancelled. The time is free again.', 'elaltillo-bookacall' ) ),
 			'synced'    => array( __( 'Call added to your calendar', 'elaltillo-bookacall' ), __( 'Google is reachable again: this call is now in your calendar and the visitor received the invitation.', 'elaltillo-bookacall' ) ),
 		);
@@ -243,10 +271,10 @@ final class ELAB_Notifications {
 				ELAB_Mailer::send( $recipient, sprintf( __( 'Reconnect Google Calendar for %s', 'elaltillo-bookacall' ), $subject_name ), array(
 					'title'  => __( 'Reconnect your Google Calendar', 'elaltillo-bookacall' ),
 					'intro'  => sprintf( __( 'Google stopped accepting the connection for %s.', 'elaltillo-bookacall' ), $subject_name ),
-					'notice' => __( 'Visitors can still book: every call is saved in WordPress and the time stays reserved. Only the calendar event and the visitor’s Google invitation wait until you reconnect.', 'elaltillo-bookacall' ),
+					'notice' => __( 'Until you reconnect, you do not appear in the booking calendar and visitors cannot book new calls with you. Calls already booked are kept.', 'elaltillo-bookacall' ),
 					'rows'   => $rows,
 					'button' => array( __( 'Reconnect Google Calendar', 'elaltillo-bookacall' ), self::reconnect_url( $advisor_id ) ),
-					'body'   => array( __( 'This happens when access is removed in the Google account, the password changes, or the Google app is still in Testing mode (access then expires after 7 days). Reconnecting takes one click and adds the waiting calls automatically.', 'elaltillo-bookacall' ) ),
+					'body'   => array( __( 'This happens when access is removed in the Google account, the password changes, or the Google app is still in Testing mode (access then expires after 7 days). Reconnecting takes one click, needs no website login, and adds any waiting calls automatically.', 'elaltillo-bookacall' ) ),
 				) );
 			} );
 		}
@@ -337,6 +365,19 @@ final class ELAB_Notifications {
 				'rows'   => self::visitor_rows( $booking_id ),
 				'button' => self::manage_button( $booking_id ),
 				'body'   => $body,
+			) );
+		} );
+	}
+
+	/** The advisor moved the call in Google Calendar: the new time, in the visitor's language. */
+	public static function visitor_moved( $booking_id ) {
+		return self::send_visitor( $booking_id, static function () use ( $booking_id ) {
+			return array( __( 'Your call has a new time', 'elaltillo-bookacall' ), array(
+				'title'  => __( 'Your call has a new time', 'elaltillo-bookacall' ),
+				'intro'  => __( 'The advisor moved your call. Here are the new details; your calendar invitation is updated too.', 'elaltillo-bookacall' ),
+				'rows'   => self::visitor_rows( $booking_id ),
+				'button' => self::manage_button( $booking_id ),
+				'body'   => array( __( 'If the new time does not suit you, use the button above to cancel so the time is freed.', 'elaltillo-bookacall' ) ),
 			) );
 		} );
 	}

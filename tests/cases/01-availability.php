@@ -131,13 +131,15 @@ return array(
 		T::same( array(), T::$http, 'No outbound request' );
 	},
 
-	'Who is bookable: published, with hours and an email; linked to Google once it is set up' => function () {
+	'Who is bookable: published, with hours and an email; with a working Google connection once it is set up' => function () {
 		$advisor = T::advisor();
 		T::check( ELAB_Availability::is_bookable( $advisor ), 'Complete advisor is bookable without Google' );
 		T::configure_google();
 		T::check( ! ELAB_Availability::is_bookable( $advisor ), 'With Google set up, an advisor who never connected is hidden' );
 		T::connect( $advisor, false );
-		T::check( ELAB_Availability::is_bookable( $advisor ), 'A linked advisor stays bookable even if the connection needs attention' );
+		T::check( ! ELAB_Availability::is_bookable( $advisor ), 'A connection that needs attention (no calendar yet) hides the advisor' );
+		T::connect( $advisor );
+		T::check( ELAB_Availability::is_bookable( $advisor ), 'A working connection makes the advisor bookable' );
 		update_post_meta( $advisor, '_elab_availability', wp_json_encode( array() ) );
 		T::check( (bool) ELAB_Advisor_Admin::booking_issues( $advisor ), 'No weekly hours is reported as an issue' );
 		wp_update_post( array( 'ID' => $advisor, 'post_status' => 'draft' ) );

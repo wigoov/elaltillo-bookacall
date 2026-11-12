@@ -34,7 +34,7 @@ return array(
 
 	'The description has the cancel link but none of the private details' => function () use ( $event_for ) {
 		$event_for();
-		T::contains( 'elab_token=', T::$event_body['description'], 'Cancel link' );
+		T::lacks( 'elab_token=', T::$event_body['description'], 'No private cancel link: Google shows the description to every guest' );
 		T::lacks( 'Private message', T::$event_body['description'], 'No message' );
 		T::lacks( 'Private sector', T::$event_body['description'], 'No sector' );
 	},

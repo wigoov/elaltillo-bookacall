@@ -23,6 +23,9 @@ final class ELAB_Google_Calendar {
 	const META_CALENDAR = '_elab_google_calendar';
 	/** Advisor: the permissions Google says this site's access carries (space separated). */
 	const META_SCOPES = '_elab_google_scopes';
+	/** Advisor: the emailed connection link (encrypted token and expiry). */
+	const META_INVITE = '_elab_google_invite';
+	const INVITE_DAYS = 14;
 	const TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo';
 	const SCOPE = 'https://www.googleapis.com/auth/calendar.app.created';
 	const CALENDAR_NAME = 'El Altillo · Citas';
@@ -36,6 +39,11 @@ final class ELAB_Google_Calendar {
 	public function __construct() {
 		add_action( 'admin_post_elab_google_connect', array( $this, 'connect' ) );
 		add_action( 'admin_post_elab_google_callback', array( $this, 'callback' ) );
+		// Advisors connect from an emailed link, without a WordPress account or login.
+		add_action( 'admin_post_nopriv_elab_google_callback', array( $this, 'callback' ) );
+		add_action( 'admin_post_elab_google_invite', array( $this, 'invite' ) );
+		add_action( 'admin_post_nopriv_elab_google_invite', array( $this, 'invite' ) );
+		add_action( 'admin_post_elab_google_send_invite', array( $this, 'send_invite' ) );
 		add_action( 'admin_post_elab_google_disconnect', array( $this, 'disconnect' ) );
 		add_action( 'show_user_profile', array( $this, 'render_own_profile' ) );
 	}
@@ -68,7 +76,7 @@ final class ELAB_Google_Calendar {
 			} elseif ( self::configured() ) {
 				echo '<p>' . esc_html( $connected ? sprintf( __( 'Connected as %s', 'elaltillo-bookacall' ), self::account_email( $advisor->ID ) ) : sprintf( __( 'Expected Google account: %s', 'elaltillo-bookacall' ), $expected_email ) ) . '</p>';
 				if ( ! $connected && self::linked( $advisor->ID ) ) {
-					echo '<p class="description">' . esc_html__( 'Connect again: until then, new calls are saved here and added to Google automatically once you reconnect.', 'elaltillo-bookacall' ) . '</p>';
+					echo '<p class="description">' . esc_html__( 'Connect again: until then you do not appear in the booking calendar. Calls already booked are kept.', 'elaltillo-bookacall' ) . '</p>';
 				}
 				echo '<a class="button ' . ( $connected ? '' : 'button-primary' ) . '" href="' . esc_url( $url ) . '">' . esc_html( $connected ? __( 'Disconnect Google Calendar', 'elaltillo-bookacall' ) : ( self::linked( $advisor->ID ) ? __( 'Reconnect Google Calendar', 'elaltillo-bookacall' ) : __( 'Connect Google Calendar', 'elaltillo-bookacall' ) ) ) . '</a>';
 			} else {
@@ -146,6 +154,14 @@ final class ELAB_Google_Calendar {
 		if ( ! self::configured() || ! self::can_connect( $advisor_id ) || ELAB_Post_Types::ADVISOR !== get_post_type( $advisor_id ) || ! ELAB_Notifications::advisor_email( $advisor_id ) ) {
 			wp_die( esc_html__( 'Google Calendar is not configured or you cannot edit this advisor.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
 		}
+		self::start_oauth( $advisor_id, get_current_user_id(), false );
+	}
+
+	/**
+	 * Send the advisor to Google's consent screen. $invite marks a flow started from an
+	 * emailed link, by someone who is not signed in to WordPress.
+	 */
+	private static function start_oauth( $advisor_id, $user_id, $invite ) {
 		// Replacing a connection that is not in use (old broader permission, expired, other
 		// account): withdraw it at Google first, so the new grant starts from nothing and
 		// carries only the permission requested below.
@@ -158,7 +174,7 @@ final class ELAB_Google_Calendar {
 		}
 		$state = wp_generate_password( 48, false, false );
 		$pkce = self::pkce_pair();
-		set_transient( 'elab_google_state_' . hash( 'sha256', $state ), array( 'advisor' => $advisor_id, 'user' => get_current_user_id(), 'verifier' => $pkce['verifier'] ), 10 * MINUTE_IN_SECONDS );
+		set_transient( 'elab_google_state_' . hash( 'sha256', $state ), array( 'advisor' => $advisor_id, 'user' => (int) $user_id, 'invite' => (bool) $invite, 'verifier' => $pkce['verifier'] ), 10 * MINUTE_IN_SECONDS );
 		$url = add_query_arg( array(
 			'client_id' => self::client_id(),
 			'redirect_uri' => self::redirect_uri(),
@@ -187,7 +203,10 @@ final class ELAB_Google_Calendar {
 		$state = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : '';
 		$data = $state ? get_transient( 'elab_google_state_' . hash( 'sha256', $state ) ) : false;
 		delete_transient( 'elab_google_state_' . hash( 'sha256', $state ) );
-		if ( ! is_array( $data ) || ! is_user_logged_in() || (int) $data['user'] !== get_current_user_id() || ! self::can_connect( (int) $data['advisor'] ) ) {
+		$invite = is_array( $data ) && ! empty( $data['invite'] );
+		// From an emailed link nobody is signed in: the link was checked before Google, and
+		// below Google must confirm the advisor's own account, so no one else can connect it.
+		if ( ! is_array( $data ) || ( ! $invite && ( ! is_user_logged_in() || (int) $data['user'] !== get_current_user_id() || ! self::can_connect( (int) $data['advisor'] ) ) ) || ELAB_Post_Types::ADVISOR !== get_post_type( (int) $data['advisor'] ) ) {
 			wp_die( esc_html__( 'Invalid or expired Google authorization.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
 		}
 		$code = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
@@ -231,9 +250,119 @@ final class ELAB_Google_Calendar {
 		ELAB_Notifications::schedule_summary( (int) $data['advisor'] );
 		// Calls saved while the connection was broken go to Google now.
 		ELAB_Booking_Sync::run( $advisor_id );
+		if ( $invite ) {
+			delete_post_meta( $advisor_id, self::META_INVITE ); // One use only.
+			wp_safe_redirect( add_query_arg( array( 'action' => 'elab_google_invite', 'advisor' => $advisor_id, 'done' => 1 ), admin_url( 'admin-post.php' ) ) );
+			exit;
+		}
 		$destination = current_user_can( 'manage_options' ) ? get_edit_post_link( (int) $data['advisor'], 'raw' ) : admin_url( 'profile.php' );
 		wp_safe_redirect( add_query_arg( 'elab_google', 'connected', $destination ) );
 		exit;
+	}
+
+	/* ---------- Connection link sent by email ---------- */
+
+	/**
+	 * Personal link that lets the advisor connect Google without a WordPress login. The same
+	 * link is reused until it expires or is used, so every email shows a working one.
+	 */
+	public static function invite_url( $advisor_id ) {
+		$invite = get_post_meta( $advisor_id, self::META_INVITE, true );
+		$token = is_array( $invite ) && (int) ( $invite['expires'] ?? 0 ) > time() + DAY_IN_SECONDS ? (string) self::decrypt( (string) ( $invite['token'] ?? '' ) ) : '';
+		if ( '' === $token ) {
+			$token = wp_generate_password( 40, false, false );
+			$encrypted = self::encrypt( $token );
+			if ( ! $encrypted ) {
+				return '';
+			}
+			update_post_meta( $advisor_id, self::META_INVITE, array( 'token' => $encrypted, 'expires' => time() + self::INVITE_DAYS * DAY_IN_SECONDS ) );
+		}
+		return add_query_arg( array( 'action' => 'elab_google_invite', 'advisor' => (int) $advisor_id, 'token' => $token ), admin_url( 'admin-post.php' ) );
+	}
+
+	/** When the emailed link stops working (0 if there is none). */
+	public static function invite_expires( $advisor_id ) {
+		$invite = get_post_meta( $advisor_id, self::META_INVITE, true );
+		return is_array( $invite ) ? (int) ( $invite['expires'] ?? 0 ) : 0;
+	}
+
+	public static function valid_invite( $advisor_id, $token ) {
+		$invite = get_post_meta( $advisor_id, self::META_INVITE, true );
+		if ( ! is_string( $token ) || '' === $token || ! is_array( $invite ) || (int) ( $invite['expires'] ?? 0 ) <= time() ) {
+			return false;
+		}
+		$saved = (string) self::decrypt( (string) ( $invite['token'] ?? '' ) );
+		return '' !== $saved && hash_equals( $saved, $token );
+	}
+
+	/**
+	 * GET shows what will happen; POST goes to Google. The two steps keep email link
+	 * scanners from starting anything.
+	 */
+	public function invite() {
+		// phpcs:disable WordPress.Security.NonceVerification -- The emailed token authenticates this link.
+		$advisor_id = isset( $_REQUEST['advisor'] ) ? absint( $_REQUEST['advisor'] ) : 0;
+		$token = isset( $_REQUEST['token'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['token'] ) ) : '';
+		$done = isset( $_GET['done'] );
+		// phpcs:enable
+		if ( ! headers_sent() ) {
+			nocache_headers();
+			header( 'X-Robots-Tag: noindex, nofollow' );
+			header( 'Referrer-Policy: no-referrer' );
+		}
+		$is_advisor = ELAB_Post_Types::ADVISOR === get_post_type( $advisor_id );
+		$locale = $is_advisor ? ELAB_Notifications::advisor_locale( $advisor_id ) : '';
+		if ( $done ) {
+			$connected = $is_advisor && self::connected( $advisor_id );
+			self::public_page( $locale, $connected ? 200 : 410, $connected ? __( 'Google Calendar connected', 'elaltillo-bookacall' ) : __( 'This link is not valid', 'elaltillo-bookacall' ), $connected ? sprintf( __( 'Visitors can book calls with you again. Each booked call appears in the “%s” calendar of your Google account. You can close this page.', 'elaltillo-bookacall' ), self::CALENDAR_NAME ) : __( 'Ask the site administrator to send you a new connection link.', 'elaltillo-bookacall' ) );
+		}
+		if ( ! self::configured() || ! $is_advisor || ! ELAB_Notifications::advisor_email( $advisor_id ) || ! self::valid_invite( $advisor_id, $token ) ) {
+			self::public_page( $locale, 403, __( 'This link is not valid', 'elaltillo-bookacall' ), __( 'It may have expired, been used already, or been replaced by a newer one. Ask the site administrator to send you a new connection link.', 'elaltillo-bookacall' ) );
+		}
+		if ( 'POST' === ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
+			self::start_oauth( $advisor_id, 0, true );
+		}
+		$email = ELAB_Notifications::advisor_email( $advisor_id );
+		self::public_page(
+			$locale,
+			200,
+			__( 'Connect your Google Calendar', 'elaltillo-bookacall' ),
+			sprintf( __( 'Sign in with %1$s. %2$s creates one calendar in it, “%3$s”, and can only add and remove your booked calls there: it cannot see or change any other calendar or event.', 'elaltillo-bookacall' ), $email, get_bloginfo( 'name' ), self::CALENDAR_NAME ),
+			array( __( 'Continue to Google', 'elaltillo-bookacall' ), add_query_arg( array( 'action' => 'elab_google_invite', 'advisor' => $advisor_id, 'token' => $token ), admin_url( 'admin-post.php' ) ) )
+		);
+	}
+
+	private static function public_page( $locale, $code, $title, $intro, $form = null ) {
+		$html = ELAB_Notifications::in_locale( $locale, static function () use ( $title, $intro, $form ) {
+			return ELAB_Mailer::page( array( 'title' => $title, 'intro' => $intro, 'form' => $form ) );
+		} );
+		status_header( $code );
+		if ( ! headers_sent() ) {
+			header( 'Content-Type: text/html; charset=utf-8' );
+		}
+		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in ELAB_Mailer.
+		exit;
+	}
+
+	/** Administrator: email the advisor their connection link. */
+	public function send_invite() {
+		$advisor_id = isset( $_GET['advisor'] ) ? absint( $_GET['advisor'] ) : 0;
+		check_admin_referer( 'elab_google_send_invite_' . $advisor_id );
+		if ( ! current_user_can( 'manage_options' ) || ELAB_Post_Types::ADVISOR !== get_post_type( $advisor_id ) || ! self::configured() ) {
+			wp_die( esc_html__( 'You cannot edit this advisor.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
+		}
+		$sent = ELAB_Notifications::connect_invite( $advisor_id );
+		wp_safe_redirect( add_query_arg( 'elab_google', $sent ? 'invite_sent' : 'invite_failed', get_edit_post_link( $advisor_id, 'raw' ) ) . '#elab-google-connection' );
+		exit;
+	}
+
+	/** Cron: ask Google about every connected advisor, so a removed grant is noticed (and the advisor told) within minutes. */
+	public static function watch_connections() {
+		foreach ( get_posts( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids' ) ) as $advisor_id ) {
+			if ( self::connected( $advisor_id ) ) {
+				self::check( $advisor_id );
+			}
+		}
 	}
 
 	public function disconnect() {
@@ -517,12 +646,8 @@ final class ELAB_Google_Calendar {
 			sprintf( __( 'Length: %d minutes', 'elaltillo-bookacall' ), absint( $duration ) ),
 			sprintf( __( 'Meeting language: %s', 'elaltillo-bookacall' ), ELAB_Booking_Service::language_label( get_post_meta( $booking_id, '_elab_language', true ) ?: ELAB_Booking_Service::DEFAULT_LANGUAGE ) ),
 		);
-		$manage = ELAB_Booking_Manage::url( $booking_id );
-		if ( $manage ) {
-			$description[] = '';
-			$description[] = __( 'Need to cancel? Use this private link:', 'elaltillo-bookacall' );
-			$description[] = $manage;
-		}
+		// No private cancel link here: Google shows the description to every guest. The visitor
+		// gets it by email only.
 		// The visitor is an invited guest: Google emails the invitation, nothing to set up on their side.
 		// Sector, message and files stay out of the event; it lives only in the site's own calendar.
 		$body = array(
@@ -577,28 +702,50 @@ final class ELAB_Google_Calendar {
 	}
 
 	/**
-	 * Whether the advisor deleted this booking's event in Google Calendar.
+	 * What Google says about this booking's event now: deleted, its times, and the visitor's
+	 * answer to the invitation.
 	 *
-	 * @return bool|WP_Error True when the event is gone; an error when Google cannot tell
-	 *                       (including when the whole calendar is missing, which is never
-	 *                       read as "every call was cancelled").
+	 * @return array{deleted:bool,start:int,end:int,response:string}|WP_Error An error when Google
+	 *         cannot tell (including a missing calendar, which is never read as "every call was
+	 *         cancelled").
 	 */
-	public static function event_deleted( $booking_id ) {
+	public static function event_state( $booking_id ) {
 		$advisor_id = (int) get_post_meta( $booking_id, '_elab_advisor', true );
 		$event_id = (string) get_post_meta( $booking_id, self::META_EVENT, true );
 		$calendar = (string) get_post_meta( $booking_id, self::META_CALENDAR, true );
 		if ( ! preg_match( '/^elab[0-9a-f]{32}$/', $event_id ) || '' === $calendar ) {
-			return false;
+			return new WP_Error( 'google_event_unknown', __( 'This booking has no event in the site’s calendar.', 'elaltillo-bookacall' ) );
 		}
 		$event = self::request( $advisor_id, 'GET', '/calendars/' . rawurlencode( $calendar ) . '/events/' . rawurlencode( $event_id ) );
-		if ( ! is_wp_error( $event ) ) {
-			return 'cancelled' === ( $event['status'] ?? '' );
+		if ( is_wp_error( $event ) ) {
+			if ( ! in_array( (int) ( $event->get_error_data()['http'] ?? 0 ), array( 404, 410 ), true ) ) {
+				return $event;
+			}
+			$exists = self::request( $advisor_id, 'GET', '/calendars/' . rawurlencode( $calendar ) );
+			return is_wp_error( $exists ) ? new WP_Error( 'google_calendar_gone', __( 'The bookings calendar is missing in Google.', 'elaltillo-bookacall' ) ) : array( 'deleted' => true, 'start' => 0, 'end' => 0, 'response' => '' );
 		}
-		if ( ! in_array( (int) ( $event->get_error_data()['http'] ?? 0 ), array( 404, 410 ), true ) ) {
-			return $event;
+		$visitor = strtolower( (string) get_post_meta( $booking_id, '_elab_contact_email', true ) );
+		$response = '';
+		foreach ( (array) ( $event['attendees'] ?? array() ) as $attendee ) {
+			if ( is_array( $attendee ) && $visitor && strtolower( (string) ( $attendee['email'] ?? '' ) ) === $visitor ) {
+				$response = sanitize_key( (string) ( $attendee['responseStatus'] ?? '' ) );
+			}
 		}
-		$exists = self::request( $advisor_id, 'GET', '/calendars/' . rawurlencode( $calendar ) );
-		return is_wp_error( $exists ) ? new WP_Error( 'google_calendar_gone', __( 'The bookings calendar is missing in Google.', 'elaltillo-bookacall' ) ) : true;
+		return array(
+			'deleted'  => 'cancelled' === ( $event['status'] ?? '' ),
+			'start'    => isset( $event['start']['dateTime'] ) ? (int) strtotime( (string) $event['start']['dateTime'] ) : 0,
+			'end'      => isset( $event['end']['dateTime'] ) ? (int) strtotime( (string) $event['end']['dateTime'] ) : 0,
+			'response' => $response,
+		);
+	}
+
+	/** Whether the advisor deleted this booking's event in Google Calendar. */
+	public static function event_deleted( $booking_id ) {
+		$state = self::event_state( $booking_id );
+		if ( is_wp_error( $state ) ) {
+			return 'google_event_unknown' === $state->get_error_code() ? false : $state;
+		}
+		return $state['deleted'];
 	}
 
 	/** The only event ID this plugin ever creates for a booking: "elab" + 32 hex characters. */

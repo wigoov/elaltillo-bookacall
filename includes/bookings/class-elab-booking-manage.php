@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class ELAB_Booking_Manage {
 	const ACTION = 'elab_visitor_cancel';
+	/** The visitor's answer to the Google invitation: accepted, tentative, declined or needsAction. */
+	const META_RESPONSE = '_elab_visitor_response';
 	const META_TOKEN = '_elab_manage_token';
 	const META_PAGE = '_elab_page';
 	const COOKIE = 'elab_manage_';
@@ -151,6 +153,26 @@ final class ELAB_Booking_Manage {
 		delete_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT );
 		ELAB_Notifications::booking_notice( $booking_id, 'cancelled' );
 		ELAB_Notifications::visitor_notice( $booking_id, 'cancelled' );
+	}
+
+	/** The visitor declined the Google invitation: cancel, free the time, remove the event, tell the advisor. */
+	public static function declined_in_google( $booking_id ) {
+		update_post_meta( $booking_id, '_elab_status', 'cancelled' );
+		update_post_meta( $booking_id, '_elab_cancelled_by', 'declined' );
+		update_post_meta( $booking_id, '_elab_cancelled_at', gmdate( 'Y-m-d H:i:s' ) );
+		update_post_meta( $booking_id, self::META_RESPONSE, 'declined' );
+		ELAB_Booking_Sync::remove_event( $booking_id );
+		ELAB_Notifications::booking_notice( $booking_id, 'cancelled' );
+	}
+
+	/** The advisor moved the event in Google: the call takes the new time here, and the visitor hears it from us. */
+	public static function moved_in_google( $booking_id, $start, $end ) {
+		$start_key = gmdate( 'Y-m-d H:i:s', (int) $start );
+		update_post_meta( $booking_id, '_elab_start_utc', $start_key );
+		update_post_meta( $booking_id, '_elab_duration', max( 1, (int) round( ( $end - $start ) / MINUTE_IN_SECONDS ) ) );
+		update_post_meta( $booking_id, '_elab_moved_at', gmdate( 'Y-m-d H:i:s' ) );
+		wp_update_post( array( 'ID' => $booking_id, 'post_title' => sprintf( '%s — %s', get_post_meta( $booking_id, '_elab_name', true ), $start_key ) ) );
+		ELAB_Notifications::visitor_moved( $booking_id );
 	}
 
 	private static function cookie_token( $booking_id ) {

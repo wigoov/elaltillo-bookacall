@@ -32,6 +32,7 @@ final class ELAB_Test {
 	public static $event_get_code = 200;
 	public static $event_status = 'confirmed';
 	public static $unauthorized_once = false;
+	public static $event_get_extra = array();
 	public static $identity = array( 'sub' => 'test-sub', 'email' => 'advisor@example.test', 'email_verified' => true );
 	public static $checks = 0;
 
@@ -147,6 +148,7 @@ final class ELAB_Test {
 		self::$event_get_code = 200;
 		self::$event_status = 'confirmed';
 		self::$unauthorized_once = false;
+		self::$event_get_extra = array();
 		self::as_admin();
 	}
 
@@ -186,6 +188,9 @@ final class ELAB_Test {
 				$data = array( 'error' => 'invalid_grant' );
 			} else {
 				$data = array( 'access_token' => 'test-access', 'expires_in' => 3600 );
+				if ( 'authorization_code' === ( $args['body']['grant_type'] ?? '' ) ) {
+					$data += array( 'refresh_token' => 'test-refresh', 'scope' => self::$token_scope );
+				}
 			}
 		} elseif ( false !== strpos( $url, 'oauth2.googleapis.com/revoke' ) ) {
 			$data = array();
@@ -217,7 +222,7 @@ final class ELAB_Test {
 			$code = self::$event_delete_code;
 		} elseif ( $calendar_api && false !== strpos( $url, '/events/' ) ) {
 			$code = self::$event_get_code;
-			$data = array( 'id' => rawurldecode( basename( wp_parse_url( $url, PHP_URL_PATH ) ) ), 'status' => self::$event_status );
+			$data = array_merge( array( 'id' => rawurldecode( basename( wp_parse_url( $url, PHP_URL_PATH ) ) ), 'status' => self::$event_status ), self::$event_get_extra );
 		} elseif ( false !== strpos( $url, 'challenges.cloudflare.com/turnstile' ) ) {
 			$good = isset( $args['body']['response'] ) && 'good-token' === $args['body']['response'] && 'turnstile-secret' === $args['body']['secret'];
 			$data = array( 'success' => $good, 'hostname' => wp_parse_url( home_url(), PHP_URL_HOST ) );

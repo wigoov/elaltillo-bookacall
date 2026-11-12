@@ -62,9 +62,9 @@ final class ELAB_Availability {
 		) );
 		$ids = array_map( 'intval', $ids );
 		if ( ELAB_Google_Calendar::configured() ) {
-			// Advisors appear once they have connected Google. A broken connection does not hide
-			// them: their calls are saved here and reach Google after they reconnect.
-			$ids = array_values( array_filter( $ids, array( 'ELAB_Google_Calendar', 'linked' ) ) );
+			// Only advisors whose Google connection works right now. A broken one (access removed,
+			// expired, other account) hides the advisor until they reconnect; their calls are kept.
+			$ids = array_values( array_filter( $ids, array( 'ELAB_Google_Calendar', 'connected' ) ) );
 		}
 		if ( $language ) {
 			$ids = array_values( array_filter( $ids, static function ( $id ) use ( $language ) {

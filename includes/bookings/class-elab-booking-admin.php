@@ -51,11 +51,13 @@ final class ELAB_Booking_Admin {
 			__( 'Guests', 'elaltillo-bookacall' ) => implode( ', ', ELAB_Booking_Sync::guests( $post->ID ) ) ?: '—',
 			__( 'Received', 'elaltillo-bookacall' ) => get_the_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $post ),
 			__( 'Video call', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_meet_url', true ) ?: '—',
-			__( 'Cancelled', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_cancelled_at', true ) ? sprintf( array( 'visitor' => __( 'By the visitor, %s UTC', 'elaltillo-bookacall' ), 'google' => __( 'Deleted in the advisor’s Google Calendar, noticed %s UTC', 'elaltillo-bookacall' ) )[ get_post_meta( $post->ID, '_elab_cancelled_by', true ) ] ?? __( 'By an administrator, %s UTC', 'elaltillo-bookacall' ), get_post_meta( $post->ID, '_elab_cancelled_at', true ) ) : '—',
+			__( 'Invitation', 'elaltillo-bookacall' ) => array( 'accepted' => __( 'Accepted by the visitor', 'elaltillo-bookacall' ), 'tentative' => __( 'Maybe, says the visitor', 'elaltillo-bookacall' ), 'declined' => __( 'Declined by the visitor', 'elaltillo-bookacall' ), 'needsAction' => __( 'No answer yet', 'elaltillo-bookacall' ), 'needsaction' => __( 'No answer yet', 'elaltillo-bookacall' ) )[ get_post_meta( $post->ID, ELAB_Booking_Manage::META_RESPONSE, true ) ] ?? '—',
+			__( 'Moved in Google', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_moved_at', true ) ? sprintf( __( 'The advisor changed the time in Google Calendar; noticed %s UTC', 'elaltillo-bookacall' ), get_post_meta( $post->ID, '_elab_moved_at', true ) ) : '—',
+			__( 'Cancelled', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_cancelled_at', true ) ? sprintf( array( 'visitor' => __( 'By the visitor, %s UTC', 'elaltillo-bookacall' ), 'google' => __( 'Deleted in the advisor’s Google Calendar, noticed %s UTC', 'elaltillo-bookacall' ), 'declined' => __( 'The visitor declined the Google invitation, noticed %s UTC', 'elaltillo-bookacall' ) )[ get_post_meta( $post->ID, '_elab_cancelled_by', true ) ] ?? __( 'By an administrator, %s UTC', 'elaltillo-bookacall' ), get_post_meta( $post->ID, '_elab_cancelled_at', true ) ) : '—',
 			__( 'Privacy consent', 'elaltillo-bookacall' ) => get_post_meta( $post->ID, '_elab_consent_at', true ) ? sprintf( __( 'Accepted %s UTC', 'elaltillo-bookacall' ), get_post_meta( $post->ID, '_elab_consent_at', true ) ) : '—',
 		);
 		// Rows that only apply sometimes are left out instead of showing a dash.
-		foreach ( array( __( 'Guests', 'elaltillo-bookacall' ), __( 'Video call', 'elaltillo-bookacall' ), __( 'Cancelled', 'elaltillo-bookacall' ), __( 'Privacy consent', 'elaltillo-bookacall' ) ) as $optional ) {
+		foreach ( array( __( 'Guests', 'elaltillo-bookacall' ), __( 'Video call', 'elaltillo-bookacall' ), __( 'Invitation', 'elaltillo-bookacall' ), __( 'Moved in Google', 'elaltillo-bookacall' ), __( 'Cancelled', 'elaltillo-bookacall' ), __( 'Privacy consent', 'elaltillo-bookacall' ) ) as $optional ) {
 			if ( isset( $fields[ $optional ] ) && '—' === $fields[ $optional ] ) {
 				unset( $fields[ $optional ] );
 			}

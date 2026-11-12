@@ -292,10 +292,10 @@ final class ELAB_Advisor_Admin {
 		$google_text = array(
 			'setup'        => __( 'Google Calendar is not set up for this site yet.', 'elaltillo-bookacall' ),
 			'connected'    => sprintf( __( 'Connected as %s.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::account_email( $post->ID ) ) . ' ' . ( ELAB_Google_Calendar::extra_scopes( $post->ID ) ? sprintf( __( 'Google reports more access than this site needs (%s): disconnect and connect again.', 'elaltillo-bookacall' ), implode( ', ', ELAB_Google_Calendar::extra_scopes( $post->ID ) ) ) : ( ELAB_Google_Calendar::scopes_verified( $post->ID ) ? __( 'Google confirms this site can only reach its own “El Altillo · Citas” calendar.', 'elaltillo-bookacall' ) : '' ) ),
-			'revoked'      => __( 'Google access was removed or expired. Reconnect so new calls reach the calendar again.', 'elaltillo-bookacall' ),
+			'revoked'      => __( 'Google access was removed or expired, so this advisor is hidden from the booking calendar until they reconnect. Calls already booked are kept. The advisor was emailed a link to reconnect.', 'elaltillo-bookacall' ),
 			'upgrade'      => sprintf( __( 'Connected with the old, broader permission. Reconnect once so the site creates its own “%s” calendar and only uses that one.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::CALENDAR_NAME ),
-			'mismatch'     => __( 'The saved connection no longer matches this advisor’s email or the site’s OAuth client. Connect the correct account.', 'elaltillo-bookacall' ),
-			'disconnected' => __( 'Not connected. The advisor can connect from Users → Profile, or you can connect here.', 'elaltillo-bookacall' ),
+			'mismatch'     => __( 'The saved connection no longer matches this advisor’s email or the site’s OAuth client, so the advisor is hidden from the booking calendar. Connect the correct account.', 'elaltillo-bookacall' ),
+			'disconnected' => __( 'Not connected, so hidden from the booking calendar. Email the advisor a connection link (no website login needed), or connect here.', 'elaltillo-bookacall' ),
 		)[ $google_state ];
 		if ( 'connected' === $google_state && ELAB_Google_Calendar::extra_scopes( $post->ID ) ) {
 			$google_state = 'toobroad';
@@ -316,7 +316,13 @@ final class ELAB_Advisor_Admin {
 					<a class="button button-primary" href="<?php echo esc_url( $connect ); ?>"><?php esc_html_e( 'Reconnect Google Calendar', 'elaltillo-bookacall' ); ?></a>
 					<a class="button" href="<?php echo esc_url( $disconnect ); ?>"><?php esc_html_e( 'Disconnect', 'elaltillo-bookacall' ); ?></a>
 				<?php endif; ?>
+				<?php if ( ! in_array( $google_state, array( 'setup', 'connected' ), true ) && current_user_can( 'manage_options' ) && ELAB_Notifications::advisor_email( $post->ID ) ) : ?>
+					<a class="button" href="<?php echo esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'elab_google_send_invite', 'advisor' => $post->ID ), admin_url( 'admin-post.php' ) ), 'elab_google_send_invite_' . $post->ID ) ); ?>"><?php esc_html_e( 'Email a connection link', 'elaltillo-bookacall' ); ?></a>
+				<?php endif; ?>
 				</p>
+				<?php $elab_invite_result = isset( $_GET['elab_google'] ) ? sanitize_key( wp_unslash( $_GET['elab_google'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only. ?>
+				<?php if ( 'invite_sent' === $elab_invite_result ) : ?><p class="notice notice-success inline"><?php echo esc_html( sprintf( __( 'Connection link sent to %1$s. It works until %2$s, without a website login.', 'elaltillo-bookacall' ), ELAB_Notifications::advisor_email( $post->ID ), wp_date( get_option( 'date_format' ), ELAB_Google_Calendar::invite_expires( $post->ID ) ) ) ); ?></p><?php endif; ?>
+				<?php if ( 'invite_failed' === $elab_invite_result ) : ?><p class="notice notice-error inline"><?php esc_html_e( 'The connection link could not be emailed. Check the site email configuration.', 'elaltillo-bookacall' ); ?></p><?php endif; ?>
 				<?php if ( $waiting ) : ?><p class="notice notice-warning inline"><?php echo esc_html( sprintf( _n( '%d call is saved and waiting to be added to Google Calendar.', '%d calls are saved and waiting to be added to Google Calendar.', $waiting, 'elaltillo-bookacall' ), $waiting ) ); ?></p><?php endif; ?>
 				<p class="description"><?php esc_html_e( 'Weekly hours are availability rules, not calendar events. The advisor receives their schedule by email after connecting or when these settings change.', 'elaltillo-bookacall' ); ?></p>
 				<?php if ( 'failed' === get_post_meta( $post->ID, ELAB_Notifications::META_SCHEDULE_MAIL, true ) ) : ?><p class="notice notice-warning inline"><?php esc_html_e( 'The last schedule email could not be sent. Check the site email configuration.', 'elaltillo-bookacall' ); ?></p><?php endif; ?>
