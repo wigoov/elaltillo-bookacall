@@ -25,6 +25,17 @@ final class ELAB_Booking_Manage {
 		add_action( 'admin_post_' . self::ACTION, array( $this, 'handle_cancel' ) );
 		add_action( 'template_redirect', array( $this, 'exchange_token' ), 0 );
 		add_action( 'template_redirect', array( $this, 'private_page_headers' ) );
+		// Trashing or deleting an upcoming call would free its time here while the Google event
+		// and the invitation stay alive: cancel it properly first.
+		add_action( 'wp_trash_post', array( __CLASS__, 'cancel_before_removal' ) );
+		add_action( 'before_delete_post', array( __CLASS__, 'cancel_before_removal' ), 5 );
+	}
+
+	/** An upcoming pending or confirmed booking is cancelled (event removed, people told) before it goes. */
+	public static function cancel_before_removal( $post_id ) {
+		if ( ELAB_Post_Types::BOOKING === get_post_type( $post_id ) && self::can_cancel( $post_id ) ) {
+			self::mark_cancelled( $post_id, 'admin' );
+		}
 	}
 
 	/**

@@ -112,4 +112,26 @@ return array(
 			T::check( (bool) preg_match( '#^(GET|POST|DELETE|PATCH|PUT) https://(www|oauth2|openidconnect)\.googleapis\.com/#', $request ), 'Only mocked Google endpoints: ' . $request );
 		}
 	},
+
+	'Uploads: only real PDF, Word, Excel and PowerPoint files, whatever the name says' => function () {
+		if ( ! ELAB_Private_Attachments::storage_ready() ) {
+			return;
+		}
+		$try = static function ( $name, $content ) {
+			$tmp = wp_tempnam( 'elab-upload' );
+			file_put_contents( $tmp, $content ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			$_FILES = array( 'attachments' => array( 'name' => array( $name ), 'tmp_name' => array( $tmp ), 'error' => array( 0 ), 'size' => array( strlen( $content ) ) ) );
+			try {
+				return ( new ELAB_Private_Attachments() )->upload();
+			} finally {
+				$_FILES = array();
+				@unlink( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			}
+		};
+		T::error( 'invalid_file_type', $try( 'invoice.pdf', '<?php echo "not a pdf"; ?>' ), 'Script renamed .pdf refused' );
+		T::error( 'invalid_file_type', $try( 'page.html', '<html><script>alert(1)</script></html>' ), 'HTML refused' );
+		T::error( 'invalid_file_type', $try( 'tool.exe', "MZ\x90\x00" ), 'Program refused' );
+		T::error( 'invalid_file_type', $try( 'shell.php', '<?php system($_GET["c"]); ?>' ), 'PHP refused' );
+	},
 );
+

@@ -41,6 +41,7 @@ final class ELAB_Document_Viewer {
 		if ( is_wp_error( $page ) ) {
 			wp_die( esc_html( $page->get_error_message() ), '', array( 'response' => (int) ( $page->get_error_data()['status'] ?? 400 ) ) );
 		}
+		do_action( 'elab_viewer_output', $booking_id, $file ); // Lets tests stop here instead of exiting.
 		nocache_headers();
 		foreach ( $page['headers'] as $name => $value ) {
 			header( $name . ': ' . $value );

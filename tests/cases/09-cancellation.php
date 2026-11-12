@@ -161,4 +161,28 @@ return array(
 		T::lacks( 'Book another time', $guest[0]['message'], 'No rebooking button for a guest' );
 		T::contains( 'Book another time', T::mail_with_subject( 'Your call was cancelled' )[0]['message'], 'The visitor keeps it' );
 	},
+
+	'Trashing or deleting an upcoming call cancels it first, so no Google event is left behind' => function () {
+		$advisor = T::connect( T::advisor( array( '_elab_email' => 'advisor@example.test' ) ) );
+		$booking = T::booking( $advisor, array( '_elab_contact_email' => 'visitor@example.test' ) );
+		ELAB_Booking_Sync::create_for( $booking );
+		T::$http = T::$mail = array();
+		wp_trash_post( $booking );
+		T::same( 'cancelled', get_post_meta( $booking, '_elab_status', true ), 'Cancelled before going to the trash' );
+		T::same( 1, count( T::requests( '#^DELETE .*/events/#' ) ), 'Google event removed' );
+		T::check( (bool) T::mails_to( 'visitor@example.test' ), 'Visitor told' );
+
+		$other = T::booking( $advisor );
+		ELAB_Booking_Sync::create_for( $other );
+		T::$http = array();
+		wp_delete_post( $other, true );
+		T::same( 1, count( T::requests( '#^DELETE .*/events/#' ) ), 'Deleting for good removes the event too' );
+
+		$past = T::booking( $advisor, array( '_elab_start_utc' => gmdate( 'Y-m-d H:00:00', strtotime( '-3 days' ) ) ) );
+		T::$http = T::$mail = array();
+		wp_trash_post( $past );
+		T::same( array(), T::$mail, 'A past call goes quietly' );
+		T::same( array(), T::requests( '#events#' ), 'Nothing sent to Google' );
+	},
 );
+

@@ -218,19 +218,22 @@ return array(
 		wp_set_current_user( T::user( 'editor' ) );
 		$_GET = array( 'booking' => (string) $booking, 'file' => $file, '_wpnonce' => wp_create_nonce( ELAB_Document_Viewer::ACTION . '_' . $booking . '_' . $file ) );
 		$die = static function () { return static function () { throw new ELAB_Test_Failure( 'die' ); }; };
+		$shown = static function () { throw new ELAB_Test_Failure( 'shown' ); };
 		add_filter( 'wp_die_handler', $die, PHP_INT_MAX );
+		add_action( 'elab_viewer_output', $shown );
 		try {
 			ob_start();
 			( new ELAB_Document_Viewer() )->view();
 			ob_end_clean();
-			$stopped = false;
+			$outcome = 'none';
 		} catch ( ELAB_Test_Failure $failure ) {
 			ob_end_clean();
-			$stopped = true;
+			$outcome = $failure->getMessage();
 		} finally {
 			remove_filter( 'wp_die_handler', $die, PHP_INT_MAX );
+			remove_action( 'elab_viewer_output', $shown );
 		}
-		T::check( $stopped, 'Editor refused' );
+		T::same( 'die', $outcome, 'Editor refused, the document is never shown' );
 		T::as_admin();
 		$html = T::render( static function () use ( $booking ) { ( new ELAB_Booking_Admin() )->render( get_post( $booking ) ); } );
 		T::contains( 'action=elab_view', $html, 'Record links the viewer' );
