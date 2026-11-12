@@ -140,4 +140,18 @@ return array(
 		T::contains( 'mine@example.test', $mail['message'], 'Says which Google account to use' );
 		T::check( false === strpos( $mail['message'], 'Private message' ), 'The message itself stays out of the email' );
 	},
+
+	'Portal pages and the file viewer speak the advisor’s language' => function () use ( $session_for ) {
+		if ( ! in_array( 'es_CO', get_available_languages(), true ) ) {
+			return;
+		}
+		$advisor = T::advisor( array( '_elab_email' => 'mine@example.test', ELAB_Notifications::META_ADVISOR_LOCALE => 'es_CO' ) );
+		$session = $session_for( $advisor );
+		$error = ELAB_Advisor_Portal::viewer_page( $session, 999999, 'x.pdf' );
+		T::same( 'Esta reserva no existe o pertenece a otro asesor.', $error->get_error_message(), 'Viewer error in Spanish' );
+		T::contains( 'Próximas llamadas', ELAB_Advisor_Portal::render_list( $session ), 'List in Spanish' );
+		T::same( 'en_US', determine_locale(), 'Language restored afterwards' );
+		unset( $_COOKIE[ ELAB_Advisor_Portal::COOKIE ] );
+	},
 );
+

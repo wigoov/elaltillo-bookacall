@@ -121,7 +121,7 @@ final class ELAB_Advisor_Portal {
 
 	public function login() {
 		if ( ! ELAB_Google_Calendar::configured() ) {
-			self::output( self::message( __( 'The advisor portal is not available yet.', 'elaltillo-bookacall' ), '' ), 503 );
+			self::output( self::message( static function () { return array( __( 'The advisor portal is not available yet.', 'elaltillo-bookacall' ), '' ); } ), 503 );
 		}
 		$booking = isset( $_GET['booking'] ) ? absint( $_GET['booking'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only where to return to.
 		wp_redirect( esc_url_raw( ELAB_Google_Calendar::start_sign_in( array( 'booking' => $booking ) ) ) ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- Google sign-in.
@@ -132,11 +132,11 @@ final class ELAB_Advisor_Portal {
 	public static function finish_login( array $state, $code ) {
 		$identity = ELAB_Google_Calendar::identity_from_code( $code, (string) ( $state['verifier'] ?? '' ) );
 		if ( is_wp_error( $identity ) ) {
-			self::output( self::message( __( 'Google sign-in did not finish', 'elaltillo-bookacall' ), $identity->get_error_message(), true ), 400 );
+			self::output( self::message( static function () use ( $identity ) { return array( __( 'Google sign-in did not finish', 'elaltillo-bookacall' ), $identity->get_error_message() ); }, true ), 400 );
 		}
 		$advisor_id = self::advisor_for( $identity['email'] );
 		if ( ! $advisor_id ) {
-			self::output( self::message( __( 'This account is not an advisor', 'elaltillo-bookacall' ), sprintf( __( '%s is not the Google account of any advisor. Sign in with the account where you receive your bookings.', 'elaltillo-bookacall' ), $identity['email'] ), true ), 403 );
+			self::output( self::message( static function () use ( $identity ) { return array( __( 'This account is not an advisor', 'elaltillo-bookacall' ), sprintf( __( '%s is not the Google account of any advisor. Sign in with the account where you receive your bookings.', 'elaltillo-bookacall' ), $identity['email'] ) ); }, true ), 403 );
 		}
 		$token = self::start_session( $advisor_id, $identity['email'] );
 		self::set_cookie( $token, time() + self::HOURS * HOUR_IN_SECONDS );
@@ -153,7 +153,9 @@ final class ELAB_Advisor_Portal {
 		$booking = isset( $_GET['booking'] ) ? absint( $_GET['booking'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only view, checked against the session.
 		if ( $booking ) {
 			$html = self::render_detail( $session, $booking );
-			self::output( $html ?: self::render_page( $session, __( 'Booking not found', 'elaltillo-bookacall' ), '<p>' . esc_html__( 'This booking does not exist or belongs to another advisor.', 'elaltillo-bookacall' ) . '</p>' ), $html ? 200 : 404 );
+			self::output( $html ?: ELAB_Notifications::in_locale( ELAB_Notifications::advisor_locale( (int) $session['advisor'] ), static function () use ( $session ) {
+				return self::render_page( $session, __( 'Booking not found', 'elaltillo-bookacall' ), '<p>' . esc_html__( 'This booking does not exist or belongs to another advisor.', 'elaltillo-bookacall' ) . '</p><p><a class="back" href="' . esc_url( self::url() ) . '">← ' . esc_html__( 'All calls', 'elaltillo-bookacall' ) . '</a></p>' );
+			} ), $html ? 200 : 404 );
 		}
 		self::output( self::render_list( $session ), 200 );
 	}
@@ -176,7 +178,7 @@ final class ELAB_Advisor_Portal {
 		$file = isset( $_GET['file'] ) ? sanitize_file_name( wp_unslash( $_GET['file'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$page = self::viewer_page( $session, $booking, $file );
 		if ( is_wp_error( $page ) ) {
-			self::output( self::message( __( 'File not available', 'elaltillo-bookacall' ), $page->get_error_message(), true ), (int) ( $page->get_error_data()['status'] ?? 404 ) );
+			self::output( self::message( static function () use ( $page ) { return array( __( 'File not available', 'elaltillo-bookacall' ), $page->get_error_message() ); }, true, $session ? (int) $session['advisor'] : 0 ), (int) ( $page->get_error_data()['status'] ?? 404 ) );
 		}
 		nocache_headers();
 		foreach ( $page['headers'] as $name => $value ) {
@@ -188,13 +190,16 @@ final class ELAB_Advisor_Portal {
 
 	/** @return array|WP_Error The safe viewer page, only for a file of the advisor's own booking. */
 	public static function viewer_page( $session, $booking_id, $file ) {
-		if ( ! $session ) {
-			return new WP_Error( 'portal_signed_out', __( 'Sign in again to view this file.', 'elaltillo-bookacall' ), array( 'status' => 403 ) );
-		}
-		if ( ! self::owns( $session, $booking_id ) ) {
-			return new WP_Error( 'portal_not_yours', __( 'This booking does not exist or belongs to another advisor.', 'elaltillo-bookacall' ), array( 'status' => 404 ) );
-		}
-		return ELAB_Document_Viewer::page( $booking_id, $file );
+		// Every text (errors, the viewer's notice and page counts) in the advisor's language.
+		return ELAB_Notifications::in_locale( ELAB_Notifications::advisor_locale( $session ? (int) $session['advisor'] : 0 ), static function () use ( $session, $booking_id, $file ) {
+			if ( ! $session ) {
+				return new WP_Error( 'portal_signed_out', __( 'Sign in again to view this file.', 'elaltillo-bookacall' ), array( 'status' => 403 ) );
+			}
+			if ( ! self::owns( $session, $booking_id ) ) {
+				return new WP_Error( 'portal_not_yours', __( 'This booking does not exist or belongs to another advisor.', 'elaltillo-bookacall' ), array( 'status' => 404 ) );
+			}
+			return ELAB_Document_Viewer::page( $booking_id, $file );
+		} );
 	}
 
 	public static function owns( $session, $booking_id ) {
@@ -298,8 +303,10 @@ final class ELAB_Advisor_Portal {
 		} );
 	}
 
-	private static function message( $title, $text, $retry = false ) {
-		return ELAB_Notifications::in_locale( ELAB_Notifications::advisor_locale( 0 ), static function () use ( $title, $text, $retry ) {
+	/** A short page; $texts returns [title, text] and runs in the advisor's (or the default) language. */
+	private static function message( callable $texts, $retry = false, $advisor_id = 0 ) {
+		return ELAB_Notifications::in_locale( ELAB_Notifications::advisor_locale( $advisor_id ), static function () use ( $texts, $retry ) {
+			list( $title, $text ) = $texts();
 			$body = '' !== $text ? '<p>' . esc_html( $text ) . '</p>' : '';
 			if ( $retry ) {
 				$body .= '<p><a class="button" href="' . esc_url( self::url() ) . '">' . esc_html__( 'Back to the portal', 'elaltillo-bookacall' ) . '</a></p>';
