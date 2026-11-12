@@ -161,3 +161,4 @@
 #elab-advisor-settings .elab-language-choice { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 4px 0 0; }
 #elab-advisor-settings .elab-language-choice label { display: inline-flex; align-items: center; gap: 8px; margin: 0 !important; line-height: 1.4; cursor: pointer; }
 #elab-advisor-settings .elab-language-choice input[type="checkbox"] { flex: none; width: 16px; height: 16px; min-height: 0; margin: 0; }
+#elab-advisor-settings [hidden] { display: none !important; }
