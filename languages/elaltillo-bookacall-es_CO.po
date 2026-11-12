@@ -3037,3 +3037,6 @@ msgstr "%s ya está adjunto."
 #, php-format
 msgid "You can attach up to %2$d files; %1$s was not added."
 msgstr "Puedes adjuntar hasta %2$d archivos; %1$s no se añadió."
+#, php-format
+msgid "Remove the file %s"
+msgstr "Quitar el archivo %s"

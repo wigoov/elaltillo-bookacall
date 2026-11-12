@@ -114,7 +114,7 @@ final class ELAB_Booking_Form {
 			'fileReady'      => __( 'Ready: it will be sent with your booking', 'elaltillo-bookacall' ),
 			'fileOnePage'    => __( '1 page', 'elaltillo-bookacall' ),
 			'filePages'      => __( '%d pages', 'elaltillo-bookacall' ),
-			'fileRemove'     => __( 'Remove %s', 'elaltillo-bookacall' ),
+			'fileRemove'     => __( 'Remove the file %s', 'elaltillo-bookacall' ),
 			'filePreviewFailed' => __( 'We could not open this PDF. If it has a password, remove it so the advisor can read it.', 'elaltillo-bookacall' ),
 			'file_type'      => __( '%s is not a PDF, Word, Excel or PowerPoint file.', 'elaltillo-bookacall' ),
 			'file_size'      => __( '%s is larger than 10 MB.', 'elaltillo-bookacall' ),
