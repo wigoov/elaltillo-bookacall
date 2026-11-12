@@ -186,6 +186,13 @@ final class ELAB_System_Status {
 		exit;
 	}
 
+	/** The error plus what Google answered (HTTP code and reason), so the cause is visible. */
+	public static function google_error( WP_Error $error ) {
+		$data = (array) $error->get_error_data();
+		$detail = trim( ( empty( $data['http'] ) ? '' : 'HTTP ' . (int) $data['http'] ) . ( empty( $data['reason'] ) ? '' : ' · ' . $data['reason'] ), ' ·' );
+		return $error->get_error_message() . ( '' !== $detail ? ' (' . $detail . ')' : '' );
+	}
+
 	public function test_google() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You cannot run this test.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
@@ -198,7 +205,7 @@ final class ELAB_System_Status {
 			}
 			$check = ELAB_Google_Calendar::connected( $advisor_id ) ? ELAB_Google_Calendar::check( $advisor_id ) : new WP_Error( 'google_not_ready', __( 'Needs to reconnect Google Calendar.', 'elaltillo-bookacall' ) );
 			$ok = ! is_wp_error( $check );
-			$result['advisors'][ $advisor_id ] = $ok ? true : $check->get_error_message();
+			$result['advisors'][ $advisor_id ] = $ok ? true : self::google_error( $check );
 			$result[ $ok ? 'passed' : 'failed' ]++;
 		}
 		ELAB_Booking_Sync::run();

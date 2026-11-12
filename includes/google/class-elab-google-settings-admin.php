@@ -90,6 +90,12 @@ final class ELAB_Google_Settings_Admin {
 		} ) );
 		$waiting = count( ELAB_Booking_Sync::pending() );
 		$live = get_transient( ELAB_System_Status::TRANSIENT_GOOGLE );
+		$live_problems = '';
+		foreach ( is_array( $live ) ? (array) ( $live['advisors'] ?? array() ) : array() as $advisor_id => $outcome ) {
+			if ( true !== $outcome ) {
+				$live_problems .= ' ' . get_the_title( (int) $advisor_id ) . ': ' . $outcome;
+			}
+		}
 		$notices = array(
 			'saved'             => array( 'success', __( 'Google settings saved.', 'elaltillo-bookacall' ) ),
 			'missing_id'        => array( 'error', __( 'Enter the Google Client ID before saving.', 'elaltillo-bookacall' ) ),
@@ -104,7 +110,7 @@ final class ELAB_Google_Settings_Admin {
 			array( __( 'OAuth client', 'elaltillo-bookacall' ), $configured ? 'ok' : 'warn', $configured ? __( 'Client ID and encrypted Client Secret saved.', 'elaltillo-bookacall' ) : __( 'Not configured yet. Follow the setup guide below.', 'elaltillo-bookacall' ) ),
 			array( __( 'Advisors connected', 'elaltillo-bookacall' ), $advisors && $connected === count( $advisors ) ? 'ok' : 'warn', sprintf( __( '%1$d of %2$d published advisors.', 'elaltillo-bookacall' ), $connected, count( $advisors ) ) . ( $revoked ? ' ' . sprintf( _n( '%d needs to reconnect.', '%d need to reconnect.', $revoked, 'elaltillo-bookacall' ), $revoked ) : '' ) ),
 			array( __( 'Calls waiting for Google', 'elaltillo-bookacall' ), $waiting ? 'warn' : 'ok', $waiting ? sprintf( _n( '%d call is up to date in WordPress but not in Google yet (an event to add or remove). It is retried every hour.', '%d calls are up to date in WordPress but not in Google yet (events to add or remove). They are retried every hour.', $waiting, 'elaltillo-bookacall' ), $waiting ) : __( 'None. Google Calendar matches every booking.', 'elaltillo-bookacall' ) ),
-			array( __( 'Last live test', 'elaltillo-bookacall' ), is_array( $live ) ? ( $live['failed'] ? 'error' : 'ok' ) : 'info', is_array( $live ) ? sprintf( __( '%1$d of %2$d calendars answered at %3$s.', 'elaltillo-bookacall' ), $live['passed'], $live['passed'] + $live['failed'], wp_date( get_option( 'time_format' ), (int) $live['time'] ) ) : __( 'Not run yet.', 'elaltillo-bookacall' ) ),
+			array( __( 'Last live test', 'elaltillo-bookacall' ), is_array( $live ) ? ( $live['failed'] ? 'error' : 'ok' ) : 'info', is_array( $live ) ? sprintf( __( '%1$d of %2$d calendars answered at %3$s.', 'elaltillo-bookacall' ), $live['passed'], $live['passed'] + $live['failed'], wp_date( get_option( 'time_format' ), (int) $live['time'] ) ) . $live_problems : __( 'Not run yet.', 'elaltillo-bookacall' ) ),
 			array( __( 'Encryption key', 'elaltillo-bookacall' ), ELAB_Google_Calendar::has_own_key() ? 'ok' : 'info', ELAB_Google_Calendar::has_own_key() ? __( 'ELAB_ENCRYPTION_KEY from wp-config.php protects stored tokens.', 'elaltillo-bookacall' ) : __( 'Tokens are encrypted with the WordPress auth salt. Define ELAB_ENCRYPTION_KEY (32+ random characters) in wp-config.php so a salt change does not force every advisor to reconnect.', 'elaltillo-bookacall' ) ),
 		);
 		$states = array( 'ok' => __( 'Ready', 'elaltillo-bookacall' ), 'warn' => __( 'Review', 'elaltillo-bookacall' ), 'error' => __( 'Fix', 'elaltillo-bookacall' ), 'info' => __( 'Optional', 'elaltillo-bookacall' ) );

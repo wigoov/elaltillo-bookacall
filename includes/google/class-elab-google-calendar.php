@@ -543,6 +543,10 @@ final class ELAB_Google_Calendar {
 	 */
 	public static function recover_calendar( $advisor_id ) {
 		$missing = self::calendar_id( $advisor_id );
+		// At most once every 6 hours: a calendar Google keeps reporting missing must never pile up copies.
+		if ( get_transient( 'elab_calendar_recovered_' . (int) $advisor_id ) ) {
+			return new WP_Error( 'google_calendar_recently_replaced', __( 'The bookings calendar was created again recently; check the connection before trying again.', 'elaltillo-bookacall' ) );
+		}
 		$token = self::access_token( $advisor_id );
 		if ( is_wp_error( $token ) ) {
 			return $token;
@@ -556,6 +560,7 @@ final class ELAB_Google_Calendar {
 			return $replacement;
 		}
 		update_post_meta( $advisor_id, self::META_CALENDAR, $replacement );
+		set_transient( 'elab_calendar_recovered_' . (int) $advisor_id, time(), 6 * HOUR_IN_SECONDS );
 		self::calendar_replaced( $advisor_id, $missing );
 		return $replacement;
 	}
@@ -767,7 +772,10 @@ final class ELAB_Google_Calendar {
 			return array();
 		}
 		if ( $code < 200 || $code >= 300 ) {
-			return new WP_Error( 'google_calendar_failed', __( 'Google Calendar could not complete this action. Please try again.', 'elaltillo-bookacall' ), array( 'status' => 503, 'http' => (int) $code ) );
+			// Google's own reason (e.g. "accessNotConfigured"), for the administrator's status pages.
+			$error = is_wp_error( $response ) ? array() : json_decode( wp_remote_retrieve_body( $response ), true );
+			$reason = is_wp_error( $response ) ? $response->get_error_message() : trim( (string) ( $error['error']['errors'][0]['reason'] ?? '' ) . ' ' . (string) ( $error['error']['message'] ?? '' ) );
+			return new WP_Error( 'google_calendar_failed', __( 'Google Calendar could not complete this action. Please try again.', 'elaltillo-bookacall' ), array( 'status' => 503, 'http' => (int) $code, 'reason' => sanitize_text_field( substr( $reason, 0, 300 ) ) ) );
 		}
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
 		return is_array( $data ) ? $data : array();
