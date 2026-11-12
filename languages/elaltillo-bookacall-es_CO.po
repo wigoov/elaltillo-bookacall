@@ -447,7 +447,7 @@ msgstr ""
 #: includes/advisors/class-elab-advisor-admin.php:311
 #: includes/google/class-elab-google-calendar.php:70
 msgid "Connect Google Calendar"
-msgstr ""
+msgstr "Conectar Google Calendar"
 
 #: includes/advisors/class-elab-advisor-admin.php:313
 #: includes/google/class-elab-google-calendar.php:70
@@ -2674,11 +2674,11 @@ msgstr ""
 
 #: includes/system/class-elab-system-status.php:181
 msgid "Book a Call: test email"
-msgstr ""
+msgstr "Book a Call: correo de prueba"
 
 #: includes/system/class-elab-system-status.php:181
 msgid "This is a test from El Altillo Book a Call. If it reached your inbox, advisors and visitors will receive booking emails too."
-msgstr ""
+msgstr "Esta es una prueba de El Altillo Book a Call. Si llegó a tu bandeja de entrada, los asesores y visitantes también recibirán los correos de las reservas."
 
 #: includes/system/class-elab-system-status.php:197
 msgid "Needs to reconnect Google Calendar."
@@ -2953,3 +2953,31 @@ msgstr "Los adjuntos PDF, Word, Excel y PowerPoint se abren en un visor seguro; 
 
 msgid "The PHP zip or dom extension is missing, so Word, Excel and PowerPoint files are refused. Ask the host to enable them."
 msgstr "Falta la extensión zip o dom de PHP, así que se rechazan los archivos de Word, Excel y PowerPoint. Pide al hosting que las active."
+
+msgid "A call you were invited to was cancelled"
+msgstr "Se canceló una llamada a la que te invitaron"
+
+#, php-format
+msgid "The call %s invited you to will not take place."
+msgstr "La llamada a la que te invitó %s no se realizará."
+
+msgid "Google stopped accepting your connection."
+msgstr "Google dejó de aceptar tu conexión."
+
+#, php-format
+msgid "%s needs to reconnect Google Calendar"
+msgstr "%s debe volver a conectar Google Calendar"
+
+#, php-format
+msgid "Google stopped accepting the connection of %s. They were emailed a link to reconnect."
+msgstr "Google dejó de aceptar la conexión de %s. Se le envió un enlace para volver a conectarla."
+
+#, php-format
+msgid "Until they reconnect, %s does not appear in the booking calendar. Calls already booked are kept."
+msgstr "Hasta que vuelva a conectarse, %s no aparece en el calendario de reservas. Las llamadas ya reservadas se conservan."
+
+msgid "Open the advisor"
+msgstr "Abrir el asesor"
+
+msgid "From the advisor screen you can send them a new connection link."
+msgstr "Desde la ficha del asesor puedes enviarle un nuevo enlace de conexión."

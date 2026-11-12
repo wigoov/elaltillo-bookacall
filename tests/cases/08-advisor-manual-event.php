@@ -23,7 +23,7 @@ return array(
 			T::lacks( 'elab_advisor_event', $mail['message'], 'No manual link in “' . $mail['subject'] . '”' );
 			T::lacks( 'calendar.google.com/calendar/render', $mail['message'], 'No prefilled Google event' );
 		}
-		T::contains( 'Reconnect Google Calendar', end( T::$mail )['message'], 'Reconnect offered' );
+		T::contains( 'Reconnect Google Calendar', T::mail_with_subject( 'Reconnect your Google Calendar' )[0]['message'], 'Reconnect offered to the advisor' );
 		$html = T::render( static function () use ( $booking ) { ( new ELAB_Booking_Admin() )->render( get_post( $booking ) ); } );
 		T::lacks( 'by hand', $html, 'No manual button on the record' );
 		T::contains( 'Open advisor connection', $html, 'Reconnect offered on the record' );

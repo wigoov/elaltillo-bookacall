@@ -146,4 +146,16 @@ return array(
 		T::same( 0, ELAB_Booking_Sync::reconcile()['cancelled'], 'Google down: nothing cancelled' );
 		T::same( 'confirmed', get_post_meta( $booking, '_elab_status', true ), 'Still confirmed' );
 	},
+
+	'A guest hears that the call they were invited to is off, without a rebooking button' => function () {
+		$advisor = T::connect( T::advisor() );
+		$booking = T::booking( $advisor, array( '_elab_guests' => array( 'guest@example.test' ), '_elab_name' => 'Ana' ) );
+		update_post_meta( $booking, ELAB_Notifications::META_GUESTS_TOLD, 1 );
+		ELAB_Notifications::visitor_notice( $booking, 'cancelled' );
+		$guest = T::mails_to( 'guest@example.test' );
+		T::same( 'A call you were invited to was cancelled', $guest[0]['subject'], 'Guest subject' );
+		T::contains( 'The call Ana invited you to', $guest[0]['message'], 'Says who invited them' );
+		T::lacks( 'Book another time', $guest[0]['message'], 'No rebooking button for a guest' );
+		T::contains( 'Book another time', T::mail_with_subject( 'Your call was cancelled' )[0]['message'], 'The visitor keeps it' );
+	},
 );

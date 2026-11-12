@@ -126,7 +126,8 @@ final class ELAB_Notifications {
 				'intro'  => sprintf( __( 'Connect your Google account so visitors can book calls with you on %s and every booked call appears in your calendar automatically.', 'elaltillo-bookacall' ), get_bloginfo( 'name' ) ),
 				'rows'   => array(
 					__( 'Google account to use', 'elaltillo-bookacall' ) => $email,
-					__( 'Link valid until', 'elaltillo-bookacall' )      => wp_date( get_option( 'date_format' ), ELAB_Google_Calendar::invite_expires( $advisor_id ) ),
+					/* translators: Date format for emails, see https://www.php.net/manual/datetime.format.php */
+					__( 'Link valid until', 'elaltillo-bookacall' )      => wp_date( _x( 'l, F j, Y', 'email date', 'elaltillo-bookacall' ), ELAB_Google_Calendar::invite_expires( $advisor_id ) ),
 				),
 				'button' => array( __( 'Connect Google Calendar', 'elaltillo-bookacall' ), $url ),
 				'body'   => array(
@@ -286,21 +287,36 @@ final class ELAB_Notifications {
 	public static function connection_lost( $advisor_id ) {
 		$subject_name = get_the_title( $advisor_id );
 		$recipients = array_unique( array_filter( array( self::advisor_email( $advisor_id ), sanitize_email( (string) get_option( 'admin_email' ) ) ) ) );
+		$advisor_email = self::advisor_email( $advisor_id );
 		foreach ( $recipients as $recipient ) {
-			self::in_locale( self::advisor_locale( $advisor_id ), static function () use ( $advisor_id, $subject_name, $recipient ) {
+			$to_advisor = $recipient === $advisor_email;
+			// Both read it in the advisor's email language (Spanish by default), whatever the page was.
+			self::in_locale( self::advisor_locale( $advisor_id ), static function () use ( $advisor_id, $subject_name, $recipient, $to_advisor ) {
 				$rows = array();
 				foreach ( ELAB_Booking_Sync::pending( $advisor_id ) as $booking_id ) {
 					if ( ELAB_Booking_Sync::CREATE === ELAB_Booking_Sync::state( $booking_id ) ) {
 						$rows[ self::when( $booking_id, (string) get_post_meta( $advisor_id, '_elab_timezone', true ) ) ] = (string) get_post_meta( $booking_id, '_elab_name', true );
 					}
 				}
-				ELAB_Mailer::send( $recipient, sprintf( __( 'Reconnect Google Calendar for %s', 'elaltillo-bookacall' ), $subject_name ), array(
-					'title'  => __( 'Reconnect your Google Calendar', 'elaltillo-bookacall' ),
-					'intro'  => sprintf( __( 'Google stopped accepting the connection for %s.', 'elaltillo-bookacall' ), $subject_name ),
-					'notice' => __( 'Until you reconnect, you do not appear in the booking calendar and visitors cannot book new calls with you. Calls already booked are kept.', 'elaltillo-bookacall' ),
+				$why = __( 'This happens when access is removed in the Google account, the password changes, or the Google app is still in Testing mode (access then expires after 7 days). Reconnecting takes one click, needs no website login, and adds any waiting calls automatically.', 'elaltillo-bookacall' );
+				if ( $to_advisor ) {
+					ELAB_Mailer::send( $recipient, __( 'Reconnect your Google Calendar', 'elaltillo-bookacall' ), array(
+						'title'  => __( 'Reconnect your Google Calendar', 'elaltillo-bookacall' ),
+						'intro'  => __( 'Google stopped accepting your connection.', 'elaltillo-bookacall' ),
+						'notice' => __( 'Until you reconnect, you do not appear in the booking calendar and visitors cannot book new calls with you. Calls already booked are kept.', 'elaltillo-bookacall' ),
+						'rows'   => $rows,
+						'button' => array( __( 'Reconnect Google Calendar', 'elaltillo-bookacall' ), self::reconnect_url( $advisor_id ) ),
+						'body'   => array( $why ),
+					) );
+					return;
+				}
+				ELAB_Mailer::send( $recipient, sprintf( __( '%s needs to reconnect Google Calendar', 'elaltillo-bookacall' ), $subject_name ), array(
+					'title'  => sprintf( __( '%s needs to reconnect Google Calendar', 'elaltillo-bookacall' ), $subject_name ),
+					'intro'  => sprintf( __( 'Google stopped accepting the connection of %s. They were emailed a link to reconnect.', 'elaltillo-bookacall' ), $subject_name ),
+					'notice' => sprintf( __( 'Until they reconnect, %s does not appear in the booking calendar. Calls already booked are kept.', 'elaltillo-bookacall' ), $subject_name ),
 					'rows'   => $rows,
-					'button' => array( __( 'Reconnect Google Calendar', 'elaltillo-bookacall' ), self::reconnect_url( $advisor_id ) ),
-					'body'   => array( __( 'This happens when access is removed in the Google account, the password changes, or the Google app is still in Testing mode (access then expires after 7 days). Reconnecting takes one click, needs no website login, and adds any waiting calls automatically.', 'elaltillo-bookacall' ) ),
+					'button' => array( __( 'Open the advisor', 'elaltillo-bookacall' ), admin_url( 'post.php?post=' . (int) $advisor_id . '&action=edit#elab-google-connection' ) ),
+					'body'   => array( $why, __( 'From the advisor screen you can send them a new connection link.', 'elaltillo-bookacall' ) ),
 				) );
 			} );
 		}
@@ -441,9 +457,18 @@ final class ELAB_Notifications {
 				) );
 			} );
 		}
-		$cancelled = static function ( $with_guests ) use ( $booking_id ) {
-			$rows = self::visitor_rows( $booking_id, $with_guests );
+		$cancelled = static function ( $for_visitor ) use ( $booking_id ) {
+			$rows = self::visitor_rows( $booking_id, $for_visitor );
 			unset( $rows[ __( 'Video call', 'elaltillo-bookacall' ) ] );
+			if ( ! $for_visitor ) {
+				// A guest did not book this call: tell them it is off, without offering to rebook it.
+				$name = (string) get_post_meta( $booking_id, '_elab_name', true );
+				return array( __( 'A call you were invited to was cancelled', 'elaltillo-bookacall' ), array(
+					'title' => __( 'A call you were invited to was cancelled', 'elaltillo-bookacall' ),
+					'intro' => sprintf( __( 'The call %s invited you to will not take place.', 'elaltillo-bookacall' ), $name ),
+					'rows'  => $rows,
+				) );
+			}
 			return array( __( 'Your call was cancelled', 'elaltillo-bookacall' ), array(
 				'title'  => __( 'Your call was cancelled', 'elaltillo-bookacall' ),
 				'intro'  => __( 'This call will not take place.', 'elaltillo-bookacall' ),
