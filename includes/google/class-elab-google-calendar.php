@@ -314,27 +314,38 @@ final class ELAB_Google_Calendar {
 		$locale = $is_advisor ? ELAB_Notifications::advisor_locale( $advisor_id ) : '';
 		if ( $done ) {
 			$connected = $is_advisor && self::connected( $advisor_id );
-			self::public_page( $locale, $connected ? 200 : 410, $connected ? __( 'Google Calendar connected', 'elaltillo-bookacall' ) : __( 'This link is not valid', 'elaltillo-bookacall' ), $connected ? sprintf( __( 'Visitors can book calls with you again. Each booked call appears in the “%s” calendar of your Google account. You can close this page.', 'elaltillo-bookacall' ), self::CALENDAR_NAME ) : __( 'Ask the site administrator to send you a new connection link.', 'elaltillo-bookacall' ) );
+			self::public_page( $locale, $connected ? 200 : 410, static function () use ( $connected ) {
+				return $connected
+					? array( __( 'Google Calendar connected', 'elaltillo-bookacall' ), sprintf( __( 'Visitors can book calls with you again. Each booked call appears in the “%s” calendar of your Google account. You can close this page.', 'elaltillo-bookacall' ), self::CALENDAR_NAME ) )
+					: array( __( 'This link is not valid', 'elaltillo-bookacall' ), __( 'Ask the site administrator to send you a new connection link.', 'elaltillo-bookacall' ) );
+			} );
 		}
 		if ( ! self::configured() || ! $is_advisor || ! ELAB_Notifications::advisor_email( $advisor_id ) || ! self::valid_invite( $advisor_id, $token ) ) {
-			self::public_page( $locale, 403, __( 'This link is not valid', 'elaltillo-bookacall' ), __( 'It may have expired, been used already, or been replaced by a newer one. Ask the site administrator to send you a new connection link.', 'elaltillo-bookacall' ) );
+			self::public_page( $locale, 403, static function () {
+				return array( __( 'This link is not valid', 'elaltillo-bookacall' ), __( 'It may have expired, been used already, or been replaced by a newer one. Ask the site administrator to send you a new connection link.', 'elaltillo-bookacall' ) );
+			} );
 		}
 		if ( 'POST' === ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
 			self::start_oauth( $advisor_id, 0, true );
 		}
 		$email = ELAB_Notifications::advisor_email( $advisor_id );
-		self::public_page(
-			$locale,
-			200,
-			__( 'Connect your Google Calendar', 'elaltillo-bookacall' ),
-			sprintf( __( 'Sign in with %1$s. %2$s creates one calendar in it, “%3$s”, and can only add and remove your booked calls there: it cannot see or change any other calendar or event.', 'elaltillo-bookacall' ), $email, get_bloginfo( 'name' ), self::CALENDAR_NAME ),
-			array( __( 'Continue to Google', 'elaltillo-bookacall' ), add_query_arg( array( 'action' => 'elab_google_invite', 'advisor' => $advisor_id, 'token' => $token ), admin_url( 'admin-post.php' ) ) )
-		);
+		self::public_page( $locale, 200, static function () use ( $email, $advisor_id, $token ) {
+			return array(
+				__( 'Connect your Google Calendar', 'elaltillo-bookacall' ),
+				sprintf( __( 'Sign in with %1$s. %2$s creates one calendar in it, “%3$s”, and can only add and remove your booked calls there: it cannot see or change any other calendar or event.', 'elaltillo-bookacall' ), $email, get_bloginfo( 'name' ), self::CALENDAR_NAME ),
+				array( __( 'Continue to Google', 'elaltillo-bookacall' ), add_query_arg( array( 'action' => 'elab_google_invite', 'advisor' => $advisor_id, 'token' => $token ), admin_url( 'admin-post.php' ) ) ),
+			);
+		} );
 	}
 
-	private static function public_page( $locale, $code, $title, $intro, $form = null ) {
-		$html = ELAB_Notifications::in_locale( $locale, static function () use ( $title, $intro, $form ) {
-			return ELAB_Mailer::page( array( 'title' => $title, 'intro' => $intro, 'form' => $form ) );
+	/**
+	 * A page for someone without a login, in $locale. $build returns [title, intro, form?]; it
+	 * runs inside the language switch so its strings are translated.
+	 */
+	private static function public_page( $locale, $code, callable $build ) {
+		$html = ELAB_Notifications::in_locale( $locale, static function () use ( $build ) {
+			$view = $build();
+			return ELAB_Mailer::page( array( 'title' => $view[0], 'intro' => $view[1], 'form' => $view[2] ?? null ) );
 		} );
 		status_header( $code );
 		if ( ! headers_sent() ) {
