@@ -19,6 +19,7 @@ final class ELAB_Notifications {
 	const META_SCHEDULE_MAIL = '_elab_schedule_mail_status';
 	const META_ADVISOR_LOCALE = '_elab_email_locale';
 	const META_GUESTS_TOLD = '_elab_guests_told';
+	const META_REMINDED = '_elab_reminder_sent';
 	private static $schedule_queue = array();
 	private static $schedule_hooked = false;
 
@@ -121,9 +122,9 @@ final class ELAB_Notifications {
 			return false;
 		}
 		return self::in_locale( self::advisor_locale( $advisor_id ), static function () use ( $advisor_id, $email, $url ) {
-			return ELAB_Mailer::send( $email, sprintf( __( 'Connect your Google Calendar to %s', 'elaltillo-bookacall' ), get_bloginfo( 'name' ) ), array(
+			return ELAB_Mailer::send( $email, sprintf( __( 'Connect your Google Calendar to %s', 'elaltillo-bookacall' ), ELAB_Mailer::brand() ), array(
 				'title'  => __( 'Connect your Google Calendar', 'elaltillo-bookacall' ),
-				'intro'  => sprintf( __( 'Connect your Google account so visitors can book calls with you on %s and every booked call appears in your calendar automatically.', 'elaltillo-bookacall' ), get_bloginfo( 'name' ) ),
+				'intro'  => sprintf( __( 'Connect your Google account so visitors can book calls with you on %s and every booked call appears in your calendar automatically.', 'elaltillo-bookacall' ), ELAB_Mailer::brand() ),
 				'rows'   => array(
 					__( 'Google account to use', 'elaltillo-bookacall' ) => $email,
 					/* translators: Date format for emails, see https://www.php.net/manual/datetime.format.php */
@@ -219,7 +220,9 @@ final class ELAB_Notifications {
 			return false;
 		}
 		$sent = self::in_locale( self::advisor_locale( $advisor_id ), static function () use ( $booking_id, $status, $advisor_id, $email ) {
-			return ELAB_Mailer::send( $email, ...self::booking_notice_message( $booking_id, $status, $advisor_id ) );
+			list( $subject, $message ) = self::booking_notice_message( $booking_id, $status, $advisor_id );
+			// Replying reaches the visitor.
+			return ELAB_Mailer::send( $email, $subject, $message, (string) get_post_meta( $booking_id, '_elab_contact_email', true ) );
 		} );
 		update_post_meta( $booking_id, self::META_BOOKING_MAIL, $sent ? 'sent' : 'failed' );
 		return $sent;
@@ -230,6 +233,10 @@ final class ELAB_Notifications {
 		$name = (string) get_post_meta( $booking_id, '_elab_name', true );
 		$waiting = ELAB_Booking_Sync::CREATE === ELAB_Booking_Sync::state( $booking_id );
 		$broken = $waiting && ! ELAB_Google_Calendar::connected( $advisor_id );
+		if ( $broken ) {
+			// This email already asks to reconnect: the advisor gets no separate reconnect email.
+			self::$lost_covered[ $advisor_id ] = true;
+		}
 		$titles = array(
 			'confirmed' => array( __( 'New call booked', 'elaltillo-bookacall' ), sprintf( __( '%s booked a call with you.', 'elaltillo-bookacall' ), $name ) ),
 			'pending'   => array( __( 'New call request', 'elaltillo-bookacall' ), sprintf( __( '%s requested a call. Confirm it from the booking record.', 'elaltillo-bookacall' ), $name ) ),
@@ -284,12 +291,36 @@ final class ELAB_Notifications {
 	 * Google stopped accepting the advisor's access. Tell the advisor and the site admin
 	 * once, with the calls that are waiting. Bookings keep working in WordPress meanwhile.
 	 */
-	public static function connection_lost( $advisor_id ) {
+	/** Advisors whose broken connection is reported once this request ends. */
+	private static $lost_queue = array();
+	/** Advisors already asked to reconnect by a booking email in this request. */
+	private static $lost_covered = array();
+
+	/** Report a broken connection when the request ends, so a booking email in between can carry it alone. */
+	public static function queue_connection_lost( $advisor_id ) {
+		if ( ! self::$lost_queue ) {
+			add_action( 'shutdown', array( __CLASS__, 'send_queued_connection_lost' ) );
+		}
+		self::$lost_queue[ (int) $advisor_id ] = true;
+	}
+
+	public static function send_queued_connection_lost() {
+		foreach ( array_keys( self::$lost_queue ) as $advisor_id ) {
+			self::connection_lost( $advisor_id, ! isset( self::$lost_covered[ $advisor_id ] ) );
+		}
+		self::$lost_queue = array();
+		self::$lost_covered = array();
+	}
+
+	public static function connection_lost( $advisor_id, $tell_advisor = true ) {
 		$subject_name = get_the_title( $advisor_id );
 		$recipients = array_unique( array_filter( array( self::advisor_email( $advisor_id ), sanitize_email( (string) get_option( 'admin_email' ) ) ) ) );
 		$advisor_email = self::advisor_email( $advisor_id );
 		foreach ( $recipients as $recipient ) {
 			$to_advisor = $recipient === $advisor_email;
+			if ( $to_advisor && ! $tell_advisor ) {
+				continue;
+			}
 			// Both read it in the advisor's email language (Spanish by default), whatever the page was.
 			self::in_locale( self::advisor_locale( $advisor_id ), static function () use ( $advisor_id, $subject_name, $recipient, $to_advisor ) {
 				$rows = array();
@@ -336,7 +367,7 @@ final class ELAB_Notifications {
 			) ) );
 			return ELAB_Mailer::send( $email, __( 'Google Calendar disconnected', 'elaltillo-bookacall' ), array(
 				'title'  => __( 'Your Google Calendar was disconnected', 'elaltillo-bookacall' ),
-				'intro'  => sprintf( __( 'Your Google Calendar is no longer connected to %s.', 'elaltillo-bookacall' ), get_bloginfo( 'name' ) ),
+				'intro'  => sprintf( __( 'Your Google Calendar is no longer connected to %s.', 'elaltillo-bookacall' ), ELAB_Mailer::brand() ),
 				'notice' => __( 'Visitors cannot book calls with you until you connect it again.', 'elaltillo-bookacall' ),
 				'rows'   => array( __( 'Calls already booked', 'elaltillo-bookacall' ) => (string) count( $upcoming ) ),
 				'button' => array( __( 'Connect Google Calendar', 'elaltillo-bookacall' ), self::reconnect_url( $advisor_id ) ),
@@ -370,8 +401,11 @@ final class ELAB_Notifications {
 			update_post_meta( $booking_id, self::META_VISITOR_MAIL, 'failed' );
 			return false;
 		}
-		$sent = self::in_locale( (string) get_post_meta( $booking_id, '_elab_locale', true ), static function () use ( $email, $build ) {
-			return ELAB_Mailer::send( $email, ...$build() );
+		// Replying reaches the advisor.
+		$reply = self::advisor_email( (int) get_post_meta( $booking_id, '_elab_advisor', true ) );
+		$sent = self::in_locale( (string) get_post_meta( $booking_id, '_elab_locale', true ), static function () use ( $email, $build, $reply ) {
+			list( $subject, $message ) = $build();
+			return ELAB_Mailer::send( $email, $subject, $message, $reply );
 		} );
 		update_post_meta( $booking_id, self::META_VISITOR_MAIL, $sent ? 'sent' : 'failed' );
 		return $sent;
@@ -380,9 +414,12 @@ final class ELAB_Notifications {
 	/** Guests get the news from the site only when no Google invitation carries it. No private link. */
 	private static function send_guests( $booking_id, callable $build ) {
 		$sent = 0;
+		// Replying reaches the visitor who invited them.
+		$reply = (string) get_post_meta( $booking_id, '_elab_contact_email', true );
 		foreach ( ELAB_Booking_Sync::guests( $booking_id ) as $guest ) {
-			$sent += (int) self::in_locale( (string) get_post_meta( $booking_id, '_elab_locale', true ), static function () use ( $guest, $build ) {
-				return ELAB_Mailer::send( $guest, ...$build() );
+			$sent += (int) self::in_locale( (string) get_post_meta( $booking_id, '_elab_locale', true ), static function () use ( $guest, $build, $reply ) {
+				list( $subject, $message ) = $build();
+				return ELAB_Mailer::send( $guest, $subject, $message, $reply );
 			} );
 		}
 		return $sent;
@@ -395,7 +432,12 @@ final class ELAB_Notifications {
 			$invited = (bool) get_post_meta( $booking_id, ELAB_Google_Calendar::META_EVENT, true );
 			$body = array();
 			if ( $confirmed ) {
-				$body[] = $invited ? __( 'Google Calendar also sends you an invitation for this call.', 'elaltillo-bookacall' ) : __( 'Your calendar invitation will follow in a separate email shortly.', 'elaltillo-bookacall' );
+				$waits_for_advisor = ! $invited && ! ELAB_Google_Calendar::connected( (int) get_post_meta( $booking_id, '_elab_advisor', true ) );
+				$body[] = $invited
+					? __( 'Google Calendar also sends you an invitation for this call.', 'elaltillo-bookacall' )
+					: ( $waits_for_advisor
+						? __( 'Your call is saved and the time is reserved for you. The calendar invitation arrives as soon as the advisor confirms their calendar; you do not need to do anything.', 'elaltillo-bookacall' )
+						: __( 'Your calendar invitation will follow in a separate email shortly.', 'elaltillo-bookacall' ) );
 			}
 			if ( ELAB_Booking_Sync::guests( $booking_id ) && $invited ) {
 				$body[] = __( 'Your guests receive their own Google Calendar invitation.', 'elaltillo-bookacall' );
@@ -424,8 +466,43 @@ final class ELAB_Notifications {
 		} );
 	}
 
+	/**
+	 * Cron: remind visitors of confirmed calls in the next 24 hours, once. Calls booked less
+	 * than 12 hours ahead are not reminded: the confirmation is still fresh.
+	 *
+	 * @return int Reminders sent.
+	 */
+	public static function send_reminders() {
+		$now = time();
+		$ids = get_posts( array( 'post_type' => ELAB_Post_Types::BOOKING, 'post_status' => 'any', 'numberposts' => 100, 'fields' => 'ids', 'meta_query' => array(
+			array( 'key' => '_elab_status', 'value' => 'confirmed' ),
+			array( 'key' => self::META_REMINDED, 'compare' => 'NOT EXISTS' ),
+			array( 'key' => '_elab_start_utc', 'value' => array( gmdate( 'Y-m-d H:i:s', $now + HOUR_IN_SECONDS ), gmdate( 'Y-m-d H:i:s', $now + DAY_IN_SECONDS ) ), 'compare' => 'BETWEEN', 'type' => 'DATETIME' ),
+		) ) );
+		$sent = 0;
+		foreach ( $ids as $booking_id ) {
+			$start = strtotime( get_post_meta( $booking_id, '_elab_start_utc', true ) . ' UTC' );
+			// Marked first, so a slow or failing mail server never sends it twice.
+			update_post_meta( $booking_id, self::META_REMINDED, gmdate( 'Y-m-d H:i:s' ) );
+			if ( $start - strtotime( get_post_field( 'post_date_gmt', $booking_id ) . ' UTC' ) < 12 * HOUR_IN_SECONDS ) {
+				continue;
+			}
+			$sent += (int) self::send_visitor( $booking_id, static function () use ( $booking_id ) {
+				$advisor = get_the_title( (int) get_post_meta( $booking_id, '_elab_advisor', true ) );
+				return array( sprintf( __( 'Reminder: your call with %s', 'elaltillo-bookacall' ), $advisor ), array(
+					'title'  => __( 'Your call is coming up', 'elaltillo-bookacall' ),
+					'intro'  => __( 'A quick reminder with the details of your call.', 'elaltillo-bookacall' ),
+					'rows'   => self::visitor_rows( $booking_id ),
+					'button' => self::manage_button( $booking_id ),
+					'body'   => array( __( 'If you cannot make it, cancel with the button above so the time is freed for someone else.', 'elaltillo-bookacall' ) ),
+				) );
+			} );
+		}
+		return $sent;
+	}
+
 	/** Sent when there is no Google invitation to carry the change (manual confirmation, or Google unreachable). */
-	public static function visitor_notice( $booking_id, $status ) {
+	public static function visitor_notice( $booking_id, $status, $tell_guests = true ) {
 		$host = get_the_title( (int) get_post_meta( $booking_id, '_elab_advisor', true ) );
 		if ( 'confirmed' === $status ) {
 			$start = new DateTimeImmutable( (string) get_post_meta( $booking_id, '_elab_start_utc', true ), new DateTimeZone( 'UTC' ) );
@@ -469,15 +546,20 @@ final class ELAB_Notifications {
 					'rows'  => $rows,
 				) );
 			}
+			$by = (string) get_post_meta( $booking_id, '_elab_cancelled_by', true );
+			$intro = array(
+				'visitor' => __( 'You cancelled this call, so the time is free for someone else. Thank you for letting us know.', 'elaltillo-bookacall' ),
+				'admin'   => __( 'This call was cancelled and will not take place. If you still want to talk, choose another time.', 'elaltillo-bookacall' ),
+			)[ $by ] ?? __( 'This call will not take place.', 'elaltillo-bookacall' );
 			return array( __( 'Your call was cancelled', 'elaltillo-bookacall' ), array(
 				'title'  => __( 'Your call was cancelled', 'elaltillo-bookacall' ),
-				'intro'  => __( 'This call will not take place.', 'elaltillo-bookacall' ),
+				'intro'  => $intro,
 				'rows'   => $rows,
 				'button' => array( __( 'Book another time', 'elaltillo-bookacall' ), ELAB_Booking_Manage::booking_page_url( $booking_id ) ),
 			) );
 		};
 		// Only guests who heard about the call (from Google or from us) hear that it was cancelled.
-		if ( get_post_meta( $booking_id, self::META_GUESTS_TOLD, true ) ) {
+		if ( $tell_guests && get_post_meta( $booking_id, self::META_GUESTS_TOLD, true ) ) {
 			self::send_guests( $booking_id, static function () use ( $cancelled ) {
 				return $cancelled( false );
 			} );

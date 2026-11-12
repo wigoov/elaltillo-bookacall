@@ -417,7 +417,7 @@ final class ELAB_Google_Calendar {
 		}
 		update_post_meta( $advisor_id, self::META_REVOKED, time() );
 		delete_transient( 'elab_google_access_' . $advisor_id );
-		ELAB_Notifications::connection_lost( $advisor_id );
+		ELAB_Notifications::queue_connection_lost( $advisor_id );
 	}
 
 	private static function token_request( $fields ) {
@@ -653,7 +653,7 @@ final class ELAB_Google_Calendar {
 		$advisor = get_the_title( $advisor_id );
 		$visitor = (string) get_post_meta( $booking_id, '_elab_name', true );
 		$description = array(
-			sprintf( __( 'Call booked through %s.', 'elaltillo-bookacall' ), get_bloginfo( 'name' ) ),
+			sprintf( __( 'Call booked through %s.', 'elaltillo-bookacall' ), ELAB_Mailer::brand() ),
 			sprintf( __( 'Length: %d minutes', 'elaltillo-bookacall' ), absint( $duration ) ),
 			sprintf( __( 'Meeting language: %s', 'elaltillo-bookacall' ), ELAB_Booking_Service::language_label( get_post_meta( $booking_id, '_elab_language', true ) ?: ELAB_Booking_Service::DEFAULT_LANGUAGE ) ),
 		);
@@ -663,7 +663,7 @@ final class ELAB_Google_Calendar {
 		// Sector, message and files stay out of the event; it lives only in the site's own calendar.
 		$body = array(
 			'id' => $event_id,
-			'summary' => sprintf( __( '%1$s · %2$s and %3$s', 'elaltillo-bookacall' ), get_bloginfo( 'name' ), $visitor ?: __( 'Visitor', 'elaltillo-bookacall' ), $advisor ),
+			'summary' => sprintf( __( '%1$s · %2$s and %3$s', 'elaltillo-bookacall' ), ELAB_Mailer::brand(), $visitor ?: __( 'Visitor', 'elaltillo-bookacall' ), $advisor ),
 			'description' => implode( "\n", $description ),
 			'visibility' => 'private',
 			'guestsCanInviteOthers' => false,

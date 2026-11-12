@@ -14,7 +14,10 @@ return array(
 		T::same( 'visitor', get_post_meta( $booking, '_elab_cancelled_by', true ), 'Who' );
 		T::check( (bool) get_post_meta( $booking, '_elab_cancelled_at', true ), 'When' );
 		T::same( 1, count( T::requests( '#^DELETE #' ) ), 'Event deleted' );
-		T::same( 0, count( T::mail_with_subject( 'Your call was cancelled' ) ), 'Google tells the visitor, not a second email' );
+		$visitor = T::mail_with_subject( 'Your call was cancelled' );
+		T::same( 1, count( $visitor ), 'The visitor gets the site’s confirmation too' );
+		T::contains( 'You cancelled this call', $visitor[0]['message'], 'In their words' );
+		T::contains( 'Book another time', $visitor[0]['message'], 'With a way to book again' );
 	},
 
 	'A call cannot be cancelled twice, nor after it took place' => function () {

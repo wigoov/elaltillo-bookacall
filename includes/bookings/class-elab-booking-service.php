@@ -304,7 +304,7 @@ final class ELAB_Booking_Service {
 			$invited = ! ELAB_Booking_Sync::state( $booking_id );
 			return new WP_REST_Response( array(
 				'status'   => 'confirmed',
-				'message'  => $invited ? __( 'A Google Calendar invitation is on its way to your email.', 'elaltillo-bookacall' ) : __( 'Your call is booked. The calendar invitation will follow by email shortly.', 'elaltillo-bookacall' ),
+				'message'  => $invited ? __( 'A Google Calendar invitation is on its way to your email.', 'elaltillo-bookacall' ) : ( ELAB_Google_Calendar::connected( (int) get_post_meta( $booking_id, '_elab_advisor', true ) ) ? __( 'Your call is booked. The calendar invitation will follow by email shortly.', 'elaltillo-bookacall' ) : __( 'Your call is booked and the time is reserved. The calendar invitation arrives by email as soon as the advisor confirms their calendar.', 'elaltillo-bookacall' ) ),
 				'booking'  => $summary,
 				'manage'   => ELAB_Booking_Manage::public_url( $booking_id ),
 				'invited'  => $invited ? $visitor['email'] : '',

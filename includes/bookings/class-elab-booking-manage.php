@@ -135,9 +135,9 @@ final class ELAB_Booking_Manage {
 		update_post_meta( $booking_id, '_elab_cancelled_at', gmdate( 'Y-m-d H:i:s' ) );
 		$google = ELAB_Booking_Sync::remove_event( $booking_id );
 		ELAB_Notifications::booking_notice( $booking_id, 'cancelled' );
-		if ( 'deleted' !== $google ) {
-			ELAB_Notifications::visitor_notice( $booking_id, 'cancelled' );
-		}
+		// The visitor always gets the site's email (with "Book another time"); guests only
+		// when Google did not already send them the cancellation.
+		ELAB_Notifications::visitor_notice( $booking_id, 'cancelled', 'deleted' !== $google );
 		return $google;
 	}
 

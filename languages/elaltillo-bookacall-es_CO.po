@@ -3040,3 +3040,28 @@ msgstr "Puedes adjuntar hasta %2$d archivos; %1$s no se añadió."
 #, php-format
 msgid "Remove the file %s"
 msgstr "Quitar el archivo %s"
+
+msgid "A quick reminder with the details of your call."
+msgstr "Un recordatorio rápido con los datos de tu llamada."
+
+msgid "If you cannot make it, cancel with the button above so the time is freed for someone else."
+msgstr "Si no puedes asistir, cancela con el botón de arriba para liberar la hora para otra persona."
+
+#, php-format
+msgid "Reminder: your call with %s"
+msgstr "Recordatorio: tu llamada con %s"
+
+msgid "This call was cancelled and will not take place. If you still want to talk, choose another time."
+msgstr "Esta llamada se canceló y no se realizará. Si todavía quieres hablar, elige otra hora."
+
+msgid "You cancelled this call, so the time is free for someone else. Thank you for letting us know."
+msgstr "Cancelaste esta llamada, así que la hora queda libre para otra persona. Gracias por avisar."
+
+msgid "Your call is booked and the time is reserved. The calendar invitation arrives by email as soon as the advisor confirms their calendar."
+msgstr "Tu llamada está agendada y la hora reservada. La invitación del calendario llegará por correo en cuanto el asesor confirme su calendario."
+
+msgid "Your call is coming up"
+msgstr "Tu llamada es pronto"
+
+msgid "Your call is saved and the time is reserved for you. The calendar invitation arrives as soon as the advisor confirms their calendar; you do not need to do anything."
+msgstr "Tu llamada está guardada y la hora reservada para ti. La invitación del calendario llegará en cuanto el asesor confirme su calendario; no tienes que hacer nada."

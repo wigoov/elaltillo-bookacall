@@ -137,4 +137,66 @@ return array(
 		T::same( 'failed', get_post_meta( $booking, ELAB_Notifications::META_VISITOR_MAIL, true ), 'Visitor email failure' );
 		T::same( 'failed', get_post_meta( $booking, ELAB_Notifications::META_BOOKING_MAIL, true ), 'Advisor email failure' );
 	},
+
+	'Emails are signed El Altillo, and a reply reaches the other side of the call' => function () {
+		$advisor = T::connect( T::advisor( array( '_elab_email' => 'asesor@example.test' ) ) );
+		$booking = T::booking( $advisor, array( '_elab_contact_email' => 'visita@example.test', '_elab_guests' => array( 'socio@example.test' ) ) );
+		$from = '';
+		// The sender name WordPress would use, read while the email is being sent.
+		$name = static function ( $preempt ) use ( &$from ) { $from = apply_filters( 'wp_mail_from_name', 'WordPress' ); return $preempt; };
+		add_filter( 'pre_wp_mail', $name, 5 );
+		ELAB_Notifications::booking_notice( $booking, 'confirmed' );
+		remove_filter( 'pre_wp_mail', $name, 5 );
+		ELAB_Notifications::visitor_booked( $booking );
+		update_post_meta( $booking, ELAB_Notifications::META_GUESTS_TOLD, 1 );
+		ELAB_Notifications::visitor_notice( $booking, 'cancelled' );
+		$reply = static function ( $mail ) { return implode( ' ', preg_grep( '/^Reply-To:/i', (array) $mail['headers'] ) ); };
+		T::contains( 'visita@example.test', $reply( T::mails_to( 'asesor@example.test' )[0] ), 'Advisor replies reach the visitor' );
+		T::contains( 'asesor@example.test', $reply( T::mails_to( 'visita@example.test' )[0] ), 'Visitor replies reach the advisor' );
+		T::contains( 'visita@example.test', $reply( T::mails_to( 'socio@example.test' )[0] ), 'Guest replies reach the visitor who invited them' );
+		T::contains( '>El Altillo</p>', T::mails_to( 'asesor@example.test' )[0]['message'], 'Brand at the top' );
+		T::same( 'El Altillo', $from, 'Sender name' );
+	},
+
+	'The administrator cancelling: the visitor hears it from the site with a way to book again' => function () {
+		$advisor = T::connect( T::advisor() );
+		$booking = T::booking( $advisor, array( '_elab_guests' => array( 'socio@example.test' ) ) );
+		update_post_meta( $booking, ELAB_Notifications::META_GUESTS_TOLD, 1 );
+		ELAB_Booking_Sync::create_for( $booking );
+		ELAB_Booking_Manage::mark_cancelled( $booking, 'admin' );
+		$visitor = T::mail_with_subject( 'Your call was cancelled' );
+		T::same( 1, count( $visitor ), 'Visitor emailed' );
+		T::contains( 'If you still want to talk, choose another time', $visitor[0]['message'], 'Admin wording' );
+		T::same( array(), T::mails_to( 'socio@example.test' ), 'Google already told the guests: no second email' );
+	},
+
+	'A connection that breaks while booking: one email to the advisor, the admin still told' => function () {
+		$advisor = T::connect( T::advisor( array( '_elab_email' => 'asesor@example.test' ) ) );
+		T::$revoke = true;
+		T::book( $advisor, T::slot_values( $advisor )[0], array( 'language' => 'en', 'locale' => 'en_US' ) );
+		ELAB_Notifications::send_queued_connection_lost();
+		$to_advisor = T::mails_to( 'asesor@example.test' );
+		T::same( 1, count( $to_advisor ), 'One email to the advisor' );
+		T::same( 'Action needed: new call waiting for Google Calendar', $to_advisor[0]['subject'], 'The booking email, which asks to reconnect' );
+		T::same( 1, count( T::mail_with_subject( 'Test advisor needs to reconnect Google Calendar' ) ), 'The admin is told' );
+		$visitor = T::mail_with_subject( 'Your call is booked' );
+		T::contains( 'as soon as the advisor confirms their calendar', $visitor[0]['message'], 'The visitor is told honestly why the invitation waits' );
+	},
+
+	'Reminder: once, 24 hours ahead, not for calls booked at the last minute' => function () {
+		$advisor = T::connect( T::advisor() );
+		$soon = T::booking( $advisor, array( '_elab_start_utc' => gmdate( 'Y-m-d H:i:s', time() + 20 * HOUR_IN_SECONDS ) ) );
+		wp_update_post( array( 'ID' => $soon, 'post_date_gmt' => gmdate( 'Y-m-d H:i:s', time() - 3 * DAY_IN_SECONDS ), 'post_date' => gmdate( 'Y-m-d H:i:s', time() - 3 * DAY_IN_SECONDS ) ) );
+		$last_minute = T::booking( $advisor, array( '_elab_start_utc' => gmdate( 'Y-m-d H:i:s', time() + 5 * HOUR_IN_SECONDS ) ) );
+		$later = T::booking( $advisor, array( '_elab_start_utc' => gmdate( 'Y-m-d H:i:s', time() + 3 * DAY_IN_SECONDS ) ) );
+		$cancelled = T::booking( $advisor, array( '_elab_status' => 'cancelled', '_elab_start_utc' => gmdate( 'Y-m-d H:i:s', time() + 10 * HOUR_IN_SECONDS ) ) );
+		T::same( 1, ELAB_Notifications::send_reminders(), 'One reminder' );
+		$mail = T::mail_with_subject( 'Reminder: your call with Test advisor' );
+		T::same( get_post_meta( $soon, '_elab_contact_email', true ), $mail[0]['to'], 'To the visitor of the call within 24 hours' );
+		T::contains( 'View or cancel my call', $mail[0]['message'], 'With the cancel link' );
+		T::same( 0, ELAB_Notifications::send_reminders(), 'Never twice' );
+		T::check( (bool) get_post_meta( $last_minute, ELAB_Notifications::META_REMINDED, true ), 'A last-minute booking is skipped for good' );
+		T::check( ! get_post_meta( $later, ELAB_Notifications::META_REMINDED, true ) && ! get_post_meta( $cancelled, ELAB_Notifications::META_REMINDED, true ), 'Later and cancelled calls untouched' );
+		T::check( false !== has_action( ELAB_Booking_Sync::CRON, array( 'ELAB_Notifications', 'send_reminders' ) ), 'Runs with the 15-minute check' );
+	},
 );

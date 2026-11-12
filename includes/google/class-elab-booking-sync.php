@@ -31,6 +31,7 @@ final class ELAB_Booking_Sync {
 		add_action( 'init', array( __CLASS__, 'schedule' ) );
 		add_action( self::CRON, array( 'ELAB_Google_Calendar', 'watch_connections' ), 5 );
 		add_action( self::CRON, array( __CLASS__, 'run' ) );
+		add_action( self::CRON, array( 'ELAB_Notifications', 'send_reminders' ), 20 );
 		add_action( 'admin_post_nopriv_' . self::OLD_ACTION, array( __CLASS__, 'handle_old_link' ) );
 		add_action( 'admin_post_' . self::OLD_ACTION, array( __CLASS__, 'handle_old_link' ) );
 	}

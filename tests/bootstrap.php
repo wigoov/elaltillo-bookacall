@@ -102,6 +102,7 @@ final class ELAB_Test {
 
 	/** Undo everything a test did. */
 	public static function reset() {
+		ELAB_Notifications::send_queued_connection_lost();
 		foreach ( array_unique( self::$posts ) as $id ) {
 			foreach ( get_posts( array( 'post_type' => ELAB_Post_Types::BOOKING, 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids', 'meta_key' => '_elab_advisor', 'meta_value' => $id ) ) as $booking ) {
 				wp_delete_post( $booking, true );

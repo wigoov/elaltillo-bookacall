@@ -85,10 +85,12 @@ return array(
 		$booking = T::booking( $advisor );
 		T::error( null, ELAB_Booking_Sync::create_for( $booking ), 'Event cannot be created' );
 		T::check( ELAB_Google_Calendar::revoked( $advisor ) && ! ELAB_Google_Calendar::connected( $advisor ), 'Advisor marked to reconnect' );
+		ELAB_Notifications::send_queued_connection_lost(); // What happens when the request ends.
 		$lost = array_filter( T::$mail, static function ( $mail ) { return in_array( $mail['subject'], array( 'Reconnect your Google Calendar', 'Test advisor needs to reconnect Google Calendar' ), true ); } );
 		T::check( count( $lost ) >= 1, 'Reconnect email sent' );
 		$count = count( T::$mail );
 		ELAB_Booking_Sync::create_for( $booking );
+		ELAB_Notifications::send_queued_connection_lost();
 		T::same( $count, count( T::$mail ), 'Not emailed again for the same loss' );
 	},
 
@@ -173,6 +175,7 @@ return array(
 		T::$revoke = true;
 		T::check( is_wp_error( ELAB_Google_Calendar::check( $advisor ) ), 'Check fails' );
 		T::check( ELAB_Google_Calendar::revoked( $advisor ), 'Marked as needing to reconnect' );
+		ELAB_Notifications::send_queued_connection_lost();
 		T::same( 1, count( T::mail_with_subject( 'Reconnect your Google Calendar' ) ), 'Advisor told at once' );
 		T::same( 1, count( T::mail_with_subject( 'Test advisor needs to reconnect Google Calendar' ) ), 'Site admin told at once, in their own words' );
 	},

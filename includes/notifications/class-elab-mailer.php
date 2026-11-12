@@ -12,19 +12,36 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 final class ELAB_Mailer {
+	/** Name shown as the sender and at the top of every email (filter elab_email_brand). */
+	const BRAND = 'El Altillo';
+
+	public static function brand() {
+		return (string) apply_filters( 'elab_email_brand', self::BRAND );
+	}
+
 	/**
-	 * @param string $to      Recipient.
-	 * @param string $subject Subject line.
-	 * @param array  $message {title, intro, notice, rows (label => value or [text, url]), body (string[]), button [label, url], secondary [label, url], form [label, url], footer}.
+	 * @param string $to       Recipient.
+	 * @param string $subject  Subject line.
+	 * @param array  $message  {title, intro, notice, rows (label => value or [text, url]), body (string[]), button [label, url], secondary [label, url], form [label, url], footer}.
+	 * @param string $reply_to Who a reply reaches (the other side of the call), or '' for nobody.
 	 */
-	public static function send( $to, $subject, array $message ) {
+	public static function send( $to, $subject, array $message, $reply_to = '' ) {
 		$html = self::html( $message );
 		$text = self::text( $message );
 		$alt = static function ( $phpmailer ) use ( $text ) {
 			$phpmailer->AltBody = $text; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHPMailer API.
 		};
+		$from_name = static function () {
+			return self::brand();
+		};
+		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+		if ( $reply_to && is_email( $reply_to ) ) {
+			$headers[] = 'Reply-To: ' . $reply_to;
+		}
 		add_action( 'phpmailer_init', $alt );
-		$sent = wp_mail( $to, $subject, $html, array( 'Content-Type: text/html; charset=UTF-8' ) );
+		add_filter( 'wp_mail_from_name', $from_name, 20 );
+		$sent = wp_mail( $to, $subject, $html, $headers );
+		remove_filter( 'wp_mail_from_name', $from_name, 20 );
 		remove_action( 'phpmailer_init', $alt );
 		return $sent;
 	}
@@ -42,7 +59,7 @@ final class ELAB_Mailer {
 		$out .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3eee8;"><tr><td align="center" style="padding:32px 12px;">';
 		$out .= '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFAF7;border:1px solid #e4ddd5;border-radius:16px;">';
 		$out .= '<tr><td style="padding:28px 32px 4px;' . $font . 'color:#282C33;">';
-		$out .= '<p style="margin:0 0 20px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7b7e84;">' . esc_html( get_bloginfo( 'name' ) ) . '</p>';
+		$out .= '<p style="margin:0 0 20px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7b7e84;">' . esc_html( self::brand() ) . '</p>';
 		$out .= '<h1 style="margin:0 0 10px;font-size:22px;line-height:1.3;font-weight:600;">' . esc_html( $m['title'] ?? '' ) . '</h1>';
 		if ( ! empty( $m['intro'] ) ) {
 			$out .= '<p style="margin:0 0 4px;font-size:15px;line-height:1.55;color:#4a4d53;">' . esc_html( $m['intro'] ) . '</p>';

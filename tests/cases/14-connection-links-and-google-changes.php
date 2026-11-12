@@ -53,6 +53,7 @@ return array(
 		T::$unauthorized_once = true;
 		T::$revoke = true;
 		ELAB_Google_Calendar::watch_connections();
+		ELAB_Notifications::send_queued_connection_lost();
 		T::check( ELAB_Google_Calendar::revoked( $advisor ), 'Marked as broken' );
 		T::check( ! ELAB_Availability::is_bookable( $advisor ), 'Hidden at once' );
 		$mail = T::mails_to( 'advisor@example.test' );
@@ -60,6 +61,7 @@ return array(
 		T::contains( 'elab_google_invite', $mail[0]['message'], 'Reconnect link needs no login' );
 		T::contains( 'do not appear in the booking calendar', $mail[0]['message'], 'Explains they are hidden' );
 		ELAB_Google_Calendar::watch_connections();
+		ELAB_Notifications::send_queued_connection_lost();
 		T::same( 1, count( T::mails_to( 'advisor@example.test' ) ), 'Not emailed again' );
 	},
 
