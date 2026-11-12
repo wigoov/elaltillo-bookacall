@@ -108,14 +108,17 @@ $elab_step_dot = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full
 	</section>
 
 	<form data-elab-step="details" hidden novalidate enctype="multipart/form-data" aria-labelledby="<?php echo esc_attr( $elab_uid ); ?>-details" class="<?php echo esc_attr( $elab_card ); ?> grid md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-		<aside class="flex flex-col gap-6 bg-accent p-6 sm:p-8 md:justify-between">
-			<div class="grid gap-1">
-				<p class="pb-2 font-secondary text-xs uppercase tracking-wider text-secondary/70"><?php esc_html_e( 'Your call', 'elaltillo-bookacall' ); ?></p>
-				<p data-elab-summary-day class="font-primary text-2xl first-letter:uppercase sm:text-3xl"></p>
-				<p data-elab-summary-time class="font-primary text-xl"></p>
-				<p data-elab-summary-meta class="pt-2 font-secondary text-xs text-secondary/70"></p>
+		<aside class="bg-accent p-6 sm:p-8">
+			<?php // On wide screens the summary follows the visitor down a long form (the card clips, it does not scroll). ?>
+			<div data-elab-summary class="flex flex-col gap-6 md:sticky md:top-28">
+				<div class="grid gap-1">
+					<p class="pb-2 font-secondary text-xs uppercase tracking-wider text-secondary/70"><?php esc_html_e( 'Your call', 'elaltillo-bookacall' ); ?></p>
+					<p data-elab-summary-day class="font-primary text-2xl first-letter:uppercase sm:text-3xl"></p>
+					<p data-elab-summary-time class="font-primary text-xl"></p>
+					<p data-elab-summary-meta class="pt-2 font-secondary text-xs text-secondary/70"></p>
+				</div>
+				<button type="button" data-elab-back class="<?php echo esc_attr( $elab_link ); ?> self-start">← <?php esc_html_e( 'Change time', 'elaltillo-bookacall' ); ?></button>
 			</div>
-			<button type="button" data-elab-back class="<?php echo esc_attr( $elab_link ); ?> self-start">← <?php esc_html_e( 'Change time', 'elaltillo-bookacall' ); ?></button>
 		</aside>
 		<div class="grid gap-6 p-6 sm:p-8">
 			<h2 id="<?php echo esc_attr( $elab_uid ); ?>-details" tabindex="-1" class="font-primary text-2xl outline-none"><?php esc_html_e( 'Tell us about you', 'elaltillo-bookacall' ); ?></h2>
