@@ -2654,3 +2654,9 @@ msgstr "Google confirma que este sitio solo puede usar su propio calendario «El
 
 msgid "The first only reaches calendars created by this site; the second only reads settings such as the time zone, never events. No Gmail access is requested."
 msgstr "El primero solo llega a los calendarios creados por este sitio; el segundo solo lee configuraciones como la zona horaria, nunca eventos. No se pide acceso a Gmail."
+
+msgid "Reconnect to take the time zone from Google"
+msgstr "Reconectar para tomar la zona horaria de Google"
+
+msgid "It does not read the time zone yet: reconnect once so it follows the advisor’s Google Calendar. The calendar and calls are kept."
+msgstr "Todavía no lee la zona horaria: reconecta una vez para que siga el Google Calendar del asesor. El calendario y las llamadas se conservan."

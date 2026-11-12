@@ -296,7 +296,7 @@ final class ELAB_Advisor_Admin {
 		$disconnect = wp_nonce_url( add_query_arg( array( 'action' => 'elab_google_disconnect', 'advisor' => $post->ID ), admin_url( 'admin-post.php' ) ), 'elab_google_disconnect_' . $post->ID );
 		$google_text = array(
 			'setup'        => __( 'Google Calendar is not set up for this site yet.', 'elaltillo-bookacall' ),
-			'connected'    => sprintf( __( 'Connected as %s.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::account_email( $post->ID ) ) . ' ' . ( ELAB_Google_Calendar::extra_scopes( $post->ID ) ? sprintf( __( 'Google reports more access than this site needs (%s): disconnect and connect again.', 'elaltillo-bookacall' ), implode( ', ', ELAB_Google_Calendar::extra_scopes( $post->ID ) ) ) : ( ELAB_Google_Calendar::scopes_verified( $post->ID ) ? __( 'Google confirms this site can only reach its own “El Altillo · Citas” calendar and read the calendar settings (time zone).', 'elaltillo-bookacall' ) : '' ) ),
+			'connected'    => sprintf( __( 'Connected as %s.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::account_email( $post->ID ) ) . ' ' . ( ELAB_Google_Calendar::extra_scopes( $post->ID ) ? sprintf( __( 'Google reports more access than this site needs (%s): disconnect and connect again.', 'elaltillo-bookacall' ), implode( ', ', ELAB_Google_Calendar::extra_scopes( $post->ID ) ) ) : ( ELAB_Google_Calendar::scopes_verified( $post->ID ) ? ( ELAB_Google_Calendar::reads_settings( $post->ID ) ? __( 'Google confirms this site can only reach its own “El Altillo · Citas” calendar and read the calendar settings (time zone).', 'elaltillo-bookacall' ) : __( 'Google confirms this site can only reach its own “El Altillo · Citas” calendar.', 'elaltillo-bookacall' ) . ' ' . __( 'It does not read the time zone yet: reconnect once so it follows the advisor’s Google Calendar. The calendar and calls are kept.', 'elaltillo-bookacall' ) ) : '' ) ),
 			'revoked'      => __( 'Google access was removed or expired, so this advisor is hidden from the booking calendar until they reconnect. Calls already booked are kept. The advisor was emailed a link to reconnect.', 'elaltillo-bookacall' ),
 			'upgrade'      => sprintf( __( 'Connected with the old, broader permission. Reconnect once so the site creates its own “%s” calendar and only uses that one.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::CALENDAR_NAME ),
 			'mismatch'     => __( 'The saved connection no longer matches this advisor’s email or the site’s OAuth client, so the advisor is hidden from the booking calendar. Connect the correct account.', 'elaltillo-bookacall' ),
@@ -314,6 +314,9 @@ final class ELAB_Advisor_Admin {
 				<?php if ( 'setup' === $google_state ) : ?>
 					<a class="button" href="<?php echo esc_url( ELAB_Google_Settings_Admin::url( 'google' ) ); ?>"><?php esc_html_e( 'Set up Google Calendar', 'elaltillo-bookacall' ); ?></a>
 				<?php elseif ( 'connected' === $google_state && ELAB_Google_Calendar::can_connect( $post->ID ) ) : ?>
+					<?php if ( ! ELAB_Google_Calendar::reads_settings( $post->ID ) ) : // Connected before the time zone permission existed. ?>
+						<a class="button button-primary" href="<?php echo esc_url( $connect ); ?>"><?php esc_html_e( 'Reconnect to take the time zone from Google', 'elaltillo-bookacall' ); ?></a>
+					<?php endif; ?>
 					<a class="button" href="<?php echo esc_url( $disconnect ); ?>"><?php esc_html_e( 'Disconnect', 'elaltillo-bookacall' ); ?></a>
 				<?php elseif ( 'disconnected' === $google_state && ELAB_Google_Calendar::can_connect( $post->ID ) ) : ?>
 					<a class="button button-primary" href="<?php echo esc_url( $connect ); ?>"><?php esc_html_e( 'Connect Google Calendar', 'elaltillo-bookacall' ); ?></a>
@@ -321,7 +324,7 @@ final class ELAB_Advisor_Admin {
 					<a class="button button-primary" href="<?php echo esc_url( $connect ); ?>"><?php esc_html_e( 'Reconnect Google Calendar', 'elaltillo-bookacall' ); ?></a>
 					<a class="button" href="<?php echo esc_url( $disconnect ); ?>"><?php esc_html_e( 'Disconnect', 'elaltillo-bookacall' ); ?></a>
 				<?php endif; ?>
-				<?php if ( ! in_array( $google_state, array( 'setup', 'connected' ), true ) && current_user_can( 'manage_options' ) ) : ?>
+				<?php if ( ( ! in_array( $google_state, array( 'setup', 'connected' ), true ) || ( 'connected' === $google_state && ! ELAB_Google_Calendar::reads_settings( $post->ID ) ) ) && current_user_can( 'manage_options' ) ) : ?>
 					<?php // Shown as soon as the Google email field has an address; saves the advisor, then emails the link. ?>
 					<button type="button" class="button" data-elab-send-invite hidden><?php esc_html_e( 'Save and email a connection link', 'elaltillo-bookacall' ); ?></button>
 					<input type="hidden" name="elab_send_invite" value="" data-elab-send-invite-flag>
@@ -498,7 +501,7 @@ final class ELAB_Advisor_Admin {
 
 	/** After the advisor is saved with its email, send the link and say so on the reloaded screen. */
 	private function send_invite_after_save( $post_id ) {
-		if ( ! self::invite_requested() || isset( self::$invited[ $post_id ] ) || wp_is_post_revision( $post_id ) || ELAB_Google_Calendar::connected( $post_id ) ) {
+		if ( ! self::invite_requested() || isset( self::$invited[ $post_id ] ) || wp_is_post_revision( $post_id ) || ( ELAB_Google_Calendar::connected( $post_id ) && ELAB_Google_Calendar::reads_settings( $post_id ) ) ) {
 			return;
 		}
 		self::$invited[ $post_id ] = true;
