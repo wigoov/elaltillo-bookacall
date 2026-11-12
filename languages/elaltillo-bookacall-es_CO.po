@@ -18,53 +18,1154 @@ msgstr ""
 "X-Domain: elaltillo-bookacall\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#. Plugin Name of the plugin
-#: elaltillo-bookacall.php
-#: includes/privacy/class-elab-privacy.php:164
 msgid "El Altillo Book a Call"
-msgstr ""
+msgstr "El Altillo Book a Call"
 
-#. Description of the plugin
-#: elaltillo-bookacall.php
 msgid "Book calls with advisors across time zones and connect their Google Calendars."
-msgstr ""
+msgstr "Agenda llamadas con asesores en distintas zonas horarias y conecta sus Google Calendar."
 
-#: includes/advisors/class-elab-advisor-admin.php:42
 msgid "The selected account no longer exists."
-msgstr ""
+msgstr "La cuenta seleccionada ya no existe."
 
-#: includes/advisors/class-elab-advisor-admin.php:45
 msgid "Only Subscriber accounts can be linked to an advisor. Administrators connect Google directly from this screen."
-msgstr ""
+msgstr "Solo se pueden vincular cuentas de Suscriptor a un asesor. Los administradores conectan Google directamente desde esta pantalla."
 
-#: includes/advisors/class-elab-advisor-admin.php:49
-#, php-format
 msgid "That account is already linked to %s."
-msgstr ""
+msgstr "Esa cuenta ya está vinculada a %s."
 
-#: includes/advisors/class-elab-advisor-admin.php:58
 msgid "The profile is not published."
-msgstr ""
+msgstr "El perfil no está publicado."
 
-#: includes/advisors/class-elab-advisor-admin.php:61
 msgid "No valid advisor email is set."
-msgstr ""
+msgstr "No hay un correo de asesor válido."
 
-#: includes/advisors/class-elab-advisor-admin.php:64
 msgid "No weekly hours are turned on."
-msgstr ""
+msgstr "No hay horas semanales activadas."
 
-#: includes/advisors/class-elab-advisor-admin.php:67
 msgid "Google Calendar is not connected."
-msgstr ""
+msgstr "Google Calendar no está conectado."
 
-#: includes/advisors/class-elab-advisor-admin.php:80
 msgid "Google needs to be reconnected: new calls are saved and wait to be added to the calendar."
-msgstr ""
+msgstr "Hay que volver a conectar Google: las llamadas nuevas se guardan y esperan a añadirse al calendario."
 
-#: includes/advisors/class-elab-advisor-admin.php:99
 msgid "Some advisor settings were adjusted when saving:"
-msgstr ""
+msgstr "Algunos ajustes del asesor se corrigieron al guardar:"
+
+msgid "Google Calendar"
+msgstr "Google Calendar"
+
+msgid "Booking calendar"
+msgstr "Calendario de reservas"
+
+msgid "Date"
+msgstr "Fecha"
+
+msgid "Bookable"
+msgstr "Reservable"
+
+msgid "Hidden"
+msgstr "Oculto"
+
+msgid "Not set up"
+msgstr "Sin configurar"
+
+msgid "Connected as %s"
+msgstr "Conectado como %s"
+
+msgid "Reconnect required"
+msgstr "Hay que reconectar"
+
+msgid "Not connected"
+msgstr "No conectado"
+
+msgid "Advisor availability"
+msgstr "Disponibilidad del asesor"
+
+msgid "What visitors see: next 7 days"
+msgstr "Lo que ven los visitantes: próximos 7 días"
+
+msgid "Save the advisor to preview their times."
+msgstr "Guarda el asesor para ver sus horas."
+
+msgid "Shown in the advisor’s time zone (%1$s), %2$d-minute calls. Visitors see the same times converted to their own zone. Reflects the last saved settings."
+msgstr "En la zona horaria del asesor (%1$s), llamadas de %2$d minutos. Los visitantes ven las mismas horas en su propia zona. Refleja los últimos ajustes guardados."
+
+msgid "Visitors do not see these times until the issues listed above are fixed."
+msgstr "Los visitantes no ven estas horas hasta que se resuelvan los problemas de arriba."
+
+msgid "No times"
+msgstr "Sin horas"
+
+msgid "Monday"
+msgstr "Lunes"
+
+msgid "Tuesday"
+msgstr "Martes"
+
+msgid "Wednesday"
+msgstr "Miércoles"
+
+msgid "Thursday"
+msgstr "Jueves"
+
+msgid "Friday"
+msgstr "Viernes"
+
+msgid "Saturday"
+msgstr "Sábado"
+
+msgid "Sunday"
+msgstr "Domingo"
+
+msgid "Not shown in the booking calendar yet:"
+msgstr "Todavía no aparece en el calendario de reservas:"
+
+msgid "Bookable."
+msgstr "Reservable."
+
+msgid "Reconnect"
+msgstr "Reconectar"
+
+msgid "Bookable: this advisor’s times appear in the booking calendar."
+msgstr "Reservable: las horas de este asesor aparecen en el calendario de reservas."
+
+msgid "Set the hours when this advisor can receive calls. Visitors will see these times in their own time zone."
+msgstr "Define las horas en que este asesor puede recibir llamadas. Los visitantes las verán en su propia zona horaria."
+
+msgid "Advisor Google email"
+msgstr "Correo de Google del asesor"
+
+msgid "Enter the Google account that this advisor will authorize. The account must match during connection; booking and schedule emails are sent here."
+msgstr "Escribe la cuenta de Google que autorizará este asesor. La cuenta debe coincidir al conectar; aquí llegan los correos de reservas y de horario."
+
+msgid "Email language"
+msgstr "Idioma de los correos"
+
+msgid "Language of the booking, reconnection and schedule emails this advisor receives."
+msgstr "Idioma de los correos de reservas, reconexión y horario que recibe este asesor."
+
+msgid "Advisor WordPress account"
+msgstr "Cuenta de WordPress del asesor"
+
+msgid "No account"
+msgstr "Sin cuenta"
+
+msgid "%s (not a Subscriber, reassign)"
+msgstr "%s (no es Suscriptor, reasígnala)"
+
+msgid "linked to %s"
+msgstr "vinculada a %s"
+
+msgid "Only Subscriber accounts that are not linked to another advisor can be chosen. This account connects its own Google Calendar from its profile and cannot edit this advisor profile."
+msgstr "Solo se pueden elegir cuentas de Suscriptor que no estén vinculadas a otro asesor. Esta cuenta conecta su propio Google Calendar desde su perfil y no puede editar la ficha del asesor."
+
+msgid "Advisor time zone"
+msgstr "Zona horaria del asesor"
+
+msgid "Search by city or region"
+msgstr "Busca por ciudad o región"
+
+msgid "Choose the city where the advisor works. Seasonal time changes are automatic."
+msgstr "Elige la ciudad donde trabaja el asesor. Los cambios de horario de temporada son automáticos."
+
+msgid "Visitors choose the meeting language first and only see the times of advisors who speak it. Choose at least one."
+msgstr "Los visitantes eligen primero el idioma de la reunión y solo ven las horas de los asesores que lo hablan. Elige al menos uno."
+
+msgid "Call duration"
+msgstr "Duración de la llamada"
+
+msgid "minutes"
+msgstr "minutos"
+
+msgid "Leave empty to use the site default (%d). Times start every call length inside each range; existing bookings keep their length."
+msgstr "Déjalo vacío para usar el valor del sitio (%d). Las horas empiezan cada duración de llamada dentro de cada franja; las reservas existentes conservan su duración."
+
+msgid "Booking rules"
+msgstr "Reglas de reserva"
+
+msgid "Empty fields follow the <a href=\"%s\">site booking defaults</a>."
+msgstr "Los campos vacíos siguen los <a href=\"%s\">valores de reserva del sitio</a>."
+
+msgid "hours"
+msgstr "horas"
+
+msgid "Visitors cannot book a call that starts sooner than this. Leave empty to use the site default (%d)."
+msgstr "Los visitantes no pueden reservar una llamada que empiece antes de este plazo. Déjalo vacío para usar el valor del sitio (%d)."
+
+msgid "Booking window"
+msgstr "Ventana de reserva"
+
+msgid "days ahead"
+msgstr "días de antelación"
+
+msgid "How far into the future visitors can book. Leave empty to use the site default (%d)."
+msgstr "Hasta cuándo pueden reservar los visitantes. Déjalo vacío para usar el valor del sitio (%d)."
+
+msgid "Start times every"
+msgstr "Horas de inicio cada"
+
+msgid "0 offers a start every call length; 15 offers 9:00, 9:15, 9:30… with the same call length. Leave empty to use the site default (%d)."
+msgstr "0 ofrece un inicio cada duración de llamada; 15 ofrece 9:00, 9:15, 9:30… con la misma duración. Déjalo vacío para usar el valor del sitio (%d)."
+
+msgid "Free time kept before and after each booking. Leave empty to use the site default (%d)."
+msgstr "Tiempo libre antes y después de cada reserva. Déjalo vacío para usar el valor del sitio (%d)."
+
+msgid "Weekly hours"
+msgstr "Horas semanales"
+
+msgid "Turn on each working day. Add separate time ranges for breaks. Overlapping ranges are merged when you save."
+msgstr "Activa cada día de trabajo. Añade franjas separadas para los descansos. Las franjas que se solapan se unen al guardar."
+
+msgid "Day"
+msgstr "Día"
+
+msgid "Available hours"
+msgstr "Horas disponibles"
+
+msgid "From"
+msgstr "Desde"
+
+msgid "%s start time"
+msgstr "Hora de inicio del %s"
+
+msgid "To"
+msgstr "Hasta"
+
+msgid "%s end time"
+msgstr "Hora de fin del %s"
+
+msgid "Remove time range"
+msgstr "Quitar franja"
+
+msgid "Add another interval"
+msgstr "Añadir otra franja"
+
+msgid "Unavailable dates for this advisor"
+msgstr "Fechas no disponibles de este asesor"
+
+msgid "Use this for vacations, personal holidays or specific days off. Global unavailable dates also apply."
+msgstr "Úsalo para vacaciones, festivos personales o días libres concretos. También se aplican las fechas no disponibles globales."
+
+msgid "Each booked call is added to a separate calendar, “%s”, created by this site in the advisor’s Google account, with the visitor invited as a guest. The site cannot see or change any other calendar or event."
+msgstr "Cada llamada reservada se añade a un calendario aparte, «%s», que este sitio crea en la cuenta de Google del asesor, con el visitante invitado. El sitio no puede ver ni cambiar ningún otro calendario ni evento."
+
+msgid "Google Calendar is not set up for this site yet."
+msgstr "Google Calendar todavía no está configurado en este sitio."
+
+msgid "Connected as %s."
+msgstr "Conectado como %s."
+
+msgid "Google access was removed or expired. Reconnect so new calls reach the calendar again."
+msgstr "El acceso a Google se retiró o caducó. Vuelve a conectar para que las llamadas nuevas lleguen al calendario."
+
+msgid "Connected with the old, broader permission. Reconnect once so the site creates its own “%s” calendar and only uses that one."
+msgstr "Conectado con el permiso antiguo, más amplio. Vuelve a conectar una vez para que el sitio cree su propio calendario «%s» y use solo ese."
+
+msgid "The saved connection no longer matches this advisor’s email or the site’s OAuth client. Connect the correct account."
+msgstr "La conexión guardada ya no coincide con el correo de este asesor o con el cliente OAuth del sitio. Conecta la cuenta correcta."
+
+msgid "Not connected. The advisor can connect from Users → Profile, or you can connect here."
+msgstr "No conectado. El asesor puede conectar desde Usuarios → Perfil, o puedes conectarlo aquí."
+
+msgid "Connected"
+msgstr "Conectado"
+
+msgid "Connection"
+msgstr "Conexión"
+
+msgid "Set up Google Calendar"
+msgstr "Configurar Google Calendar"
+
+msgid "Disconnect"
+msgstr "Desconectar"
+
+msgid "Weekly hours are availability rules, not calendar events. The advisor receives their schedule by email after connecting or when these settings change."
+msgstr "Las horas semanales son reglas de disponibilidad, no eventos del calendario. El asesor recibe su horario por correo al conectar o cuando cambian estos ajustes."
+
+msgid "The last schedule email could not be sent. Check the site email configuration."
+msgstr "No se pudo enviar el último correo de horario. Revisa la configuración de correo del sitio."
+
+msgid "The advisor email was not a valid address and was cleared."
+msgstr "El correo del asesor no era una dirección válida y se vació."
+
+msgid "The previous account link was kept."
+msgstr "Se mantuvo la cuenta vinculada anterior."
+
+msgid "The time zone “%s” is not recognised; UTC was used."
+msgstr "La zona horaria «%s» no se reconoce; se usó UTC."
+
+msgid "At least one meeting language is needed, so every language was kept."
+msgstr "Hace falta al menos un idioma de reunión, así que se mantuvieron todos."
+
+msgid "%s was not a number; the site default is used."
+msgstr "%s no era un número; se usa el valor del sitio."
+
+msgid "%1$s must be between %2$d and %3$d; it was set to %4$d."
+msgstr "%1$s debe estar entre %2$d y %3$d; se fijó en %4$d."
+
+msgid "Overlapping ranges were merged on: %s."
+msgstr "Se unieron franjas solapadas el: %s."
+
+msgid "Unavailable dates"
+msgstr "Fechas no disponibles"
+
+msgid "Unavailable dates for all advisors"
+msgstr "Fechas no disponibles para todos los asesores"
+
+msgid "Block holidays, closures and other dates for every advisor. Each advisor can choose to work on a global date from their profile; personal unavailable dates still take priority."
+msgstr "Bloquea festivos, cierres y otras fechas para todos los asesores. Cada asesor puede elegir trabajar en una fecha global desde su perfil; sus fechas personales no disponibles siguen teniendo prioridad."
+
+msgid "Unavailable dates saved."
+msgstr "Fechas no disponibles guardadas."
+
+msgid "Save unavailable dates"
+msgstr "Guardar fechas no disponibles"
+
+msgid "You cannot change global unavailable dates."
+msgstr "No puedes cambiar las fechas no disponibles globales."
+
+msgid "No global unavailable dates have been configured."
+msgstr "No hay fechas no disponibles globales configuradas."
+
+msgid "Select the global dates when this advisor will work. Regular weekly hours still apply. Personal time off and existing bookings still block slots. If global rules overlap, select every matching rule."
+msgstr "Elige las fechas globales en las que este asesor trabajará. Sus horas semanales siguen aplicando. Sus días libres personales y las reservas existentes siguen bloqueando horas. Si varias reglas globales se solapan, marca todas las que coincidan."
+
+msgid "Global date"
+msgstr "Fecha global"
+
+msgid "Reason"
+msgstr "Motivo"
+
+msgid "Work that day"
+msgstr "Trabajar ese día"
+
+msgid "every year"
+msgstr "cada año"
+
+msgid "Work during %s"
+msgstr "Trabajar durante %s"
+
+msgid "Reason (optional)"
+msgstr "Motivo (opcional)"
+
+msgid "Every year"
+msgstr "Cada año"
+
+msgid "Remove"
+msgstr "Quitar"
+
+msgid "First unavailable date"
+msgstr "Primera fecha no disponible"
+
+msgid "Last unavailable date"
+msgstr "Última fecha no disponible"
+
+msgid "Holiday, vacation…"
+msgstr "Festivo, vacaciones…"
+
+msgid "Repeat annually"
+msgstr "Repetir cada año"
+
+msgid "Remove unavailable date"
+msgstr "Quitar fecha no disponible"
+
+msgid "Add unavailable date"
+msgstr "Añadir fecha no disponible"
+
+msgid "Leave the end date empty for one day. “Every year” applies only to a single day. Dates use each advisor’s local time zone."
+msgstr "Deja la fecha final vacía para un solo día. «Cada año» solo se aplica a un día. Las fechas usan la zona horaria de cada asesor."
+
+msgid "Work on global unavailable dates"
+msgstr "Trabajar en fechas no disponibles globales"
+
+msgid "Availability on global unavailable dates"
+msgstr "Disponibilidad en fechas no disponibles globales"
+
+msgid "Cancel this call? The visitor is notified, the time is freed and the event is removed from the advisor’s Google Calendar. This cannot be undone."
+msgstr "¿Cancelar esta llamada? Se avisa al visitante, la hora queda libre y el evento se quita del Google Calendar del asesor. No se puede deshacer."
+
+msgid "Request details"
+msgstr "Datos de la solicitud"
+
+msgid "Visitor’s local time"
+msgstr "Hora local del visitante"
+
+msgid "UTC"
+msgstr "UTC"
+
+msgid "Message"
+msgstr "Mensaje"
+
+msgid "Received"
+msgstr "Recibida"
+
+msgid "By the visitor, %s UTC"
+msgstr "Por el visitante, %s UTC"
+
+msgid "By an administrator, %s UTC"
+msgstr "Por un administrador, %s UTC"
+
+msgid "Privacy consent"
+msgstr "Consentimiento de privacidad"
+
+msgid "Accepted %s UTC"
+msgstr "Aceptado el %s UTC"
+
+msgid "Saved, waiting for Google."
+msgstr "Guardada, esperando a Google."
+
+msgid "The advisor’s Google connection is not working, so the calendar event and the visitor’s invitation are not created yet. They are added automatically when the advisor reconnects. The advisor was emailed."
+msgstr "La conexión del asesor con Google no funciona, así que el evento del calendario y la invitación al visitante aún no se crearon. Se añaden automáticamente cuando el asesor vuelva a conectar. Se avisó al asesor por correo."
+
+msgid "Google did not answer. The event is retried every hour."
+msgstr "Google no respondió. El evento se reintenta cada hora."
+
+msgid "Open advisor connection"
+msgstr "Abrir la conexión del asesor"
+
+msgid "Add to the advisor’s calendar by hand"
+msgstr "Añadir a mano al calendario del asesor"
+
+msgid "Cancelled here. Google did not answer yet, so the event is removed from the advisor’s calendar as soon as it does."
+msgstr "Cancelada aquí. Google aún no respondió, así que el evento se quita del calendario del asesor en cuanto responda."
+
+msgid "The advisor added this call to their calendar by hand, so the site cannot remove it: the advisor should delete that event. The visitor was emailed."
+msgstr "El asesor añadió esta llamada a su calendario a mano, así que el sitio no puede quitarla: el asesor debe borrar ese evento. Se avisó al visitante por correo."
+
+msgid "This call was created in the advisor’s main Google Calendar before the dedicated calendar existed. The site can no longer change it: the advisor should delete that event by hand. The visitor was emailed."
+msgstr "Esta llamada se creó en el Google Calendar principal del asesor antes de que existiera el calendario dedicado. El sitio ya no puede cambiarla: el asesor debe borrar ese evento a mano. Se avisó al visitante por correo."
+
+msgid "The advisor added this call to their own calendar by hand on %s, so the site will not create it."
+msgstr "El asesor añadió esta llamada a su propio calendario a mano el %s, así que el sitio no la creará."
+
+msgid "In the advisor’s Google Calendar. Cancelling removes the event and Google notifies the visitor."
+msgstr "En el Google Calendar del asesor. Al cancelar se quita el evento y Google avisa al visitante."
+
+msgid "The advisor email could not be sent. Check the site email configuration and contact the advisor directly."
+msgstr "No se pudo enviar el correo al asesor. Revisa la configuración de correo del sitio y contacta al asesor directamente."
+
+msgid "The visitor email could not be sent. Contact the visitor directly."
+msgstr "No se pudo enviar el correo al visitante. Contacta al visitante directamente."
+
+msgid "Attachments"
+msgstr "Adjuntos"
+
+msgid "Update status"
+msgstr "Cambiar estado"
+
+msgid "Cancelled calls cannot be reopened."
+msgstr "Las llamadas canceladas no se pueden reabrir."
+
+msgid "Choose a status and select Update."
+msgstr "Elige un estado y pulsa Actualizar."
+
+msgid "Length of each call. Times start every call length inside the advisor’s hours."
+msgstr "Duración de cada llamada. Las horas empiezan cada duración de llamada dentro del horario del asesor."
+
+msgid "Visitors cannot book a call that starts sooner than this."
+msgstr "Los visitantes no pueden reservar una llamada que empiece antes de este plazo."
+
+msgid "How far into the future visitors can book."
+msgstr "Hasta cuándo pueden reservar los visitantes."
+
+msgid "0 offers a new start time every call length (9:00, 9:30… for 30-minute calls). 15 offers 9:00, 9:15, 9:30… while each call keeps its length."
+msgstr "0 ofrece una hora de inicio cada duración de llamada (9:00, 9:30… para llamadas de 30 minutos). 15 ofrece 9:00, 9:15, 9:30… y cada llamada conserva su duración."
+
+msgid "Optional free time kept before and after each booking. 0 means calls can be back to back."
+msgstr "Tiempo libre opcional antes y después de cada reserva. 0 significa que las llamadas pueden ir seguidas."
+
+msgid "Booking defaults saved. Advisors without their own values now use them."
+msgstr "Valores de reserva guardados. Los asesores sin valores propios ya los usan."
+
+msgid "Booking defaults"
+msgstr "Valores de reserva"
+
+msgid "These values apply to every advisor whose profile leaves the field empty. An advisor’s own value always wins."
+msgstr "Estos valores se aplican a todos los asesores que dejan el campo vacío en su ficha. El valor propio de un asesor siempre manda."
+
+msgid "Save booking defaults"
+msgstr "Guardar valores de reserva"
+
+msgid "You cannot change booking defaults."
+msgstr "No puedes cambiar los valores de reserva."
+
+msgid "Pending"
+msgstr "Pendiente"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "(no name)"
+msgstr "(sin nombre)"
+
+msgid "Filter by date"
+msgstr "Filtrar por fecha"
+
+msgid "Upcoming"
+msgstr "Próximas"
+
+msgid "Past"
+msgstr "Pasadas"
+
+msgid "All dates"
+msgstr "Todas las fechas"
+
+msgid "Filter by status"
+msgstr "Filtrar por estado"
+
+msgid "All statuses"
+msgstr "Todos los estados"
+
+msgid "Filter by advisor"
+msgstr "Filtrar por asesor"
+
+msgid "All advisors"
+msgstr "Todos los asesores"
+
+msgid "Advisors"
+msgstr "Asesores"
+
+msgid "Add advisor"
+msgstr "Añadir asesor"
+
+msgid "Edit advisor"
+msgstr "Editar asesor"
+
+msgid "Booking requests"
+msgstr "Solicitudes de reserva"
+
+msgid "Booking request"
+msgstr "Solicitud de reserva"
+
+msgid "Your advisor calendars"
+msgstr "Tus calendarios de asesor"
+
+msgid "Connected. New calls appear in the “%s” calendar of your Google account."
+msgstr "Conectado. Las llamadas nuevas aparecen en el calendario «%s» de tu cuenta de Google."
+
+msgid "Connect the Google account shown below. This site creates one calendar in it, “%s”, and can only add and remove your booked calls there: it cannot see or change any other calendar or event."
+msgstr "Conecta la cuenta de Google indicada abajo. Este sitio crea en ella un calendario, «%s», y solo puede añadir y quitar ahí tus llamadas reservadas: no puede ver ni cambiar ningún otro calendario ni evento."
+
+msgid "Ask an administrator to set your Google email in the advisor profile."
+msgstr "Pide a un administrador que ponga tu correo de Google en la ficha del asesor."
+
+msgid "Expected Google account: %s"
+msgstr "Cuenta de Google esperada: %s"
+
+msgid "Connect again: until then, new calls are saved here and added to Google automatically once you reconnect."
+msgstr "Vuelve a conectar: hasta entonces, las llamadas nuevas se guardan aquí y se añaden a Google automáticamente cuando reconectes."
+
+msgid "Disconnect Google Calendar"
+msgstr "Desconectar Google Calendar"
+
+msgid "Google Calendar is awaiting site configuration."
+msgstr "Google Calendar está pendiente de configurar en el sitio."
+
+msgid "Your availability email could not be sent. Ask an administrator to check the site mail settings."
+msgstr "No se pudo enviar tu correo de disponibilidad. Pide a un administrador que revise el correo del sitio."
+
+msgid "Could not encrypt the Google Client Secret on this server."
+msgstr "No se pudo cifrar el Client Secret de Google en este servidor."
+
+msgid "Google Calendar is not configured or you cannot edit this advisor."
+msgstr "Google Calendar no está configurado o no puedes editar este asesor."
+
+msgid "Invalid or expired Google authorization."
+msgstr "Autorización de Google no válida o caducada."
+
+msgid "Google authorization was cancelled."
+msgstr "Se canceló la autorización de Google."
+
+msgid "Google did not provide a refresh token. Reconnect the advisor and grant calendar access."
+msgstr "Google no entregó un token de actualización. Vuelve a conectar al asesor y concede acceso al calendario."
+
+msgid "Allow the requested Google Calendar permission and try again."
+msgstr "Permite el permiso de Google Calendar solicitado e inténtalo de nuevo."
+
+msgid "You connected %1$s, but this advisor expects %2$s. Choose the correct Google account or ask an administrator to update the advisor email."
+msgstr "Conectaste %1$s, pero este asesor espera %2$s. Elige la cuenta de Google correcta o pide a un administrador que cambie el correo del asesor."
+
+msgid "Could not protect the Google credentials on this server."
+msgstr "No se pudieron proteger las credenciales de Google en este servidor."
+
+msgid "You cannot edit this advisor."
+msgstr "No puedes editar este asesor."
+
+msgid "Google Calendar is not configured."
+msgstr "Google Calendar no está configurado."
+
+msgid "Google Calendar authorization failed."
+msgstr "Falló la autorización de Google Calendar."
+
+msgid "Invalid Google Calendar response."
+msgstr "Respuesta de Google Calendar no válida."
+
+msgid "Google did not return an access token."
+msgstr "Google no devolvió un token de acceso."
+
+msgid "The Google account could not be verified. Please try connecting again."
+msgstr "No se pudo verificar la cuenta de Google. Intenta conectar de nuevo."
+
+msgid "Google did not return a verified account email."
+msgstr "Google no devolvió un correo de cuenta verificado."
+
+msgid "Google did not allow creating the bookings calendar. Allow the requested permission and try again."
+msgstr "Google no permitió crear el calendario de citas. Permite el permiso solicitado e inténtalo de nuevo."
+
+msgid "The bookings calendar is missing; connect Google Calendar again."
+msgstr "Falta el calendario de citas; vuelve a conectar Google Calendar."
+
+msgid "This advisor has not connected Google Calendar."
+msgstr "Este asesor no ha conectado Google Calendar."
+
+msgid "Google Calendar needs to be reconnected."
+msgstr "Hay que volver a conectar Google Calendar."
+
+msgid "Google Calendar could not complete this action. Please try again."
+msgstr "Google Calendar no pudo completar esta acción. Inténtalo de nuevo."
+
+msgid "Google Calendar did not confirm the new event. Please try again."
+msgstr "Google Calendar no confirmó el evento nuevo. Inténtalo de nuevo."
+
+msgid "This calendar event was not created for this booking, so it was not changed."
+msgstr "Este evento del calendario no se creó para esta reserva, así que no se cambió."
+
+msgid "This event is in the advisor’s main calendar and must be removed there by hand."
+msgstr "Este evento está en el calendario principal del asesor y hay que quitarlo allí a mano."
+
+msgid "Booking settings"
+msgstr "Ajustes de reservas"
+
+msgid "Settings"
+msgstr "Ajustes"
+
+msgid "General"
+msgstr "General"
+
+msgid "Security"
+msgstr "Seguridad"
+
+msgid "Privacy"
+msgstr "Privacidad"
+
+msgid "Settings sections"
+msgstr "Secciones de ajustes"
+
+msgid "Google settings saved."
+msgstr "Ajustes de Google guardados."
+
+msgid "Enter the Google Client ID before saving."
+msgstr "Escribe el Client ID de Google antes de guardar."
+
+msgid "Enter the Client Secret for the new OAuth client."
+msgstr "Escribe el Client Secret del nuevo cliente OAuth."
+
+msgid "The Client Secret could not be encrypted on this server. No changes were saved."
+msgstr "No se pudo cifrar el Client Secret en este servidor. No se guardó ningún cambio."
+
+msgid "Google connection test finished."
+msgstr "Terminó la prueba de conexión con Google."
+
+msgid "OAuth client"
+msgstr "Cliente OAuth"
+
+msgid "Client ID and encrypted Client Secret saved."
+msgstr "Client ID y Client Secret cifrado guardados."
+
+msgid "Not configured yet. Follow the setup guide below."
+msgstr "Aún sin configurar. Sigue la guía de configuración de abajo."
+
+msgid "Advisors connected"
+msgstr "Asesores conectados"
+
+msgid "%1$d of %2$d published advisors."
+msgstr "%1$d de %2$d asesores publicados."
+
+msgid "Calls waiting for Google"
+msgstr "Llamadas esperando a Google"
+
+msgid "None. Every booked call is in Google Calendar."
+msgstr "Ninguna. Todas las llamadas reservadas están en Google Calendar."
+
+msgid "Last live test"
+msgstr "Última prueba en vivo"
+
+msgid "%1$d of %2$d calendars answered at %3$s."
+msgstr "%1$d de %2$d calendarios respondieron a las %3$s."
+
+msgid "Not run yet."
+msgstr "Aún no se ha ejecutado."
+
+msgid "Encryption key"
+msgstr "Clave de cifrado"
+
+msgid "ELAB_ENCRYPTION_KEY from wp-config.php protects stored tokens."
+msgstr "ELAB_ENCRYPTION_KEY de wp-config.php protege los tokens guardados."
+
+msgid "Tokens are encrypted with the WordPress auth salt. Define ELAB_ENCRYPTION_KEY (32+ random characters) in wp-config.php so a salt change does not force every advisor to reconnect."
+msgstr "Los tokens se cifran con la sal de autenticación de WordPress. Define ELAB_ENCRYPTION_KEY (32 o más caracteres aleatorios) en wp-config.php para que un cambio de sal no obligue a reconectar a todos los asesores."
+
+msgid "Ready"
+msgstr "Listo"
+
+msgid "Review"
+msgstr "Revisar"
+
+msgid "Fix"
+msgstr "Corregir"
+
+msgid "Optional"
+msgstr "Opcional"
+
+msgid "Availability is managed here in WordPress. Google is only used to add each booked call to the advisor’s calendar and invite the visitor. When an advisor connects, the site creates a separate calendar, “El Altillo · Citas”, and can only see and change that one: never their other calendars or events. If Google is unreachable, bookings are still saved and added later."
+msgstr "La disponibilidad se gestiona aquí, en WordPress. Google solo se usa para añadir cada llamada reservada al calendario del asesor e invitar al visitante. Cuando un asesor conecta, el sitio crea un calendario aparte, «El Altillo · Citas», y solo puede ver y cambiar ese: nunca sus otros calendarios ni eventos. Si Google no responde, las reservas se guardan igual y se añaden después."
+
+msgid "Test connected calendars"
+msgstr "Probar los calendarios conectados"
+
+msgid "Authorized redirect URI"
+msgstr "URI de redirección autorizada"
+
+msgid "Add this exact address to the OAuth client in Google Cloud."
+msgstr "Añade esta dirección exacta al cliente OAuth en Google Cloud."
+
+msgid "This is a local address. Google only accepts it for testing; connect advisors on the production site."
+msgstr "Es una dirección local. Google solo la acepta para pruebas; conecta a los asesores en el sitio de producción."
+
+msgid "Client ID"
+msgstr "Client ID"
+
+msgid "Public identifier of the OAuth client; it ends in .apps.googleusercontent.com."
+msgstr "Identificador público del cliente OAuth; termina en .apps.googleusercontent.com."
+
+msgid "Client Secret"
+msgstr "Client Secret"
+
+msgid "Saved; leave blank to keep it"
+msgstr "Guardado; déjalo vacío para conservarlo"
+
+msgid "Paste the Client Secret"
+msgstr "Pega el Client Secret"
+
+msgid "Encrypted and saved. It is never displayed again."
+msgstr "Cifrado y guardado. Nunca se vuelve a mostrar."
+
+msgid "No Client Secret saved yet."
+msgstr "Todavía no hay un Client Secret guardado."
+
+msgid "Add a Google Meet link to every confirmed call"
+msgstr "Añadir un enlace de Google Meet a cada llamada confirmada"
+
+msgid "Shown in the Google invitation, on the confirmation screen and on the visitor’s private booking page."
+msgstr "Se muestra en la invitación de Google, en la pantalla de confirmación y en la página privada de reserva del visitante."
+
+msgid "Changing the Client ID disconnects every advisor; each must connect again."
+msgstr "Cambiar el Client ID desconecta a todos los asesores; cada uno debe volver a conectar."
+
+msgid "Save Google settings"
+msgstr "Guardar ajustes de Google"
+
+msgid "Setup guide"
+msgstr "Guía de configuración"
+
+msgid "Create or select a Google Cloud project."
+msgstr "Crea o elige un proyecto de Google Cloud."
+
+msgid "Use the account that will own this integration."
+msgstr "Usa la cuenta que será dueña de esta integración."
+
+msgid "Open Google Cloud Console"
+msgstr "Abrir Google Cloud Console"
+
+msgid "Enable the Google Calendar API."
+msgstr "Activa la API de Google Calendar."
+
+msgid "In APIs & Services, find Google Calendar API and select Enable."
+msgstr "En APIs y servicios, busca Google Calendar API y pulsa Habilitar."
+
+msgid "Choose the app audience."
+msgstr "Elige el público de la app."
+
+msgid "In Google Auth Platform → Audience: choose Internal when every advisor uses an account of your own Google Workspace; no Google review is needed. Choose External if any advisor uses a personal Gmail account: while the app is in Testing, add each advisor as a test user, and note that access then expires every 7 days. Publish the app and complete Google’s verification (the calendar scope is sensitive) before going live."
+msgstr "En Google Auth Platform → Público: elige Interno si todos los asesores usan cuentas de tu propio Google Workspace; no hace falta revisión de Google. Elige Externo si algún asesor usa una cuenta personal de Gmail: mientras la app esté en Prueba, añade a cada asesor como usuario de prueba, y ten en cuenta que el acceso caduca cada 7 días. Publica la app y completa la verificación de Google (el permiso de calendario es sensible) antes de salir en vivo."
+
+msgid "About audiences"
+msgstr "Sobre los públicos"
+
+msgid "Complete Branding and Data Access."
+msgstr "Completa la Marca y el Acceso a datos."
+
+msgid "Add your logo, home page and privacy policy, then these scopes:"
+msgstr "Añade tu logo, página de inicio y política de privacidad, y luego estos permisos:"
+
+msgid "This calendar scope only reaches calendars created by this site. No Gmail access is requested."
+msgstr "Este permiso de calendario solo llega a los calendarios creados por este sitio. No se pide acceso a Gmail."
+
+msgid "Create an OAuth client of type Web application."
+msgstr "Crea un cliente OAuth de tipo Aplicación web."
+
+msgid "Add the redirect URI shown above, then paste the Client ID and Client Secret here."
+msgstr "Añade la URI de redirección de arriba y pega aquí el Client ID y el Client Secret."
+
+msgid "Connect each advisor."
+msgstr "Conecta a cada asesor."
+
+msgid "Set the advisor’s Google email and WordPress account in their profile. The advisor opens Users → Profile and selects Connect Google Calendar; Google opens on that account, the plugin checks the email and creates the “El Altillo · Citas” calendar in it."
+msgstr "Pon el correo de Google y la cuenta de WordPress del asesor en su ficha. El asesor abre Usuarios → Perfil y pulsa Conectar Google Calendar; Google se abre en esa cuenta, el plugin comprueba el correo y crea en ella el calendario «El Altillo · Citas»."
+
+msgid "Test."
+msgstr "Prueba."
+
+msgid "Use “Test connected calendars”, then make one real booking: the visitor receives Google’s invitation and the event appears in the advisor’s “El Altillo · Citas” calendar."
+msgstr "Usa «Probar los calendarios conectados» y luego haz una reserva real: el visitante recibe la invitación de Google y el evento aparece en el calendario «El Altillo · Citas» del asesor."
+
+msgid "You cannot change Google Calendar settings."
+msgstr "No puedes cambiar los ajustes de Google Calendar."
+
+msgid "Call bookings"
+msgstr "Reservas de llamadas"
+
+msgid "Call time (UTC)"
+msgstr "Hora de la llamada (UTC)"
+
+msgid "Privacy consent (UTC)"
+msgstr "Consentimiento de privacidad (UTC)"
+
+msgid "An upcoming call on %s was kept. Cancel it under Advisors → Booking requests, then erase again."
+msgstr "Se conservó una llamada próxima el %s. Cancélala en Asesores → Solicitudes de reserva y vuelve a borrar."
+
+msgid "When you book a call we store your name, email address, time zone, chosen meeting language, the call time and advisor, and anything you add: sector, message and documents. Documents are kept in private storage that only site administrators can download."
+msgstr "Cuando reservas una llamada guardamos tu nombre, correo, zona horaria, el idioma de reunión elegido, la hora de la llamada y el asesor, y lo que añadas: sector, mensaje y documentos. Los documentos se guardan en un almacenamiento privado que solo los administradores del sitio pueden ver."
+
+msgid "The advisor receives your name, email and call time. When the advisor uses Google Calendar, a private event with your email as the attendee is created in their calendar and Google sends you the invitation."
+msgstr "El asesor recibe tu nombre, correo y la hora de la llamada. Cuando el asesor usa Google Calendar, se crea en su calendario un evento privado con tu correo como invitado y Google te envía la invitación."
+
+msgid "Booking records and their documents are deleted automatically after the retention period set by the site, and you can ask us to export or erase them at any time."
+msgstr "Las reservas y sus documentos se borran automáticamente tras el plazo de conservación del sitio, y puedes pedirnos exportarlos o borrarlos cuando quieras."
+
+msgid "Privacy settings saved."
+msgstr "Ajustes de privacidad guardados."
+
+msgid "Privacy and retention"
+msgstr "Privacidad y conservación"
+
+msgid "Delete bookings after"
+msgstr "Borrar reservas después de"
+
+msgid "months after the call"
+msgstr "meses después de la llamada"
+
+msgid "Booking records and their documents are permanently deleted once a day after this period. 0 keeps them until you delete them by hand."
+msgstr "Las reservas y sus documentos se borran definitivamente una vez al día pasado este plazo. 0 los conserva hasta que los borres a mano."
+
+msgid "Visitors’ requests to export or erase their data are handled with the WordPress tools under <a href=\"%1$s\">Tools → Export Personal Data</a> and <a href=\"%2$s\">Erase Personal Data</a>. Suggested wording for your privacy policy is available in <a href=\"%3$s\">Settings → Privacy</a>."
+msgstr "Las solicitudes de los visitantes para exportar o borrar sus datos se gestionan con las herramientas de WordPress en <a href=\"%1$s\">Herramientas → Exportar datos personales</a> y <a href=\"%2$s\">Borrar datos personales</a>. Hay un texto sugerido para tu política de privacidad en <a href=\"%3$s\">Ajustes → Privacidad</a>."
+
+msgid "Save privacy settings"
+msgstr "Guardar ajustes de privacidad"
+
+msgid "You cannot change privacy settings."
+msgstr "No puedes cambiar los ajustes de privacidad."
+
+msgid "Security settings saved."
+msgstr "Ajustes de seguridad guardados."
+
+msgid "The Turnstile secret could not be encrypted on this server. No changes were saved."
+msgstr "No se pudo cifrar el secreto de Turnstile en este servidor. No se guardó ningún cambio."
+
+msgid "Bot protection (Cloudflare Turnstile)"
+msgstr "Protección contra bots (Cloudflare Turnstile)"
+
+msgid "Every booking sends a calendar invitation from the advisor’s account, so bots must be stopped. Create a free widget in <a href=\"%s\" target=\"_blank\" rel=\"noopener noreferrer\">Cloudflare → Turnstile</a> for this domain (mode: Managed) and paste its keys. Leave both empty to turn the check off."
+msgstr "Cada reserva envía una invitación de calendario desde la cuenta del asesor, así que hay que frenar a los bots. Crea un widget gratuito en <a href=\"%s\" target=\"_blank\" rel=\"noopener noreferrer\">Cloudflare → Turnstile</a> para este dominio (modo: Gestionado) y pega sus claves. Deja ambas vacías para desactivar la comprobación."
+
+msgid "Site key"
+msgstr "Clave del sitio"
+
+msgid "Secret key"
+msgstr "Clave secreta"
+
+msgid "Paste the secret key"
+msgstr "Pega la clave secreta"
+
+msgid "Remove saved keys"
+msgstr "Quitar las claves guardadas"
+
+msgid "Turnstile is on: bookings need a passed check."
+msgstr "Turnstile está activo: las reservas necesitan pasar la comprobación."
+
+msgid "Turnstile is off."
+msgstr "Turnstile está desactivado."
+
+msgid "Visitor IP behind a proxy"
+msgstr "IP del visitante detrás de un proxy"
+
+msgid "Booking limits count requests per visitor address. Behind a CDN or load balancer every request seems to come from the proxy, so tell the plugin which proxy to trust."
+msgstr "Los límites de reserva cuentan las solicitudes por dirección del visitante. Detrás de una CDN o un balanceador, todas las solicitudes parecen venir del proxy, así que indica al plugin en qué proxy confiar."
+
+msgid "Requests arrive"
+msgstr "Las solicitudes llegan"
+
+msgid "Directly (no proxy)"
+msgstr "Directamente (sin proxy)"
+
+msgid "Through Cloudflare (uses CF-Connecting-IP from Cloudflare addresses only)"
+msgstr "A través de Cloudflare (usa CF-Connecting-IP solo desde direcciones de Cloudflare)"
+
+msgid "Through my own proxy or load balancer"
+msgstr "A través de mi propio proxy o balanceador"
+
+msgid "Trusted proxy addresses"
+msgstr "Direcciones de proxy de confianza"
+
+msgid "Only for “my own proxy”. One IP or CIDR range per line."
+msgstr "Solo para «mi propio proxy». Una IP o rango CIDR por línea."
+
+msgid "Forwarded header"
+msgstr "Cabecera reenviada"
+
+msgid "Only for “my own proxy”: the header your proxy sets with the visitor’s address."
+msgstr "Solo para «mi propio proxy»: la cabecera donde tu proxy pone la dirección del visitante."
+
+msgid "Your address as seen now"
+msgstr "Tu dirección tal como se ve ahora"
+
+msgid "(connection from %s)"
+msgstr "(conexión desde %s)"
+
+msgid "Save security settings"
+msgstr "Guardar ajustes de seguridad"
+
+msgid "You cannot change security settings."
+msgstr "No puedes cambiar los ajustes de seguridad."
+
+msgid "System status"
+msgstr "Estado del sistema"
+
+msgid "HTTPS"
+msgstr "HTTPS"
+
+msgid "Site and admin use HTTPS."
+msgstr "El sitio y el admin usan HTTPS."
+
+msgid "Google sign-in and visitor data need HTTPS on the whole site."
+msgstr "El inicio de sesión con Google y los datos de los visitantes necesitan HTTPS en todo el sitio."
+
+msgid "Booking page"
+msgstr "Página de reservas"
+
+msgid "The calendar is published on “%s”."
+msgstr "El calendario está publicado en «%s»."
+
+msgid "No published page contains the [elaltillo_bookacall] shortcode yet."
+msgstr "Todavía ninguna página publicada contiene el shortcode [elaltillo_bookacall]."
+
+msgid "View page"
+msgstr "Ver página"
+
+msgid "Visitor IP for rate limits"
+msgstr "IP del visitante para los límites"
+
+msgid "This request came through a proxy or CDN, but the plugin is set to “directly”. All visitors may share one booking limit. Choose your proxy under Settings → Security."
+msgstr "Esta solicitud llegó a través de un proxy o CDN, pero el plugin está en «directamente». Todos los visitantes podrían compartir un mismo límite de reservas. Elige tu proxy en Ajustes → Seguridad."
+
+msgid "Requests reach WordPress directly; limits use each visitor’s address."
+msgstr "Las solicitudes llegan directamente a WordPress; los límites usan la dirección de cada visitante."
+
+msgid "Trusting %1$s. Your address is detected as %2$s."
+msgstr "Se confía en %1$s. Tu dirección se detecta como %2$s."
+
+msgid "your proxy list"
+msgstr "tu lista de proxies"
+
+msgid "Bot protection"
+msgstr "Protección contra bots"
+
+msgid "Cloudflare Turnstile checks every booking."
+msgstr "Cloudflare Turnstile comprueba cada reserva."
+
+msgid "Turnstile is off: bots can create bookings and make Google send invitations from advisor accounts."
+msgstr "Turnstile está desactivado: los bots pueden crear reservas y hacer que Google envíe invitaciones desde las cuentas de los asesores."
+
+msgid "Scheduled tasks"
+msgstr "Tareas programadas"
+
+msgid "WP-Cron is disabled. Make sure a server cron job calls wp-cron.php, or retention clean-up will not run."
+msgstr "WP-Cron está desactivado. Asegúrate de que una tarea cron del servidor llame a wp-cron.php, o la limpieza por conservación no se ejecutará."
+
+msgid "Next retention clean-up: %s."
+msgstr "Próxima limpieza por conservación: %s."
+
+msgid "Retention clean-up will be scheduled on the next page load."
+msgstr "La limpieza por conservación se programará en la próxima carga de página."
+
+msgid "Mail delivery service"
+msgstr "Servicio de envío de correo"
+
+msgid "A plugin customises how WordPress sends email."
+msgstr "Un plugin personaliza cómo envía WordPress los correos."
+
+msgid "WordPress uses the server’s default mail function, which often lands in spam. Use a transactional mail service before launch."
+msgstr "WordPress usa la función de correo predeterminada del servidor, que a menudo acaba en spam. Usa un servicio de correo transaccional antes de salir en vivo."
+
+msgid "Test sent to %1$s on %2$s. Check that it arrived in the inbox, not spam."
+msgstr "Prueba enviada a %1$s el %2$s. Comprueba que llegó a la bandeja de entrada y no a spam."
+
+msgid "The test to %1$s on %2$s could not be handed to the mailer."
+msgstr "La prueba a %1$s el %2$s no se pudo entregar al servidor de correo."
+
+msgid "No test email has been sent from this page yet."
+msgstr "Aún no se ha enviado un correo de prueba desde esta página."
+
+msgid "Test email"
+msgstr "Correo de prueba"
+
+msgid "Send test email to me"
+msgstr "Enviarme un correo de prueba"
+
+msgid "Booking emails"
+msgstr "Correos de reservas"
+
+msgid "No failed booking emails recorded."
+msgstr "No hay correos de reservas fallidos."
+
+msgid "Open booking"
+msgstr "Abrir reserva"
+
+msgid "OAuth credentials"
+msgstr "Credenciales OAuth"
+
+msgid "Client ID and encrypted Client Secret are saved."
+msgstr "El Client ID y el Client Secret cifrado están guardados."
+
+msgid "Not configured: bookings stay as requests that you confirm by hand."
+msgstr "Sin configurar: las reservas quedan como solicitudes que confirmas a mano."
+
+msgid "Redirect URI"
+msgstr "URI de redirección"
+
+msgid "%s is a local address; Google only accepts it for testing. Connect advisors on the production site."
+msgstr "%s es una dirección local; Google solo la acepta para pruebas. Conecta a los asesores en el sitio de producción."
+
+msgid "Live connection test"
+msgstr "Prueba de conexión en vivo"
+
+msgid "%1$d of %2$d connected calendars answered on %3$s."
+msgstr "%1$d de %2$d calendarios conectados respondieron el %3$s."
+
+msgid "Checks that each advisor’s “El Altillo · Citas” calendar answers, and retries calls waiting for Google."
+msgstr "Comprueba que responde el calendario «El Altillo · Citas» de cada asesor y reintenta las llamadas que esperan a Google."
+
+msgid "Test Google now"
+msgstr "Probar Google ahora"
+
+msgid "Every booked call is in Google Calendar."
+msgstr "Todas las llamadas reservadas están en Google Calendar."
+
+msgid "Google test failed: %s"
+msgstr "Falló la prueba de Google: %s"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "No advisor is bookable, so visitors see no times."
+msgstr "Ningún asesor es reservable, así que los visitantes no ven horas."
+
+msgid "Private document storage"
+msgstr "Almacenamiento privado de documentos"
+
+msgid "Uploads are stored outside the public web folder."
+msgstr "Los archivos subidos se guardan fuera de la carpeta pública de la web."
+
+msgid "No writable folder outside the web root. Visitors cannot attach files until ELAB_PRIVATE_UPLOAD_DIR is set."
+msgstr "No hay una carpeta con permisos de escritura fuera de la raíz web. Los visitantes no pueden adjuntar archivos hasta que se defina ELAB_PRIVATE_UPLOAD_DIR."
+
+msgid "Retention"
+msgstr "Conservación"
+
+msgid "Bookings are kept forever. Set a retention period to comply with data minimisation."
+msgstr "Las reservas se guardan para siempre. Define un plazo de conservación para cumplir con la minimización de datos."
+
+msgid "Privacy policy page"
+msgstr "Página de política de privacidad"
+
+msgid "“%s” is published. Add the booking section from Settings → Privacy → Policy guide."
+msgstr "«%s» está publicada. Añade la sección de reservas desde Ajustes → Privacidad → Guía de la política."
+
+msgid "No published privacy policy page is set."
+msgstr "No hay una página de política de privacidad publicada."
+
+msgid "Privacy settings"
+msgstr "Ajustes de privacidad"
+
+msgid "Site"
+msgstr "Sitio"
+
+msgid "Privacy and documents"
+msgstr "Privacidad y documentos"
+
+msgid "Test email handed to the mailer. Check your inbox."
+msgstr "Correo de prueba entregado al servidor de correo. Revisa tu bandeja de entrada."
+
+msgid "WordPress could not send the test email."
+msgstr "WordPress no pudo enviar el correo de prueba."
+
+msgid "Everything is ready for real bookings."
+msgstr "Todo está listo para reservas reales."
+
+msgid "%1$d to fix, %2$d to review before launch."
+msgstr "%1$d por corregir, %2$d por revisar antes de salir en vivo."
+
+msgid "You cannot run this test."
+msgstr "No puedes ejecutar esta prueba."
+
+msgid "Needs to reconnect Google Calendar."
+msgstr "Hay que volver a conectar Google Calendar."
+
+msgid "%d call is saved and waiting to be added to Google Calendar."
+msgid_plural "%d calls are saved and waiting to be added to Google Calendar."
+msgstr[0] "%d llamada está guardada y esperando a añadirse a Google Calendar."
+msgstr[1] "%d llamadas están guardadas y esperando a añadirse a Google Calendar."
+
+msgid "%d time range was removed because it ended before it started or was incomplete."
+msgid_plural "%d time ranges were removed because they ended before they started or were incomplete."
+msgstr[0] "Se quitó %d franja porque terminaba antes de empezar o estaba incompleta."
+msgstr[1] "Se quitaron %d franjas porque terminaban antes de empezar o estaban incompletas."
+
+msgid "%d unavailable date was ignored because its dates were invalid."
+msgid_plural "%d unavailable dates were ignored because their dates were invalid."
+msgstr[0] "Se ignoró %d fecha no disponible porque sus fechas no eran válidas."
+msgstr[1] "Se ignoraron %d fechas no disponibles porque sus fechas no eran válidas."
+
+msgid "%d needs to reconnect."
+msgid_plural "%d need to reconnect."
+msgstr[0] "%d debe volver a conectar."
+msgstr[1] "%d deben volver a conectar."
+
+msgid "%d call is saved in WordPress and will be added to Google when its advisor reconnects."
+msgid_plural "%d calls are saved in WordPress and will be added to Google when their advisors reconnect."
+msgstr[0] "%d llamada está guardada en WordPress y se añadirá a Google cuando su asesor vuelva a conectar."
+msgstr[1] "%d llamadas están guardadas en WordPress y se añadirán a Google cuando sus asesores vuelvan a conectar."
+
+msgid "Last clean-up: %1$s, %2$d record deleted."
+msgid_plural "Last clean-up: %1$s, %2$d records deleted."
+msgstr[0] "Última limpieza: %1$s, se borró %2$d registro."
+msgstr[1] "Última limpieza: %1$s, se borraron %2$d registros."
+
+msgid "%d booking has an email that could not be sent."
+msgid_plural "%d or more bookings have emails that could not be sent."
+msgstr[0] "%d reserva tiene un correo que no se pudo enviar."
+msgstr[1] "%d reservas tienen un correo que no se pudo enviar."
+
+msgid "%d call is saved but its calendar event is not in Google yet. It is retried every hour and when the advisor reconnects."
+msgid_plural "%d calls are saved but their calendar events are not in Google yet. They are retried every hour and when the advisor reconnects."
+msgstr[0] "%d llamada está guardada pero su evento aún no está en Google. Se reintenta cada hora y cuando el asesor vuelve a conectar."
+msgstr[1] "%d llamadas están guardadas pero sus eventos aún no están en Google. Se reintentan cada hora y cuando el asesor vuelve a conectar."
+
+msgid "Bookings are deleted %d month after the call."
+msgid_plural "Bookings are deleted %d months after the call."
+msgstr[0] "Las reservas se borran %d mes después de la llamada."
+msgstr[1] "Las reservas se borran %d meses después de la llamada."
 
 #: includes/advisors/class-elab-advisor-admin.php:109
 #: includes/bookings/class-elab-booking-admin.php:43
@@ -81,215 +1182,14 @@ msgstr "Asesor"
 msgid "Time zone"
 msgstr "Zona horaria"
 
-#: includes/advisors/class-elab-advisor-admin.php:111
-#: includes/advisors/class-elab-advisor-admin.php:285
-#: includes/google/class-elab-google-settings-admin.php:52
-#: includes/system/class-elab-system-status.php:141
-msgid "Google Calendar"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:112
-#: includes/system/class-elab-system-status.php:120
-msgid "Booking calendar"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:113
-msgid "Date"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:122
-msgid "Bookable"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:127
-msgid "Hidden"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:137
-#: includes/advisors/class-elab-advisor-admin.php:300
-msgid "Not set up"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:139
-#: includes/google/class-elab-google-calendar.php:66
-#, php-format
-msgid "Connected as %s"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:141
-msgid "Reconnect required"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:143
-#: includes/advisors/class-elab-advisor-admin.php:300
-msgid "Not connected"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:149
-msgid "Advisor availability"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:150
-msgid "What visitors see: next 7 days"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:170
-msgid "Save the advisor to preview their times."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:177
-#, php-format
-msgid "Shown in the advisor’s time zone (%1$s), %2$d-minute calls. Visitors see the same times converted to their own zone. Reflects the last saved settings."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:179
-msgid "Visitors do not see these times until the issues listed above are fixed."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:196
-msgid "No times"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:221
-msgid "Monday"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:221
-msgid "Tuesday"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:222
-msgid "Wednesday"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:222
-msgid "Thursday"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:223
-msgid "Friday"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:223
-msgid "Saturday"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:224
-msgid "Sunday"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:229
-msgid "Not shown in the booking calendar yet:"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:231
-#: includes/system/class-elab-system-status.php:117
-msgid "Bookable."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:231
-#: includes/advisors/class-elab-advisor-admin.php:300
-msgid "Reconnect"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:233
-msgid "Bookable: this advisor’s times appear in the booking calendar."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:236
-msgid "Set the hours when this advisor can receive calls. Visitors will see these times in their own time zone."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:238
-msgid "Advisor Google email"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:238
-msgid "Enter the Google account that this advisor will authorize. The account must match during connection; booking and schedule emails are sent here."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:239
-msgid "Email language"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:239
-msgid "Language of the booking, reconnection and schedule emails this advisor receives."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:246
-msgid "Advisor WordPress account"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:246
-msgid "No account"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:248
-#, php-format
-msgid "%s (not a Subscriber, reassign)"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:251
-#, php-format
-msgid "linked to %s"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:253
-msgid "Only Subscriber accounts that are not linked to another advisor can be chosen. This account connects its own Google Calendar from its profile and cannot edit this advisor profile."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:255
-msgid "Advisor time zone"
-msgstr ""
-
 #: includes/advisors/class-elab-advisor-admin.php:255
 #: includes/frontend/templates/booking-form.php:77
 msgid "Search time zones"
 msgstr "Buscar zonas horarias"
 
-#: includes/advisors/class-elab-advisor-admin.php:255
-msgid "Search by city or region"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:255
-msgid "Choose the city where the advisor works. Seasonal time changes are automatic."
-msgstr ""
-
 #: includes/advisors/class-elab-advisor-admin.php:256
 msgid "Meeting languages"
 msgstr "Idiomas de las citas"
-
-#: includes/advisors/class-elab-advisor-admin.php:256
-msgid "Visitors choose the meeting language first and only see the times of advisors who speak it. Choose at least one."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:257
-#: includes/bookings/class-elab-booking-defaults-admin.php:18
-msgid "Call duration"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:257
-#: includes/advisors/class-elab-advisor-admin.php:264
-#: includes/advisors/class-elab-advisor-admin.php:265
-#: includes/bookings/class-elab-booking-defaults-admin.php:18
-#: includes/bookings/class-elab-booking-defaults-admin.php:21
-#: includes/bookings/class-elab-booking-defaults-admin.php:22
-msgid "minutes"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:257
-#, php-format
-msgid "Leave empty to use the site default (%d). Times start every call length inside each range; existing bookings keep their length."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:259
-msgid "Booking rules"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:260
-#, php-format
-msgid "Empty fields follow the <a href=\"%s\">site booking defaults</a>."
-msgstr ""
 
 #: includes/advisors/class-elab-advisor-admin.php:262
 #: includes/bookings/class-elab-booking-defaults-admin.php:19
@@ -297,152 +1197,11 @@ msgstr ""
 msgid "Minimum notice"
 msgstr "Anticipación mínima"
 
-#: includes/advisors/class-elab-advisor-admin.php:262
-#: includes/bookings/class-elab-booking-defaults-admin.php:19
-msgid "hours"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:262
-#, php-format
-msgid "Visitors cannot book a call that starts sooner than this. Leave empty to use the site default (%d)."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:263
-#: includes/bookings/class-elab-booking-defaults-admin.php:20
-msgid "Booking window"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:263
-#: includes/bookings/class-elab-booking-defaults-admin.php:20
-msgid "days ahead"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:263
-#, php-format
-msgid "How far into the future visitors can book. Leave empty to use the site default (%d)."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:264
-#: includes/bookings/class-elab-booking-defaults-admin.php:21
-msgid "Start times every"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:264
-#, php-format
-msgid "0 offers a start every call length; 15 offers 9:00, 9:15, 9:30… with the same call length. Leave empty to use the site default (%d)."
-msgstr ""
-
 #: includes/advisors/class-elab-advisor-admin.php:265
 #: includes/bookings/class-elab-booking-defaults-admin.php:22
 #: includes/notifications/class-elab-notifications.php:125
 msgid "Break between calls"
 msgstr "Pausa entre llamadas"
-
-#: includes/advisors/class-elab-advisor-admin.php:265
-#, php-format
-msgid "Free time kept before and after each booking. Leave empty to use the site default (%d)."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:267
-msgid "Weekly hours"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:268
-msgid "Turn on each working day. Add separate time ranges for breaks. Overlapping ranges are merged when you save."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:269
-msgid "Day"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:269
-msgid "Available hours"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:277
-#: includes/blackouts/class-elab-blackouts.php:124
-msgid "From"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:277
-#, php-format
-msgid "%s start time"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:277
-#: includes/blackouts/class-elab-blackouts.php:124
-msgid "To"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:277
-#, php-format
-msgid "%s end time"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:277
-msgid "Remove time range"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:279
-msgid "Add another interval"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:282
-msgid "Unavailable dates for this advisor"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:283
-msgid "Use this for vacations, personal holidays or specific days off. Global unavailable dates also apply."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:286
-#, php-format
-msgid "Each booked call is added to a separate calendar, “%s”, created by this site in the advisor’s Google account, with the visitor invited as a guest. The site cannot see or change any other calendar or event."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:293
-msgid "Google Calendar is not set up for this site yet."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:294
-#, php-format
-msgid "Connected as %s."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:295
-msgid "Google access was removed or expired. Reconnect so new calls reach the calendar again."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:296
-#, php-format
-msgid "Connected with the old, broader permission. Reconnect once so the site creates its own “%s” calendar and only uses that one."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:297
-msgid "The saved connection no longer matches this advisor’s email or the site’s OAuth client. Connect the correct account."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:298
-msgid "Not connected. The advisor can connect from Users → Profile, or you can connect here."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:300
-msgid "Connected"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:303
-#: includes/google/class-elab-google-settings-admin.php:113
-msgid "Connection"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:307
-msgid "Set up Google Calendar"
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:309
-#: includes/advisors/class-elab-advisor-admin.php:314
-msgid "Disconnect"
-msgstr ""
 
 #: includes/advisors/class-elab-advisor-admin.php:311
 #: includes/google/class-elab-google-calendar.php:70
@@ -455,169 +1214,6 @@ msgstr "Conectar Google Calendar"
 #: includes/notifications/class-elab-notifications.php:247
 msgid "Reconnect Google Calendar"
 msgstr "Volver a conectar Google Calendar"
-
-#: includes/advisors/class-elab-advisor-admin.php:317
-#, php-format
-msgid "%d call is saved and waiting to be added to Google Calendar."
-msgid_plural "%d calls are saved and waiting to be added to Google Calendar."
-msgstr[0] ""
-msgstr[1] ""
-
-#: includes/advisors/class-elab-advisor-admin.php:318
-msgid "Weekly hours are availability rules, not calendar events. The advisor receives their schedule by email after connecting or when these settings change."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:319
-msgid "The last schedule email could not be sent. Check the site email configuration."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:345
-msgid "The advisor email was not a valid address and was cleared."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:357
-msgid "The previous account link was kept."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:368
-#, php-format
-msgid "The time zone “%s” is not recognised; UTC was used."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:377
-msgid "At least one meeting language is needed, so every language was kept."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:392
-#, php-format
-msgid "%s was not a number; the site default is used."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:398
-#, php-format
-msgid "%1$s must be between %2$d and %3$d; it was set to %4$d."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:426
-#, php-format
-msgid "%d time range was removed because it ended before it started or was incomplete."
-msgid_plural "%d time ranges were removed because they ended before they started or were incomplete."
-msgstr[0] ""
-msgstr[1] ""
-
-#: includes/advisors/class-elab-advisor-admin.php:436
-#, php-format
-msgid "Overlapping ranges were merged on: %s."
-msgstr ""
-
-#: includes/advisors/class-elab-advisor-admin.php:449
-#, php-format
-msgid "%d unavailable date was ignored because its dates were invalid."
-msgid_plural "%d unavailable dates were ignored because their dates were invalid."
-msgstr[0] ""
-msgstr[1] ""
-
-#: includes/blackouts/class-elab-blackouts-admin.php:20
-#: includes/blackouts/class-elab-blackouts-admin.php:21
-msgid "Unavailable dates"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts-admin.php:41
-msgid "Unavailable dates for all advisors"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts-admin.php:42
-msgid "Block holidays, closures and other dates for every advisor. Each advisor can choose to work on a global date from their profile; personal unavailable dates still take priority."
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts-admin.php:43
-msgid "Unavailable dates saved."
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts-admin.php:48
-msgid "Save unavailable dates"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts-admin.php:55
-msgid "You cannot change global unavailable dates."
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:98
-msgid "No global unavailable dates have been configured."
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:104
-msgid "Select the global dates when this advisor will work. Regular weekly hours still apply. Personal time off and existing bookings still block slots. If global rules overlap, select every matching rule."
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:105
-msgid "Global date"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:105
-msgid "Reason"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:105
-msgid "Work that day"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:110
-msgid "every year"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:113
-#, php-format
-msgid "Work during %s"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:124
-msgid "Reason (optional)"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:124
-msgid "Every year"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:124
-msgid "Remove"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:126
-msgid "First unavailable date"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:126
-msgid "Last unavailable date"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:126
-msgid "Holiday, vacation…"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:126
-msgid "Repeat annually"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:126
-msgid "Remove unavailable date"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:129
-msgid "Add unavailable date"
-msgstr ""
-
-#: includes/blackouts/class-elab-blackouts.php:130
-msgid "Leave the end date empty for one day. “Every year” applies only to a single day. Dates use each advisor’s local time zone."
-msgstr ""
-
-#: includes/blackouts/class-elab-global-overrides-admin.php:28
-msgid "Work on global unavailable dates"
-msgstr ""
-
-#: includes/blackouts/class-elab-global-overrides-admin.php:62
-msgid "Availability on global unavailable dates"
-msgstr ""
 
 #: includes/bookings/class-elab-availability.php:195
 msgid "Availability could not be loaded. Please try again shortly."
@@ -645,14 +1241,6 @@ msgstr "Mes no válido."
 msgid "Invalid advisor or date."
 msgstr "Asesor o fecha no válidos."
 
-#: includes/bookings/class-elab-booking-admin.php:21
-msgid "Cancel this call? The visitor is notified, the time is freed and the event is removed from the advisor’s Google Calendar. This cannot be undone."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:32
-msgid "Request details"
-msgstr ""
-
 #: includes/bookings/class-elab-booking-admin.php:44
 #: includes/bookings/class-elab-booking-list-admin.php:66
 #: includes/google/class-elab-booking-sync.php:257
@@ -661,14 +1249,6 @@ msgstr ""
 #: includes/notifications/class-elab-notifications.php:216
 msgid "Visitor"
 msgstr "Visitante"
-
-#: includes/bookings/class-elab-booking-admin.php:45
-msgid "Visitor’s local time"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:46
-msgid "UTC"
-msgstr ""
 
 #: includes/bookings/class-elab-booking-admin.php:47
 #: includes/notifications/class-elab-notifications.php:214
@@ -697,11 +1277,6 @@ msgstr "Idioma de la reunión"
 msgid "Sector"
 msgstr "Sector"
 
-#: includes/bookings/class-elab-booking-admin.php:50
-#: includes/privacy/class-elab-privacy.php:113
-msgid "Message"
-msgstr ""
-
 #: includes/bookings/class-elab-booking-admin.php:51
 #: includes/bookings/class-elab-booking-admin.php:58
 #: includes/frontend/templates/booking-form.php:129
@@ -711,12 +1286,6 @@ msgstr ""
 #: includes/privacy/class-elab-privacy.php:114
 msgid "Guests"
 msgstr "Invitados"
-
-#: includes/bookings/class-elab-booking-admin.php:52
-#: includes/bookings/class-elab-booking-list-admin.php:70
-#: includes/privacy/class-elab-privacy.php:118
-msgid "Received"
-msgstr ""
 
 #: includes/bookings/class-elab-booking-admin.php:53
 #: includes/bookings/class-elab-booking-admin.php:58
@@ -734,132 +1303,6 @@ msgstr "Videollamada"
 msgid "Cancelled"
 msgstr "Cancelada"
 
-#: includes/bookings/class-elab-booking-admin.php:54
-#, php-format
-msgid "By the visitor, %s UTC"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:54
-#, php-format
-msgid "By an administrator, %s UTC"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:55
-#: includes/bookings/class-elab-booking-admin.php:58
-msgid "Privacy consent"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:55
-#, php-format
-msgid "Accepted %s UTC"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:72
-msgid "Saved, waiting for Google."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:72
-msgid "The advisor’s Google connection is not working, so the calendar event and the visitor’s invitation are not created yet. They are added automatically when the advisor reconnects. The advisor was emailed."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:72
-msgid "Google did not answer. The event is retried every hour."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:75
-msgid "Open advisor connection"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:77
-msgid "Add to the advisor’s calendar by hand"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:80
-msgid "Cancelled here. Google did not answer yet, so the event is removed from the advisor’s calendar as soon as it does."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:82
-msgid "The advisor added this call to their calendar by hand, so the site cannot remove it: the advisor should delete that event. The visitor was emailed."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:82
-msgid "This call was created in the advisor’s main Google Calendar before the dedicated calendar existed. The site can no longer change it: the advisor should delete that event by hand. The visitor was emailed."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:84
-#, php-format
-msgid "The advisor added this call to their own calendar by hand on %s, so the site will not create it."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:86
-msgid "In the advisor’s Google Calendar. Cancelling removes the event and Google notifies the visitor."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:89
-msgid "The advisor email could not be sent. Check the site email configuration and contact the advisor directly."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:92
-msgid "The visitor email could not be sent. Contact the visitor directly."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:101
-#: includes/privacy/class-elab-privacy.php:117
-msgid "Attachments"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:111
-msgid "Update status"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:115
-msgid "Cancelled calls cannot be reopened."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-admin.php:115
-msgid "Choose a status and select Update."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-defaults-admin.php:18
-msgid "Length of each call. Times start every call length inside the advisor’s hours."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-defaults-admin.php:19
-msgid "Visitors cannot book a call that starts sooner than this."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-defaults-admin.php:20
-msgid "How far into the future visitors can book."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-defaults-admin.php:21
-msgid "0 offers a new start time every call length (9:00, 9:30… for 30-minute calls). 15 offers 9:00, 9:15, 9:30… while each call keeps its length."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-defaults-admin.php:22
-msgid "Optional free time kept before and after each booking. 0 means calls can be back to back."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-defaults-admin.php:34
-msgid "Booking defaults saved. Advisors without their own values now use them."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-defaults-admin.php:37
-msgid "Booking defaults"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-defaults-admin.php:38
-msgid "These values apply to every advisor whose profile leaves the field empty. An advisor’s own value always wins."
-msgstr ""
-
-#: includes/bookings/class-elab-booking-defaults-admin.php:49
-msgid "Save booking defaults"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-defaults-admin.php:57
-msgid "You cannot change booking defaults."
-msgstr ""
-
 #: includes/bookings/class-elab-booking-guard.php:14
 msgid "Your request could not be submitted."
 msgstr "No pudimos enviar tu solicitud."
@@ -873,10 +1316,6 @@ msgstr "%s ya recibió demasiadas invitaciones hoy. Quita a esta persona o inté
 msgid "Too many requests. Please wait and try again."
 msgstr "Demasiados intentos. Espera un momento y vuelve a intentarlo."
 
-#: includes/bookings/class-elab-booking-list-admin.php:28
-msgid "Pending"
-msgstr ""
-
 #: includes/bookings/class-elab-booking-list-admin.php:29
 #: includes/frontend/templates/manage-booking.php:27
 msgid "Confirmed"
@@ -889,11 +1328,6 @@ msgstr "Confirmada"
 msgid "When"
 msgstr "Cuándo"
 
-#: includes/bookings/class-elab-booking-list-admin.php:68
-#: includes/privacy/class-elab-privacy.php:109
-msgid "Status"
-msgstr ""
-
 #: includes/bookings/class-elab-booking-list-admin.php:69
 #: includes/notifications/class-elab-notifications.php:215
 #: includes/notifications/class-elab-notifications.php:261
@@ -904,42 +1338,6 @@ msgstr "Idioma"
 #, php-format
 msgid "Visitor: %s"
 msgstr "Visitante: %s"
-
-#: includes/bookings/class-elab-booking-list-admin.php:92
-msgid "(no name)"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-list-admin.php:138
-msgid "Filter by date"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-list-admin.php:139
-msgid "Upcoming"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-list-admin.php:139
-msgid "Past"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-list-admin.php:139
-msgid "All dates"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-list-admin.php:142
-msgid "Filter by status"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-list-admin.php:142
-msgid "All statuses"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-list-admin.php:146
-msgid "Filter by advisor"
-msgstr ""
-
-#: includes/bookings/class-elab-booking-list-admin.php:146
-msgid "All advisors"
-msgstr ""
 
 #: includes/bookings/class-elab-booking-manage.php:123
 msgid "This call can no longer be cancelled online."
@@ -1011,28 +1409,6 @@ msgstr "Llamada con %s"
 #: includes/notifications/class-elab-notifications.php:312
 msgid "We will confirm this time by email shortly."
 msgstr "Te confirmaremos esta hora por correo muy pronto."
-
-#: includes/content/class-elab-post-types.php:34
-#: includes/content/class-elab-post-types.php:36
-#: includes/system/class-elab-system-status.php:142
-msgid "Advisors"
-msgstr ""
-
-#: includes/content/class-elab-post-types.php:38
-msgid "Add advisor"
-msgstr ""
-
-#: includes/content/class-elab-post-types.php:39
-msgid "Edit advisor"
-msgstr ""
-
-#: includes/content/class-elab-post-types.php:54
-msgid "Booking requests"
-msgstr ""
-
-#: includes/content/class-elab-post-types.php:55
-msgid "Booking request"
-msgstr ""
 
 #: includes/files/class-elab-private-attachments.php:56
 #: includes/files/class-elab-private-attachments.php:103
@@ -1539,135 +1915,14 @@ msgstr "Google Calendar se abre con todo listo y el visitante invitado: seleccio
 msgid "Open Google Calendar"
 msgstr "Abrir Google Calendar"
 
-#: includes/google/class-elab-google-calendar.php:52
-msgid "Your advisor calendars"
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:54
-#, php-format
-msgid "Connected. New calls appear in the “%s” calendar of your Google account."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:56
-#, php-format
-msgid "Connect the Google account shown below. This site creates one calendar in it, “%s”, and can only add and remove your booked calls there: it cannot see or change any other calendar or event."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:64
-msgid "Ask an administrator to set your Google email in the advisor profile."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:66
-#, php-format
-msgid "Expected Google account: %s"
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:68
-msgid "Connect again: until then, new calls are saved here and added to Google automatically once you reconnect."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:70
-msgid "Disconnect Google Calendar"
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:72
-msgid "Google Calendar is awaiting site configuration."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:75
-msgid "Your availability email could not be sent. Ask an administrator to check the site mail settings."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:103
-msgid "Could not encrypt the Google Client Secret on this server."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:144
-msgid "Google Calendar is not configured or you cannot edit this advisor."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:178
-msgid "Invalid or expired Google authorization."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:182
-msgid "Google authorization was cancelled."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:186
-msgid "Google did not provide a refresh token. Reconnect the advisor and grant calendar access."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:190
-msgid "Allow the requested Google Calendar permission and try again."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:198
-#, php-format
-msgid "You connected %1$s, but this advisor expects %2$s. Choose the correct Google account or ask an administrator to update the advisor email."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:208
-msgid "Could not protect the Google credentials on this server."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:229
-msgid "You cannot edit this advisor."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:267
-msgid "Google Calendar is not configured."
-msgstr ""
-
 #: includes/google/class-elab-google-calendar.php:272
 msgid "Google access for this advisor was removed or has expired."
 msgstr "El acceso de Google de este asesor se retiró o venció."
-
-#: includes/google/class-elab-google-calendar.php:275
-msgid "Google Calendar authorization failed."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:278
-msgid "Invalid Google Calendar response."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:283
-msgid "Google did not return an access token."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:290
-msgid "The Google account could not be verified. Please try connecting again."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:294
-msgid "Google did not return a verified account email."
-msgstr ""
 
 #: includes/google/class-elab-google-calendar.php:327
 #, php-format
 msgid "Calls booked through %s. This site can only see and change this calendar."
 msgstr "Llamadas agendadas a través de %s. Este sitio solo puede ver y cambiar este calendario."
-
-#: includes/google/class-elab-google-calendar.php:331
-msgid "Google did not allow creating the bookings calendar. Allow the requested permission and try again."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:340
-msgid "The bookings calendar is missing; connect Google Calendar again."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:392
-#: includes/google/class-elab-google-calendar.php:400
-msgid "This advisor has not connected Google Calendar."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:408
-msgid "Google Calendar needs to be reconnected."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:429
-msgid "Google Calendar could not complete this action. Please try again."
-msgstr ""
 
 #: includes/google/class-elab-google-calendar.php:442
 msgid "This advisor needs to connect Google Calendar again."
@@ -1681,301 +1936,6 @@ msgstr "Duración: %d minutos"
 #: includes/google/class-elab-google-calendar.php:457
 msgid "Need to cancel? Use this private link:"
 msgstr "¿Necesitas cancelar? Usa este enlace privado:"
-
-#: includes/google/class-elab-google-calendar.php:488
-msgid "Google Calendar did not confirm the new event. Please try again."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:520
-msgid "This calendar event was not created for this booking, so it was not changed."
-msgstr ""
-
-#: includes/google/class-elab-google-calendar.php:525
-msgid "This event is in the advisor’s main calendar and must be removed there by hand."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:20
-#: includes/google/class-elab-google-settings-admin.php:59
-msgid "Booking settings"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:21
-#: includes/system/class-elab-system-status.php:71
-#: includes/system/class-elab-system-status.php:73
-#: includes/system/class-elab-system-status.php:75
-#: includes/system/class-elab-system-status.php:97
-#: includes/system/class-elab-system-status.php:127
-msgid "Settings"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:51
-msgid "General"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:53
-#: includes/security/class-elab-security.php:180
-msgid "Security"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:54
-msgid "Privacy"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:60
-msgid "Settings sections"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:94
-msgid "Google settings saved."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:95
-msgid "Enter the Google Client ID before saving."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:96
-msgid "Enter the Client Secret for the new OAuth client."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:97
-msgid "The Client Secret could not be encrypted on this server. No changes were saved."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:98
-#: includes/system/class-elab-system-status.php:153
-msgid "Google connection test finished."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:104
-#: includes/google/class-elab-google-settings-admin.php:131
-msgid "OAuth client"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:104
-msgid "Client ID and encrypted Client Secret saved."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:104
-msgid "Not configured yet. Follow the setup guide below."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:105
-msgid "Advisors connected"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:105
-#, php-format
-msgid "%1$d of %2$d published advisors."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:105
-#, php-format
-msgid "%d needs to reconnect."
-msgid_plural "%d need to reconnect."
-msgstr[0] ""
-msgstr[1] ""
-
-#: includes/google/class-elab-google-settings-admin.php:106
-#: includes/system/class-elab-system-status.php:104
-msgid "Calls waiting for Google"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:106
-#, php-format
-msgid "%d call is saved in WordPress and will be added to Google when its advisor reconnects."
-msgid_plural "%d calls are saved in WordPress and will be added to Google when their advisors reconnect."
-msgstr[0] ""
-msgstr[1] ""
-
-#: includes/google/class-elab-google-settings-admin.php:106
-msgid "None. Every booked call is in Google Calendar."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:107
-msgid "Last live test"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:107
-#, php-format
-msgid "%1$d of %2$d calendars answered at %3$s."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:107
-msgid "Not run yet."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:108
-msgid "Encryption key"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:108
-msgid "ELAB_ENCRYPTION_KEY from wp-config.php protects stored tokens."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:108
-msgid "Tokens are encrypted with the WordPress auth salt. Define ELAB_ENCRYPTION_KEY (32+ random characters) in wp-config.php so a salt change does not force every advisor to reconnect."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:110
-#: includes/system/class-elab-system-status.php:145
-msgid "Ready"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:110
-#: includes/system/class-elab-system-status.php:145
-msgid "Review"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:110
-#: includes/system/class-elab-system-status.php:145
-msgid "Fix"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:110
-#: includes/system/class-elab-system-status.php:145
-msgid "Optional"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:114
-msgid "Availability is managed here in WordPress. Google is only used to add each booked call to the advisor’s calendar and invite the visitor. When an advisor connects, the site creates a separate calendar, “El Altillo · Citas”, and can only see and change that one: never their other calendars or events. If Google is unreachable, bookings are still saved and added later."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:125
-msgid "Test connected calendars"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:136
-msgid "Authorized redirect URI"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:136
-msgid "Add this exact address to the OAuth client in Google Cloud."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:137
-msgid "This is a local address. Google only accepts it for testing; connect advisors on the production site."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:138
-msgid "Client ID"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:138
-msgid "Public identifier of the OAuth client; it ends in .apps.googleusercontent.com."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:139
-msgid "Client Secret"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:139
-#: includes/security/class-elab-security.php:188
-msgid "Saved; leave blank to keep it"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:139
-msgid "Paste the Client Secret"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:139
-msgid "Encrypted and saved. It is never displayed again."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:139
-msgid "No Client Secret saved yet."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:140
-msgid "Add a Google Meet link to every confirmed call"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:140
-msgid "Shown in the Google invitation, on the confirmation screen and on the visitor’s private booking page."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:142
-msgid "Changing the Client ID disconnects every advisor; each must connect again."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:143
-msgid "Save Google settings"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:148
-msgid "Setup guide"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:150
-msgid "Create or select a Google Cloud project."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:150
-msgid "Use the account that will own this integration."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:150
-msgid "Open Google Cloud Console"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:151
-msgid "Enable the Google Calendar API."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:151
-msgid "In APIs & Services, find Google Calendar API and select Enable."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:152
-msgid "Choose the app audience."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:152
-msgid "In Google Auth Platform → Audience: choose Internal when every advisor uses an account of your own Google Workspace; no Google review is needed. Choose External if any advisor uses a personal Gmail account: while the app is in Testing, add each advisor as a test user, and note that access then expires every 7 days. Publish the app and complete Google’s verification (the calendar scope is sensitive) before going live."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:152
-msgid "About audiences"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:153
-msgid "Complete Branding and Data Access."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:153
-msgid "Add your logo, home page and privacy policy, then these scopes:"
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:153
-msgid "This calendar scope only reaches calendars created by this site. No Gmail access is requested."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:154
-msgid "Create an OAuth client of type Web application."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:154
-msgid "Add the redirect URI shown above, then paste the Client ID and Client Secret here."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:155
-msgid "Connect each advisor."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:155
-msgid "Set the advisor’s Google email and WordPress account in their profile. The advisor opens Users → Profile and selects Connect Google Calendar; Google opens on that account, the plugin checks the email and creates the “El Altillo · Citas” calendar in it."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:156
-msgid "Test."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:156
-msgid "Use “Test connected calendars”, then make one real booking: the visitor receives Google’s invitation and the event appears in the advisor’s “El Altillo · Citas” calendar."
-msgstr ""
-
-#: includes/google/class-elab-google-settings-admin.php:164
-msgid "You cannot change Google Calendar settings."
-msgstr ""
 
 #: includes/notifications/class-elab-mailer.php:83
 #, php-format
@@ -2219,77 +2179,6 @@ msgstr "Esta llamada no se realizará."
 msgid "Book another time"
 msgstr "Agendar otra hora"
 
-#: includes/privacy/class-elab-privacy.php:87
-#: includes/privacy/class-elab-privacy.php:95
-#: includes/privacy/class-elab-privacy.php:127
-msgid "Call bookings"
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:107
-msgid "Call time (UTC)"
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:119
-msgid "Privacy consent (UTC)"
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:149
-#, php-format
-msgid "An upcoming call on %s was kept. Cancel it under Advisors → Booking requests, then erase again."
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:161
-msgid "When you book a call we store your name, email address, time zone, chosen meeting language, the call time and advisor, and anything you add: sector, message and documents. Documents are kept in private storage that only site administrators can download."
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:162
-msgid "The advisor receives your name, email and call time. When the advisor uses Google Calendar, a private event with your email as the attendee is created in their calendar and Google sends you the invitation."
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:163
-msgid "Booking records and their documents are deleted automatically after the retention period set by the site, and you can ask us to export or erase them at any time."
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:176
-msgid "Privacy settings saved."
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:179
-msgid "Privacy and retention"
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:184
-msgid "Delete bookings after"
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:184
-msgid "months after the call"
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:184
-msgid "Booking records and their documents are permanently deleted once a day after this period. 0 keeps them until you delete them by hand."
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:185
-#, php-format
-msgid "Last clean-up: %1$s, %2$d record deleted."
-msgid_plural "Last clean-up: %1$s, %2$d records deleted."
-msgstr[0] ""
-msgstr[1] ""
-
-#: includes/privacy/class-elab-privacy.php:187
-#, php-format
-msgid "Visitors’ requests to export or erase their data are handled with the WordPress tools under <a href=\"%1$s\">Tools → Export Personal Data</a> and <a href=\"%2$s\">Erase Personal Data</a>. Suggested wording for your privacy policy is available in <a href=\"%3$s\">Settings → Privacy</a>."
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:188
-msgid "Save privacy settings"
-msgstr ""
-
-#: includes/privacy/class-elab-privacy.php:196
-msgid "You cannot change privacy settings."
-msgstr ""
-
 #: includes/security/class-elab-security.php:63
 msgid "Please complete the security check and try again."
 msgstr "Completa la verificación de seguridad e inténtalo de nuevo."
@@ -2299,379 +2188,6 @@ msgstr "Completa la verificación de seguridad e inténtalo de nuevo."
 msgid "The security check is not available right now. Please try again later."
 msgstr "La verificación de seguridad no está disponible ahora. Inténtalo más tarde."
 
-#: includes/security/class-elab-security.php:175
-msgid "Security settings saved."
-msgstr ""
-
-#: includes/security/class-elab-security.php:177
-msgid "The Turnstile secret could not be encrypted on this server. No changes were saved."
-msgstr ""
-
-#: includes/security/class-elab-security.php:184
-msgid "Bot protection (Cloudflare Turnstile)"
-msgstr ""
-
-#: includes/security/class-elab-security.php:185
-#, php-format
-msgid "Every booking sends a calendar invitation from the advisor’s account, so bots must be stopped. Create a free widget in <a href=\"%s\" target=\"_blank\" rel=\"noopener noreferrer\">Cloudflare → Turnstile</a> for this domain (mode: Managed) and paste its keys. Leave both empty to turn the check off."
-msgstr ""
-
-#: includes/security/class-elab-security.php:187
-msgid "Site key"
-msgstr ""
-
-#: includes/security/class-elab-security.php:188
-msgid "Secret key"
-msgstr ""
-
-#: includes/security/class-elab-security.php:188
-msgid "Paste the secret key"
-msgstr ""
-
-#: includes/security/class-elab-security.php:189
-msgid "Remove saved keys"
-msgstr ""
-
-#: includes/security/class-elab-security.php:190
-msgid "Turnstile is on: bookings need a passed check."
-msgstr ""
-
-#: includes/security/class-elab-security.php:190
-msgid "Turnstile is off."
-msgstr ""
-
-#: includes/security/class-elab-security.php:192
-msgid "Visitor IP behind a proxy"
-msgstr ""
-
-#: includes/security/class-elab-security.php:193
-msgid "Booking limits count requests per visitor address. Behind a CDN or load balancer every request seems to come from the proxy, so tell the plugin which proxy to trust."
-msgstr ""
-
-#: includes/security/class-elab-security.php:195
-msgid "Requests arrive"
-msgstr ""
-
-#: includes/security/class-elab-security.php:196
-msgid "Directly (no proxy)"
-msgstr ""
-
-#: includes/security/class-elab-security.php:197
-msgid "Through Cloudflare (uses CF-Connecting-IP from Cloudflare addresses only)"
-msgstr ""
-
-#: includes/security/class-elab-security.php:198
-msgid "Through my own proxy or load balancer"
-msgstr ""
-
-#: includes/security/class-elab-security.php:200
-msgid "Trusted proxy addresses"
-msgstr ""
-
-#: includes/security/class-elab-security.php:200
-msgid "Only for “my own proxy”. One IP or CIDR range per line."
-msgstr ""
-
-#: includes/security/class-elab-security.php:201
-msgid "Forwarded header"
-msgstr ""
-
-#: includes/security/class-elab-security.php:201
-msgid "Only for “my own proxy”: the header your proxy sets with the visitor’s address."
-msgstr ""
-
-#: includes/security/class-elab-security.php:202
-msgid "Your address as seen now"
-msgstr ""
-
-#: includes/security/class-elab-security.php:202
-#, php-format
-msgid "(connection from %s)"
-msgstr ""
-
-#: includes/security/class-elab-security.php:204
-msgid "Save security settings"
-msgstr ""
-
-#: includes/security/class-elab-security.php:212
-msgid "You cannot change security settings."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:27
-#: includes/system/class-elab-system-status.php:151
-msgid "System status"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:55
-msgid "HTTPS"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:55
-msgid "Site and admin use HTTPS."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:55
-msgid "Google sign-in and visitor data need HTTPS on the whole site."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:58
-msgid "Booking page"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:58
-#, php-format
-msgid "The calendar is published on “%s”."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:58
-msgid "No published page contains the [elaltillo_bookacall] shortcode yet."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:58
-msgid "View page"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:71
-#: includes/system/class-elab-system-status.php:73
-msgid "Visitor IP for rate limits"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:71
-msgid "This request came through a proxy or CDN, but the plugin is set to “directly”. All visitors may share one booking limit. Choose your proxy under Settings → Security."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:71
-msgid "Requests reach WordPress directly; limits use each visitor’s address."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:73
-#, php-format
-msgid "Trusting %1$s. Your address is detected as %2$s."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:73
-msgid "your proxy list"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:75
-msgid "Bot protection"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:75
-msgid "Cloudflare Turnstile checks every booking."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:75
-msgid "Turnstile is off: bots can create bookings and make Google send invitations from advisor accounts."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:78
-msgid "Scheduled tasks"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:78
-msgid "WP-Cron is disabled. Make sure a server cron job calls wp-cron.php, or retention clean-up will not run."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:78
-#, php-format
-msgid "Next retention clean-up: %s."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:78
-msgid "Retention clean-up will be scheduled on the next page load."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:83
-msgid "Mail delivery service"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:83
-msgid "A plugin customises how WordPress sends email."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:83
-msgid "WordPress uses the server’s default mail function, which often lands in spam. Use a transactional mail service before launch."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:85
-#, php-format
-msgid "Test sent to %1$s on %2$s. Check that it arrived in the inbox, not spam."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:85
-#, php-format
-msgid "The test to %1$s on %2$s could not be handed to the mailer."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:88
-msgid "No test email has been sent from this page yet."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:91
-msgid "Test email"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:91
-msgid "Send test email to me"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:93
-msgid "Booking emails"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:93
-#, php-format
-msgid "%d booking has an email that could not be sent."
-msgid_plural "%d or more bookings have emails that could not be sent."
-msgstr[0] ""
-msgstr[1] ""
-
-#: includes/system/class-elab-system-status.php:93
-msgid "No failed booking emails recorded."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:93
-#: includes/system/class-elab-system-status.php:104
-msgid "Open booking"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:97
-msgid "OAuth credentials"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:97
-msgid "Client ID and encrypted Client Secret are saved."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:97
-msgid "Not configured: bookings stay as requests that you confirm by hand."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:100
-msgid "Redirect URI"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:100
-#, php-format
-msgid "%s is a local address; Google only accepts it for testing. Connect advisors on the production site."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:102
-msgid "Live connection test"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:102
-#, php-format
-msgid "%1$d of %2$d connected calendars answered on %3$s."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:102
-msgid "Checks that each advisor’s “El Altillo · Citas” calendar answers, and retries calls waiting for Google."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:102
-msgid "Test Google now"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:104
-#, php-format
-msgid "%d call is saved but its calendar event is not in Google yet. It is retried every hour and when the advisor reconnects."
-msgid_plural "%d calls are saved but their calendar events are not in Google yet. They are retried every hour and when the advisor reconnects."
-msgstr[0] ""
-msgstr[1] ""
-
-#: includes/system/class-elab-system-status.php:104
-msgid "Every booked call is in Google Calendar."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:113
-#, php-format
-msgid "Google test failed: %s"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:117
-msgid "Edit"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:120
-msgid "No advisor is bookable, so visitors see no times."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:125
-msgid "Private document storage"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:125
-msgid "Uploads are stored outside the public web folder."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:125
-msgid "No writable folder outside the web root. Visitors cannot attach files until ELAB_PRIVATE_UPLOAD_DIR is set."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:127
-msgid "Retention"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:127
-#, php-format
-msgid "Bookings are deleted %d month after the call."
-msgid_plural "Bookings are deleted %d months after the call."
-msgstr[0] ""
-msgstr[1] ""
-
-#: includes/system/class-elab-system-status.php:127
-msgid "Bookings are kept forever. Set a retention period to comply with data minimisation."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:130
-msgid "Privacy policy page"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:130
-#, php-format
-msgid "“%s” is published. Add the booking section from Settings → Privacy → Policy guide."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:130
-msgid "No published privacy policy page is set."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:130
-msgid "Privacy settings"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:139
-msgid "Site"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:143
-msgid "Privacy and documents"
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:153
-msgid "Test email handed to the mailer. Check your inbox."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:153
-msgid "WordPress could not send the test email."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:156
-msgid "Everything is ready for real bookings."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:156
-#, php-format
-msgid "%1$d to fix, %2$d to review before launch."
-msgstr ""
-
-#: includes/system/class-elab-system-status.php:177
-#: includes/system/class-elab-system-status.php:189
-msgid "You cannot run this test."
-msgstr ""
-
 #: includes/system/class-elab-system-status.php:181
 msgid "Book a Call: test email"
 msgstr "Book a Call: correo de prueba"
@@ -2679,10 +2195,6 @@ msgstr "Book a Call: correo de prueba"
 #: includes/system/class-elab-system-status.php:181
 msgid "This is a test from El Altillo Book a Call. If it reached your inbox, advisors and visitors will receive booking emails too."
 msgstr "Esta es una prueba de El Altillo Book a Call. Si llegó a tu bandeja de entrada, los asesores y visitantes también recibirán los correos de las reservas."
-
-#: includes/system/class-elab-system-status.php:197
-msgid "Needs to reconnect Google Calendar."
-msgstr ""
 
 #. translators: shortest and longest call length, for "first available" when advisors differ.
 #, php-format
@@ -3037,6 +2549,7 @@ msgstr "%s ya está adjunto."
 #, php-format
 msgid "You can attach up to %2$d files; %1$s was not added."
 msgstr "Puedes adjuntar hasta %2$d archivos; %1$s no se añadió."
+
 #, php-format
 msgid "Remove the file %s"
 msgstr "Quitar el archivo %s"
