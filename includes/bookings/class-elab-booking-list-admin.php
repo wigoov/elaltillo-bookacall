@@ -122,6 +122,11 @@ final class ELAB_Booking_List_Admin {
 		return $actions;
 	}
 
+	/** Upcoming calls by default; in the Trash every date, so nothing there is hidden. */
+	private static function default_when() {
+		return isset( $_GET['post_status'] ) && 'trash' === sanitize_key( wp_unslash( $_GET['post_status'] ) ) ? 'all' : 'upcoming'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only list filter.
+	}
+
 	private static function current_filter( $key, $allowed, $default = '' ) {
 		$value = isset( $_GET[ $key ] ) ? sanitize_key( wp_unslash( $_GET[ $key ] ) ) : $default; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only list filter.
 		return in_array( $value, $allowed, true ) ? $value : $default;
@@ -131,7 +136,7 @@ final class ELAB_Booking_List_Admin {
 		if ( ELAB_Post_Types::BOOKING !== $post_type || 'top' !== $which ) {
 			return;
 		}
-		$when = self::current_filter( 'elab_when', self::WHEN, 'upcoming' );
+		$when = self::current_filter( 'elab_when', self::WHEN, self::default_when() );
 		$status = self::current_filter( 'elab_status', array_keys( self::statuses() ) );
 		$advisor = isset( $_GET['elab_advisor'] ) ? absint( $_GET['elab_advisor'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only list filter.
 		$advisors = get_posts( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_status' => 'any', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) );
@@ -155,7 +160,7 @@ final class ELAB_Booking_List_Admin {
 		if ( ! is_admin() || ! $query->is_main_query() || ELAB_Post_Types::BOOKING !== $query->get( 'post_type' ) ) {
 			return;
 		}
-		$when = self::current_filter( 'elab_when', self::WHEN, 'upcoming' );
+		$when = self::current_filter( 'elab_when', self::WHEN, self::default_when() );
 		$status = self::current_filter( 'elab_status', array_keys( self::statuses() ) );
 		$advisor = isset( $_GET['elab_advisor'] ) ? absint( $_GET['elab_advisor'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only list filter.
 		$meta = array( 'elab_start' => array( 'key' => '_elab_start_utc', 'type' => 'DATETIME' ) );

@@ -185,4 +185,16 @@ return array(
 		$notes = get_transient( 'elab_advisor_saved_' . get_current_user_id() . '_' . $advisor );
 		T::check( is_array( $notes ) && (bool) preg_grep( '/meeting language/', $notes ), 'The admin is told why' );
 	},
+
+	'The Trash shows every date by default, so no trashed booking is hidden' => function () {
+		$advisor = T::advisor();
+		$past = T::booking( $advisor, array( '_elab_start_utc' => gmdate( 'Y-m-d H:i:s', strtotime( '-3 days' ) ) ) );
+		wp_trash_post( $past );
+		$_GET['post_status'] = 'trash';
+		$html = T::render( static function () { ( new ELAB_Booking_List_Admin() )->filters( ELAB_Post_Types::BOOKING ); } );
+		T::check( (bool) preg_match( '/value="all"\s+selected/', $html ), 'All dates selected in the Trash' );
+		unset( $_GET['post_status'] );
+		$html = T::render( static function () { ( new ELAB_Booking_List_Admin() )->filters( ELAB_Post_Types::BOOKING ); } );
+		T::check( (bool) preg_match( '/value="upcoming"\s+selected/', $html ), 'Upcoming stays the default elsewhere' );
+	},
 );
