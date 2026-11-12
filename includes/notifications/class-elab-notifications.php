@@ -277,8 +277,9 @@ final class ELAB_Notifications {
 				? __( 'Google did not answer, so the event will be removed from your calendar automatically as soon as it does.', 'elaltillo-bookacall' )
 				: __( 'Your Google Calendar is not connected, so the event stays in your calendar until you reconnect; the site then removes it automatically.', 'elaltillo-bookacall' );
 		}
+		$portal = array( __( 'View the booking', 'elaltillo-bookacall' ), ELAB_Advisor_Portal::url( $booking_id ) );
 		if ( ! $button ) {
-			$button = array( __( 'View the booking', 'elaltillo-bookacall' ), ELAB_Advisor_Portal::url( $booking_id ) );
+			$button = $portal;
 		}
 		$body[] = sprintf( __( 'The sector, message and attachments are in the booking. Open it with your Google account (%s); no website account is needed, and only you can see your bookings.', 'elaltillo-bookacall' ), self::advisor_email( $advisor_id ) );
 		$subject = $broken ? __( 'Action needed: new call waiting for Google Calendar', 'elaltillo-bookacall' ) : $title;
@@ -294,6 +295,8 @@ final class ELAB_Notifications {
 				__( 'Visitor email', 'elaltillo-bookacall' ) => (string) get_post_meta( $booking_id, '_elab_contact_email', true ),
 				__( 'Guests', 'elaltillo-bookacall' )        => implode( ', ', ELAB_Booking_Sync::guests( $booking_id ) ),
 				__( 'Video call', 'elaltillo-bookacall' )    => 'cancelled' === $status ? '' : (string) get_post_meta( $booking_id, '_elab_meet_url', true ),
+				// Always here too, even when the button is needed for something else (reconnect).
+				__( 'Booking details', 'elaltillo-bookacall' ) => $portal,
 			),
 			'button'    => $button,
 			'body'      => $body,

@@ -250,12 +250,10 @@ final class ELAB_Google_Calendar {
 		if ( is_wp_error( $tokens ) ) {
 			return $tokens;
 		}
-		$identity = self::account_identity( $tokens['access_token'] ?? '' );
-		// Sign-in only: the short access token is withdrawn at once, so nothing stays usable.
-		if ( ! empty( $tokens['access_token'] ) ) {
-			wp_remote_post( self::REVOKE_URL, array( 'timeout' => 5, 'blocking' => false, 'body' => array( 'token' => $tokens['access_token'] ) ) );
-		}
-		return $identity;
+		// Never revoke this token: Google revokes the whole grant of this app for the account,
+		// which would also cut the advisor's calendar connection. It expires by itself within
+		// the hour and is not stored.
+		return self::account_identity( $tokens['access_token'] ?? '' );
 	}
 
 	/** PKCE (RFC 7636): the authorization code is useless without this request's secret verifier. */

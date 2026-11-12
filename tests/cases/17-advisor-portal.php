@@ -70,7 +70,7 @@ return array(
 		$stored = get_transient( 'elab_portal_' . hash( 'sha256', ELAB_Advisor_Portal::$last_token ) );
 		T::same( $advisor, $stored['advisor'], 'For that advisor (email compared without case)' );
 		T::check( (bool) get_post_meta( $advisor, ELAB_Advisor_Portal::META_LOG, true ), 'Sign-in recorded' );
-		T::check( (bool) T::requests( '#oauth2.googleapis.com/revoke#' ), 'The sign-in token is withdrawn at Google' );
+		T::same( array(), T::requests( '#oauth2.googleapis.com/revoke#' ), 'Nothing is revoked: that would cut the advisor’s calendar connection' );
 
 		ELAB_Advisor_Portal::$last_token = '';
 		T::$identity = array( 'sub' => 'other', 'email' => 'stranger@example.test', 'email_verified' => true );
@@ -138,6 +138,13 @@ return array(
 		$mail = T::mails_to( 'mine@example.test' )[0];
 		T::contains( esc_url( ELAB_Advisor_Portal::url( $booking ) ), $mail['message'], 'Button to the booking' );
 		T::contains( 'mine@example.test', $mail['message'], 'Says which Google account to use' );
+		T::$mail = array();
+		update_post_meta( $advisor, ELAB_Google_Calendar::META_REVOKED, time() );
+		update_post_meta( $booking, ELAB_Booking_Sync::META, ELAB_Booking_Sync::CREATE );
+		ELAB_Notifications::booking_notice( $booking, 'confirmed' );
+		$mail = T::mails_to( 'mine@example.test' )[0];
+		T::contains( 'Reconnect', $mail['message'], 'Broken connection: the button reconnects' );
+		T::contains( esc_url( ELAB_Advisor_Portal::url( $booking ) ), $mail['message'], 'And the booking link is still there' );
 		T::check( false === strpos( $mail['message'], 'Private message' ), 'The message itself stays out of the email' );
 	},
 

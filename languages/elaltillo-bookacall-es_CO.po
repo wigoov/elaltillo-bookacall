@@ -2742,3 +2742,6 @@ msgstr "Hora del visitante"
 
 msgid "never"
 msgstr "nunca"
+
+msgid "Booking details"
+msgstr "Detalles de la reserva"
