@@ -219,6 +219,8 @@ function createCalendar(root, config) {
 		.replace(/[\s\u00a0\u202f]+$/, '')
 		.replace(/[\u00a0\u202f]/g, ' ');
 	const hourOf = (iso) => parseInt(new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: state.timezone }).format(new Date(iso)), 10);
+	/** YYYY-MM-DD of a time in the visitor's time zone. */
+	const dayOf = (iso) => new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: state.timezone }).format(new Date(iso));
 	const periodOf = (iso) => { const hour = hourOf(iso); return hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'; };
 	const tzName = () => state.timezone.replace(/_/g, ' ');
 	const announce = (text) => { ui.live.textContent = text; };
@@ -435,7 +437,10 @@ function createCalendar(root, config) {
 	async function loadSlots(focusTimes) {
 		const request = ++state.slotRequest;
 		ui.times.setAttribute('aria-busy', 'true');
-		// Keep the previous times on screen, dimmed, until the new ones arrive.
+		// The previous day's times stay on screen, dimmed, until the new ones arrive, but they
+		// can no longer be picked: a stale time would book another day than the one shown.
+		state.slots = [];
+		ui.times.inert = true;
 		if (ui.times.querySelector('button[data-value]')) ui.times.classList.add('opacity-40');
 		else fillTimes(skeleton(), request);
 		announce(t('loadingTimes'));
@@ -445,6 +450,7 @@ function createCalendar(root, config) {
 			if (request !== state.slotRequest) return;
 			state.slots = (Array.isArray(slots) ? slots : []).map((slot) => ({ ...slot, period: periodOf(slot.value) }));
 			ui.times.setAttribute('aria-busy', 'false');
+			ui.times.inert = false;
 			if (!state.slots.length) {
 				showNote(t('noTimes'));
 				announce(t('noTimes'));
@@ -460,6 +466,7 @@ function createCalendar(root, config) {
 		} catch (error) {
 			if (request !== state.slotRequest) return;
 			ui.times.setAttribute('aria-busy', 'false');
+			ui.times.inert = false;
 			showNote(error.message || t('loadError'), () => loadSlots(true));
 		}
 	}
@@ -579,7 +586,8 @@ function createCalendar(root, config) {
 
 	function selectSlot(value) {
 		state.notice = '';
-		state.slot = state.slots.find((slot) => slot.value === value) || null;
+		// Only a time of the day on screen: what is shown is always what is booked.
+		state.slot = state.slots.find((slot) => slot.value === value && dayOf(slot.value) === state.date) || null;
 		state.advisor = '';
 		paintSlots();
 		updateChoice();
