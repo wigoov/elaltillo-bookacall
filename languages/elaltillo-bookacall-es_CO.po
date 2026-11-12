@@ -2612,3 +2612,45 @@ msgstr "El calendario «%1$s» de %2$s se borró en Google, así que el sitio lo
 
 msgid "The bookings calendar was created again recently; check the connection before trying again."
 msgstr "El calendario de citas se creó de nuevo hace poco; revisa la conexión antes de volver a intentarlo."
+
+msgid "and %d more call"
+msgid_plural "and %d more calls"
+msgstr[0] "y %d llamada más"
+msgstr[1] "y %d llamadas más"
+
+msgid "Its upcoming calls are being put back, nearest first, at the same time and with the same video call links: %1$d already, %2$d more in the next hours."
+msgid_plural "Its upcoming calls are being put back, nearest first, at the same time and with the same video call links: %1$d already, %2$d more in the next hours."
+msgstr[0] "Sus próximas llamadas se están volviendo a poner, empezando por las más cercanas, a la misma hora y con los mismos enlaces de videollamada: %1$d ya están y %2$d más llegarán en las próximas horas."
+msgstr[1] "Sus próximas llamadas se están volviendo a poner, empezando por las más cercanas, a la misma hora y con los mismos enlaces de videollamada: %1$d ya están y %2$d más llegarán en las próximas horas."
+
+msgid "Past calls are not added again: they stay in WordPress only."
+msgstr "Las llamadas pasadas no se vuelven a añadir: quedan solo en WordPress."
+
+msgid "Google kept refusing %1$d call, so it is not in the calendar: %2$s. It is still booked in WordPress."
+msgid_plural "Google kept refusing %1$d calls, so they are not in the calendar: %2$s. They are still booked in WordPress."
+msgstr[0] "Google siguió rechazando %1$d llamada, así que no está en el calendario: %2$s. Sigue reservada en WordPress."
+msgstr[1] "Google siguió rechazando %1$d llamadas, así que no están en el calendario: %2$s. Siguen reservadas en WordPress."
+
+msgid "Your calls are back in “%s”"
+msgstr "Tus llamadas ya están de nuevo en «%s»"
+
+msgid "Every upcoming call is back in the calendar."
+msgstr "Todas las próximas llamadas están de nuevo en el calendario."
+
+msgid "%s: calls back in the bookings calendar"
+msgstr "%s: llamadas de nuevo en el calendario de citas"
+
+msgid "Every upcoming call of %s is back in the bookings calendar."
+msgstr "Todas las próximas llamadas de %s están de nuevo en el calendario de citas."
+
+msgid "Taken from the advisor’s Google Calendar settings and kept up to date: when they change it in Google, their hours here follow within an hour."
+msgstr "Tomada de la configuración de Google Calendar del asesor y siempre al día: si la cambia en Google, sus horarios aquí se ajustan en menos de una hora."
+
+msgid "Reconnect Google Calendar once to take it from Google automatically."
+msgstr "Vuelve a conectar Google Calendar una vez para tomarla de Google automáticamente."
+
+msgid "Google confirms this site can only reach its own “El Altillo · Citas” calendar and read the calendar settings (time zone)."
+msgstr "Google confirma que este sitio solo puede usar su propio calendario «El Altillo · Citas» y leer la configuración del calendario (zona horaria)."
+
+msgid "The first only reaches calendars created by this site; the second only reads settings such as the time zone, never events. No Gmail access is requested."
+msgstr "El primero solo llega a los calendarios creados por este sitio; el segundo solo lee configuraciones como la zona horaria, nunca eventos. No se pide acceso a Gmail."

@@ -253,7 +253,11 @@ final class ELAB_Advisor_Admin {
 			<?php endforeach; ?>
 			</select><p class="description"><?php esc_html_e( 'Only Subscriber accounts that are not linked to another advisor can be chosen. This account connects its own Google Calendar from its profile and cannot edit this advisor profile.', 'elaltillo-bookacall' ); ?></p></td></tr>
 		<?php endif; ?>
-		<tr><th scope="row"><label for="elab-timezone"><?php esc_html_e( 'Advisor time zone', 'elaltillo-bookacall' ); ?></label></th><td><label class="screen-reader-text" for="elab-timezone-search"><?php esc_html_e( 'Search time zones', 'elaltillo-bookacall' ); ?></label><input type="search" id="elab-timezone-search" class="regular-text" placeholder="<?php esc_attr_e( 'Search by city or region', 'elaltillo-bookacall' ); ?>" autocomplete="off"><br><select id="elab-timezone" name="elab_timezone" class="regular-text" required><?php echo wp_timezone_choice( $timezone ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core returns escaped options. ?></select><p class="description"><?php esc_html_e( 'Choose the city where the advisor works. Seasonal time changes are automatic.', 'elaltillo-bookacall' ); ?></p></td></tr>
+		<?php if ( ELAB_Google_Calendar::timezone_from_google( $post->ID ) ) : ?>
+		<tr><th scope="row"><?php esc_html_e( 'Advisor time zone', 'elaltillo-bookacall' ); ?></th><td><strong><?php echo esc_html( $timezone ); ?></strong><p class="description"><?php esc_html_e( 'Taken from the advisor’s Google Calendar settings and kept up to date: when they change it in Google, their hours here follow within an hour.', 'elaltillo-bookacall' ); ?></p></td></tr>
+		<?php else : ?>
+		<tr><th scope="row"><label for="elab-timezone"><?php esc_html_e( 'Advisor time zone', 'elaltillo-bookacall' ); ?></label></th><td><label class="screen-reader-text" for="elab-timezone-search"><?php esc_html_e( 'Search time zones', 'elaltillo-bookacall' ); ?></label><input type="search" id="elab-timezone-search" class="regular-text" placeholder="<?php esc_attr_e( 'Search by city or region', 'elaltillo-bookacall' ); ?>" autocomplete="off"><br><select id="elab-timezone" name="elab_timezone" class="regular-text" required><?php echo wp_timezone_choice( $timezone ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core returns escaped options. ?></select><p class="description"><?php esc_html_e( 'Choose the city where the advisor works. Seasonal time changes are automatic.', 'elaltillo-bookacall' ); ?> <?php if ( ELAB_Google_Calendar::connected( $post->ID ) && ! ELAB_Google_Calendar::reads_settings( $post->ID ) ) { esc_html_e( 'Reconnect Google Calendar once to take it from Google automatically.', 'elaltillo-bookacall' ); } ?></p></td></tr>
+		<?php endif; ?>
 		<tr><th scope="row"><?php esc_html_e( 'Meeting languages', 'elaltillo-bookacall' ); ?></th><td><fieldset class="elab-language-choice"><legend class="screen-reader-text"><?php esc_html_e( 'Meeting languages', 'elaltillo-bookacall' ); ?></legend><?php $elab_spoken = ELAB_Availability::languages( $post->ID ); foreach ( ELAB_Booking_Service::languages() as $elab_code => $elab_name ) : ?><label><input type="checkbox" name="elab_languages[]" value="<?php echo esc_attr( $elab_code ); ?>" <?php checked( in_array( $elab_code, $elab_spoken, true ) ); ?>> <?php echo esc_html( $elab_name ); ?></label><?php endforeach; ?></fieldset><p class="description"><?php esc_html_e( 'Visitors choose the meeting language first and only see the times of advisors who speak it. Choose at least one.', 'elaltillo-bookacall' ); ?></p></td></tr>
 		<tr><th scope="row"><label for="elab-duration"><?php esc_html_e( 'Call duration', 'elaltillo-bookacall' ); ?></label></th><td><input type="number" min="15" max="180" step="5" id="elab-duration" name="elab_duration" value="<?php echo esc_attr( $own['duration'] ); ?>" placeholder="<?php echo esc_attr( $defaults['duration'] ); ?>" class="small-text"> <?php esc_html_e( 'minutes', 'elaltillo-bookacall' ); ?><p class="description"><?php echo esc_html( sprintf( __( 'Leave empty to use the site default (%d). Times start every call length inside each range; existing bookings keep their length.', 'elaltillo-bookacall' ), $defaults['duration'] ) ); ?></p></td></tr>
 		</tbody></table>
@@ -292,7 +296,7 @@ final class ELAB_Advisor_Admin {
 		$disconnect = wp_nonce_url( add_query_arg( array( 'action' => 'elab_google_disconnect', 'advisor' => $post->ID ), admin_url( 'admin-post.php' ) ), 'elab_google_disconnect_' . $post->ID );
 		$google_text = array(
 			'setup'        => __( 'Google Calendar is not set up for this site yet.', 'elaltillo-bookacall' ),
-			'connected'    => sprintf( __( 'Connected as %s.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::account_email( $post->ID ) ) . ' ' . ( ELAB_Google_Calendar::extra_scopes( $post->ID ) ? sprintf( __( 'Google reports more access than this site needs (%s): disconnect and connect again.', 'elaltillo-bookacall' ), implode( ', ', ELAB_Google_Calendar::extra_scopes( $post->ID ) ) ) : ( ELAB_Google_Calendar::scopes_verified( $post->ID ) ? __( 'Google confirms this site can only reach its own “El Altillo · Citas” calendar.', 'elaltillo-bookacall' ) : '' ) ),
+			'connected'    => sprintf( __( 'Connected as %s.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::account_email( $post->ID ) ) . ' ' . ( ELAB_Google_Calendar::extra_scopes( $post->ID ) ? sprintf( __( 'Google reports more access than this site needs (%s): disconnect and connect again.', 'elaltillo-bookacall' ), implode( ', ', ELAB_Google_Calendar::extra_scopes( $post->ID ) ) ) : ( ELAB_Google_Calendar::scopes_verified( $post->ID ) ? __( 'Google confirms this site can only reach its own “El Altillo · Citas” calendar and read the calendar settings (time zone).', 'elaltillo-bookacall' ) : '' ) ),
 			'revoked'      => __( 'Google access was removed or expired, so this advisor is hidden from the booking calendar until they reconnect. Calls already booked are kept. The advisor was emailed a link to reconnect.', 'elaltillo-bookacall' ),
 			'upgrade'      => sprintf( __( 'Connected with the old, broader permission. Reconnect once so the site creates its own “%s” calendar and only uses that one.', 'elaltillo-bookacall' ), ELAB_Google_Calendar::CALENDAR_NAME ),
 			'mismatch'     => __( 'The saved connection no longer matches this advisor’s email or the site’s OAuth client, so the advisor is hidden from the booking calendar. Connect the correct account.', 'elaltillo-bookacall' ),
@@ -374,14 +378,17 @@ final class ELAB_Advisor_Admin {
 			}
 		}
 
-		$timezone = isset( $_POST['elab_timezone'] ) ? sanitize_text_field( wp_unslash( $_POST['elab_timezone'] ) ) : 'UTC';
-		try {
-			new DateTimeZone( $timezone );
-		} catch ( Exception $exception ) {
-			$notes[] = sprintf( __( 'The time zone “%s” is not recognised; UTC was used.', 'elaltillo-bookacall' ), $timezone );
-			$timezone = 'UTC';
+		// A time zone that follows Google is not taken from the form.
+		if ( ! ELAB_Google_Calendar::timezone_from_google( $post_id ) ) {
+			$timezone = isset( $_POST['elab_timezone'] ) ? sanitize_text_field( wp_unslash( $_POST['elab_timezone'] ) ) : 'UTC';
+			try {
+				new DateTimeZone( $timezone );
+			} catch ( Exception $exception ) {
+				$notes[] = sprintf( __( 'The time zone “%s” is not recognised; UTC was used.', 'elaltillo-bookacall' ), $timezone );
+				$timezone = 'UTC';
+			}
+			update_post_meta( $post_id, '_elab_timezone', $timezone );
 		}
-		update_post_meta( $post_id, '_elab_timezone', $timezone );
 
 		$all_languages = array_keys( ELAB_Booking_Service::languages() );
 		$languages = isset( $_POST['elab_languages'] ) && is_array( $_POST['elab_languages'] ) ? array_values( array_intersect( $all_languages, array_map( 'sanitize_key', wp_unslash( $_POST['elab_languages'] ) ) ) ) : array();

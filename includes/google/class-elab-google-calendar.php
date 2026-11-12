@@ -2,10 +2,11 @@
 /**
  * Per-advisor Google connection, used only to place bookings in Google Calendar.
  *
- * Least privilege: the only Calendar permission requested is calendar.app.created, so Google
+ * Least privilege: the Calendar permissions requested are calendar.app.created, so Google
  * itself limits this site to the calendar it creates in the advisor's account
- * ("El Altillo · Citas"). The site cannot read, list or change any other calendar or event,
- * and it never asks for free/busy. Availability comes entirely from WordPress.
+ * ("El Altillo · Citas"), and calendar.settings.readonly, which only reads settings such as
+ * the time zone. The site cannot read, list or change any other calendar or event, and it
+ * never asks for free/busy. Availability comes entirely from WordPress.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -29,6 +30,14 @@ final class ELAB_Google_Calendar {
 	const META_CALENDAR_OWNER = '_elab_google_calendar_owner';
 	/** Advisor: calendars of this site that were deleted in Google; their calls get restored. */
 	const META_GONE_CALENDARS = '_elab_google_gone_calendars';
+	/** Advisor: progress of putting calls back in a new calendar (totals and a few for the email). */
+	const META_RESTORE = '_elab_google_restore';
+	/** Booking: failed attempts to put it back; after RESTORE_TRIES it is left to the administrator. */
+	const META_RESTORE_TRIES = '_elab_restore_tries';
+	const RESTORE_CRON = 'elab_google_restore';
+	const RESTORE_BATCH = 25;
+	const RESTORE_SECONDS = 20;
+	const RESTORE_TRIES = 5;
 	/** Advisor: the permissions Google says this site's access carries (space separated). */
 	const META_SCOPES = '_elab_google_scopes';
 	/** Advisor: the emailed connection link (encrypted token and expiry). */
@@ -36,6 +45,10 @@ final class ELAB_Google_Calendar {
 	const INVITE_DAYS = 14;
 	const TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo';
 	const SCOPE = 'https://www.googleapis.com/auth/calendar.app.created';
+	/** Read-only Calendar settings (time zone). No events, no calendars. Optional: the advisor may untick it. */
+	const SETTINGS_SCOPE = 'https://www.googleapis.com/auth/calendar.settings.readonly';
+	/** Advisor: 'google' when the time zone follows their Google Calendar setting. */
+	const META_TIMEZONE_SOURCE = '_elab_timezone_source';
 	const CALENDAR_NAME = 'El Altillo · Citas';
 	const REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
 	const OPTION_CLIENT_ID = 'elab_google_client_id';
@@ -189,7 +202,7 @@ final class ELAB_Google_Calendar {
 			'response_type' => 'code',
 			'access_type' => 'offline',
 			'prompt' => 'consent',
-			'scope' => 'openid email ' . self::SCOPE,
+			'scope' => 'openid email ' . self::SCOPE . ' ' . self::SETTINGS_SCOPE,
 			'state' => $state,
 			// Opens Google on the account this advisor must use, so the wrong one is rarely picked.
 			'login_hint' => ELAB_Notifications::advisor_email( $advisor_id ),
@@ -257,10 +270,13 @@ final class ELAB_Google_Calendar {
 		update_post_meta( $advisor_id, self::META_SCOPES, sanitize_text_field( implode( ' ', $granted_scopes ) ) );
 		delete_post_meta( (int) $data['advisor'], self::META_REVOKED );
 		set_transient( 'elab_google_access_' . $advisor_id, $tokens['access_token'], max( 60, min( 3300, (int) ( $tokens['expires_in'] ?? 3600 ) - 120 ) ) );
+		self::sync_timezone( $advisor_id, false ); // The schedule email right below already shows it.
 		ELAB_Notifications::schedule_summary( (int) $data['advisor'] );
 		// Same account and app, but its calendar was deleted in Google: the new one gets the calls back.
 		if ( $previous && $previous !== $calendar ) {
 			self::calendar_replaced( $advisor_id, $previous );
+		} elseif ( get_post_meta( $advisor_id, self::META_GONE_CALENDARS, true ) ) {
+			self::schedule_restore(); // Calls still waiting from before the connection broke.
 		}
 		// Calls saved while the connection was broken go to Google now.
 		ELAB_Booking_Sync::run( $advisor_id );
@@ -391,12 +407,15 @@ final class ELAB_Google_Calendar {
 			if ( ! get_post_meta( $advisor_id, self::META_CALENDAR_OWNER, true ) ) {
 				update_post_meta( $advisor_id, self::META_CALENDAR_OWNER, self::owner_key( (string) get_post_meta( $advisor_id, self::META_ACCOUNT_SUB, true ) ) );
 			}
+			if ( ! get_transient( 'elab_timezone_synced_' . $advisor_id ) ) {
+				set_transient( 'elab_timezone_synced_' . $advisor_id, 1, HOUR_IN_SECONDS );
+				self::sync_timezone( $advisor_id );
+			}
 			$check = self::check( $advisor_id );
 			if ( is_wp_error( $check ) && in_array( (int) ( $check->get_error_data()['http'] ?? 0 ), array( 404, 410 ), true ) ) {
 				self::recover_calendar( $advisor_id );
-				continue;
 			}
-			// Calls a previous run could not put back yet.
+			// Calls still to be put back after a deleted calendar (one batch).
 			self::restore_events( $advisor_id );
 		}
 	}
@@ -536,8 +555,8 @@ final class ELAB_Google_Calendar {
 	}
 
 	/**
-	 * The advisor deleted the site's calendar in Google. Confirm it is really gone, create it
-	 * again, and put the upcoming calls back in it.
+	 * The advisor deleted the site's calendar in Google. Confirm it is really gone and create it
+	 * again. Its upcoming calls are put back in the background, never inside this request.
 	 *
 	 * @return string|WP_Error The new calendar ID.
 	 */
@@ -565,56 +584,129 @@ final class ELAB_Google_Calendar {
 		return $replacement;
 	}
 
-	/** Remember the deleted calendar, restore its upcoming calls and tell the advisor and the admin. */
+	/**
+	 * Remember the deleted calendar and start putting its upcoming calls back. Past calls stay
+	 * only in WordPress. With nothing to put back, the advisor and admin are told right away.
+	 */
 	private static function calendar_replaced( $advisor_id, $missing ) {
 		$gone = array_filter( (array) get_post_meta( $advisor_id, self::META_GONE_CALENDARS, true ) );
 		$gone[] = $missing;
 		update_post_meta( $advisor_id, self::META_GONE_CALENDARS, array_slice( array_values( array_unique( $gone ) ), -10 ) );
-		$result = self::restore_events( $advisor_id );
-		ELAB_Notifications::calendar_restored( $advisor_id, $result['restored'], $result['waiting'] );
+		$total = count( self::restore_queue( $advisor_id, -1 ) );
+		if ( ! $total ) {
+			delete_post_meta( $advisor_id, self::META_GONE_CALENDARS );
+			ELAB_Notifications::calendar_restored( $advisor_id, array(), 0 );
+			return;
+		}
+		update_post_meta( $advisor_id, self::META_RESTORE, array( 'total' => $total, 'restored' => 0, 'sample' => array(), 'told' => false ) );
+		self::schedule_restore();
+	}
+
+	/** Run the next batch soon, in the background (WordPress cron), not in a visitor's request. */
+	public static function schedule_restore( $delay = 0 ) {
+		if ( ! wp_next_scheduled( self::RESTORE_CRON ) ) {
+			wp_schedule_single_event( time() + $delay, self::RESTORE_CRON );
+		}
+	}
+
+	/** Cron: one batch for every advisor with calls to put back; more batches follow while any remain. */
+	public static function run_restores() {
+		$more = false;
+		foreach ( get_posts( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids', 'meta_key' => self::META_GONE_CALENDARS ) ) as $advisor_id ) {
+			$result = self::restore_events( (int) $advisor_id );
+			$more = $more || ( ! $result['done'] && self::connected( (int) $advisor_id ) );
+		}
+		if ( $more ) {
+			self::schedule_restore( 2 * MINUTE_IN_SECONDS );
+		}
 	}
 
 	/**
-	 * Put upcoming confirmed calls whose calendar was deleted into the advisor's current one,
-	 * same time, guests and video call. Calls that fail stay listed and are tried again by the
-	 * next sync. Calls of an older Google app's calendar are never touched: that calendar
-	 * still exists, only out of this site's reach.
+	 * Upcoming confirmed calls still in a deleted calendar, nearest first. Past and cancelled
+	 * calls are never included: they stay only in WordPress. Calls of an older Google app's
+	 * calendar are never included either: that calendar still exists, out of this site's reach.
 	 *
-	 * @return array{restored:int[],waiting:int}
+	 * @param int  $limit    -1 for all.
+	 * @param bool $given_up Only the calls that failed too often (for the final email).
+	 * @return int[]
 	 */
-	public static function restore_events( $advisor_id ) {
+	private static function restore_queue( $advisor_id, $limit, $given_up = false ) {
 		$gone = array_values( array_filter( (array) get_post_meta( $advisor_id, self::META_GONE_CALENDARS, true ) ) );
-		$result = array( 'restored' => array(), 'waiting' => 0 );
-		if ( ! $gone || ! self::connected( $advisor_id ) ) {
-			return $result;
+		if ( ! $gone ) {
+			return array();
 		}
-		$bookings = get_posts( array( 'post_type' => ELAB_Post_Types::BOOKING, 'post_status' => 'any', 'numberposts' => 200, 'fields' => 'ids', 'orderby' => 'meta_value', 'meta_key' => '_elab_start_utc', 'order' => 'ASC', 'meta_query' => array(
+		$tries = $given_up
+			? array( 'key' => self::META_RESTORE_TRIES, 'value' => self::RESTORE_TRIES, 'compare' => '>=', 'type' => 'NUMERIC' )
+			: array( 'relation' => 'OR', array( 'key' => self::META_RESTORE_TRIES, 'compare' => 'NOT EXISTS' ), array( 'key' => self::META_RESTORE_TRIES, 'value' => self::RESTORE_TRIES, 'compare' => '<', 'type' => 'NUMERIC' ) );
+		return array_map( 'intval', get_posts( array( 'post_type' => ELAB_Post_Types::BOOKING, 'post_status' => 'any', 'numberposts' => $limit, 'fields' => 'ids', 'orderby' => 'meta_value', 'meta_key' => '_elab_start_utc', 'order' => 'ASC', 'meta_query' => array(
 			array( 'key' => '_elab_advisor', 'value' => (int) $advisor_id ),
 			array( 'key' => '_elab_status', 'value' => 'confirmed' ),
 			array( 'key' => self::META_CALENDAR, 'value' => $gone, 'compare' => 'IN' ),
 			array( 'key' => '_elab_start_utc', 'value' => gmdate( 'Y-m-d H:i:s' ), 'compare' => '>', 'type' => 'DATETIME' ),
-		) ) );
-		foreach ( $bookings as $booking_id ) {
+			$tries,
+		) ) ) );
+	}
+
+	/**
+	 * One batch: at most RESTORE_BATCH calls and RESTORE_SECONDS seconds, nearest first, same
+	 * time, guests and Meet link. Stops early when Google asks to slow down. A call that keeps
+	 * failing is left after RESTORE_TRIES attempts and named in the final email.
+	 *
+	 * @return array{restored:int[],waiting:int,done:bool}
+	 */
+	public static function restore_events( $advisor_id ) {
+		$result = array( 'restored' => array(), 'waiting' => 0, 'done' => true );
+		if ( ! get_post_meta( $advisor_id, self::META_GONE_CALENDARS, true ) ) {
+			return $result;
+		}
+		if ( ! self::connected( $advisor_id ) ) {
+			$result['done'] = false;
+			return $result;
+		}
+		$began = microtime( true );
+		foreach ( self::restore_queue( $advisor_id, self::RESTORE_BATCH ) as $booking_id ) {
+			if ( microtime( true ) - $began > self::RESTORE_SECONDS ) {
+				break;
+			}
 			$lock = ELAB_Booking_Sync::lock( $booking_id );
 			if ( ! $lock ) {
-				$result['waiting']++;
 				continue;
 			}
 			try {
 				$start = date_create_immutable( get_post_meta( $booking_id, '_elab_start_utc', true ), new DateTimeZone( 'UTC' ) );
 				$event = $start ? self::create_event( $advisor_id, $booking_id, $start, ELAB_Booking_Admin::duration( $booking_id ), (string) get_post_meta( $booking_id, '_elab_contact_email', true ), true ) : new WP_Error( 'elab_bad_time', 'Unreadable time' );
-				if ( is_wp_error( $event ) ) {
-					$result['waiting']++;
-				} else {
-					$result['restored'][] = (int) $booking_id;
-				}
 			} finally {
 				delete_option( $lock );
 			}
+			if ( ! is_wp_error( $event ) ) {
+				$result['restored'][] = (int) $booking_id;
+				delete_post_meta( $booking_id, self::META_RESTORE_TRIES );
+				continue;
+			}
+			update_post_meta( $booking_id, self::META_RESTORE_TRIES, (int) get_post_meta( $booking_id, self::META_RESTORE_TRIES, true ) + 1 );
+			$data = (array) $event->get_error_data();
+			// Google is rationing invitations or requests: wait for the next batch.
+			if ( 429 === (int) ( $data['http'] ?? 0 ) || ( 403 === (int) ( $data['http'] ?? 0 ) && false !== stripos( (string) ( $data['reason'] ?? '' ), 'limit' ) ) ) {
+				break;
+			}
 		}
-		if ( ! $result['waiting'] ) {
+		$progress = (array) get_post_meta( $advisor_id, self::META_RESTORE, true ) + array( 'total' => 0, 'restored' => 0, 'sample' => array(), 'told' => false );
+		$progress['restored'] += count( $result['restored'] );
+		$progress['sample'] = array_slice( array_merge( (array) $progress['sample'], $result['restored'] ), 0, 20 );
+		$result['waiting'] = count( self::restore_queue( $advisor_id, -1 ) );
+		$result['done'] = 0 === $result['waiting'];
+		if ( $result['done'] ) {
+			$given_up = self::restore_queue( $advisor_id, -1, true );
 			delete_post_meta( $advisor_id, self::META_GONE_CALENDARS );
+			delete_post_meta( $advisor_id, self::META_RESTORE );
+			ELAB_Notifications::calendar_restored( $advisor_id, $progress['sample'], $progress['restored'], 0, $given_up, ! empty( $progress['told'] ) );
+			return $result;
 		}
+		if ( empty( $progress['told'] ) ) {
+			ELAB_Notifications::calendar_restored( $advisor_id, $progress['sample'], $progress['restored'], $result['waiting'] );
+			$progress['told'] = true;
+		}
+		update_post_meta( $advisor_id, self::META_RESTORE, $progress );
 		return $result;
 	}
 
@@ -629,6 +721,47 @@ final class ELAB_Google_Calendar {
 			'conferenceSolution' => array( 'key' => array( 'type' => 'hangoutsMeet' ) ),
 			'entryPoints'        => array( array( 'entryPointType' => 'video', 'uri' => $url, 'label' => 'meet.google.com/' . $match[1] ) ),
 		);
+	}
+
+	/** Whether the advisor allowed reading their Google Calendar settings (time zone). */
+	public static function reads_settings( $advisor_id ) {
+		return in_array( self::SETTINGS_SCOPE, preg_split( '/\s+/', (string) get_post_meta( $advisor_id, self::META_SCOPES, true ), -1, PREG_SPLIT_NO_EMPTY ), true );
+	}
+
+	/** The time zone follows the advisor's Google Calendar (so the WordPress field is read-only). */
+	public static function timezone_from_google( $advisor_id ) {
+		return 'google' === get_post_meta( $advisor_id, self::META_TIMEZONE_SOURCE, true ) && self::connected( $advisor_id ) && self::reads_settings( $advisor_id );
+	}
+
+	/**
+	 * Take the advisor's time zone from their Google Calendar settings. When it changed, the
+	 * site's calendar follows and (with $notify) the advisor gets their schedule again, in the
+	 * new time zone.
+	 *
+	 * @return string|false|WP_Error The new time zone, false when unchanged or not allowed.
+	 */
+	public static function sync_timezone( $advisor_id, $notify = true ) {
+		if ( ! self::reads_settings( $advisor_id ) || ! self::connected( $advisor_id ) ) {
+			return false;
+		}
+		$setting = self::request( $advisor_id, 'GET', '/users/me/settings/timezone' );
+		if ( is_wp_error( $setting ) ) {
+			return $setting;
+		}
+		$zone = (string) ( $setting['value'] ?? '' );
+		if ( ! in_array( $zone, timezone_identifiers_list(), true ) ) {
+			return false;
+		}
+		update_post_meta( $advisor_id, self::META_TIMEZONE_SOURCE, 'google' );
+		if ( $zone === (string) get_post_meta( $advisor_id, '_elab_timezone', true ) ) {
+			return false;
+		}
+		update_post_meta( $advisor_id, '_elab_timezone', $zone );
+		self::request( $advisor_id, 'PATCH', '/calendars/' . rawurlencode( self::calendar_id( $advisor_id ) ), array( 'timeZone' => $zone ) );
+		if ( $notify ) {
+			ELAB_Notifications::schedule_summary( $advisor_id );
+		}
+		return $zone;
 	}
 
 	/** Live check used by the admin tests: the site's own calendar still answers. */
@@ -651,7 +784,7 @@ final class ELAB_Google_Calendar {
 
 	/** Everything this site ever asks Google for. Anything else on a token is too much. */
 	public static function allowed_scopes() {
-		return array( 'openid', 'email', 'https://www.googleapis.com/auth/userinfo.email', self::SCOPE );
+		return array( 'openid', 'email', 'https://www.googleapis.com/auth/userinfo.email', self::SCOPE, self::SETTINGS_SCOPE );
 	}
 
 	/** Permissions Google reported for this advisor that go beyond what the site needs. */

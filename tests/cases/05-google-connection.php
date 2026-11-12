@@ -28,7 +28,7 @@ return array(
 		}
 		parse_str( (string) wp_parse_url( $location, PHP_URL_QUERY ), $query );
 		T::contains( 'accounts.google.com', $location, 'Goes to Google' );
-		T::same( 'openid email ' . ELAB_Google_Calendar::SCOPE, $query['scope'] ?? '', 'Exactly these scopes' );
+		T::same( 'openid email ' . ELAB_Google_Calendar::SCOPE . ' ' . ELAB_Google_Calendar::SETTINGS_SCOPE, $query['scope'] ?? '', 'Exactly these scopes: own calendar and read-only settings' );
 		T::same( 'S256', $query['code_challenge_method'] ?? '', 'PKCE S256' );
 		T::same( 'advisor@example.test', $query['login_hint'] ?? '', 'Opens on the advisor’s account' );
 		T::check( ! empty( $query['state'] ), 'Single-use state' );

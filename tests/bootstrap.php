@@ -35,6 +35,7 @@ final class ELAB_Test {
 	public static $event_get_extra = array();
 	/** HTTP codes for the next event inserts, in order (empty = 200). */
 	public static $event_insert_codes = array();
+	public static $google_timezone = 'America/Mexico_City';
 	public static $identity = array( 'sub' => 'test-sub', 'email' => 'advisor@example.test', 'email_verified' => true );
 	public static $checks = 0;
 
@@ -153,6 +154,8 @@ final class ELAB_Test {
 		self::$unauthorized_once = false;
 		self::$event_get_extra = array();
 		self::$event_insert_codes = array();
+		self::$google_timezone = 'America/Mexico_City';
+		wp_clear_scheduled_hook( ELAB_Google_Calendar::RESTORE_CRON );
 		self::as_admin();
 	}
 
@@ -200,6 +203,8 @@ final class ELAB_Test {
 			$data = array();
 		} elseif ( false !== strpos( $url, 'openidconnect.googleapis.com/v1/userinfo' ) ) {
 			$data = self::$identity;
+		} elseif ( $calendar_api && false !== strpos( $url, '/users/me/settings/timezone' ) ) {
+			$data = array( 'kind' => 'calendar#setting', 'id' => 'timezone', 'value' => self::$google_timezone );
 		} elseif ( $calendar_api && self::$calendar_gone && false !== strpos( $url, '/calendars/test-cal%40group' ) ) {
 			$code = 404;
 		} elseif ( $calendar_api && preg_match( '#/calendar/v3/calendars$#', $url ) && 'POST' === $method ) {

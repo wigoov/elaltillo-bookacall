@@ -32,6 +32,7 @@ final class ELAB_Booking_Sync {
 		add_action( self::CRON, array( 'ELAB_Google_Calendar', 'watch_connections' ), 5 );
 		add_action( self::CRON, array( __CLASS__, 'run' ) );
 		add_action( self::CRON, array( 'ELAB_Notifications', 'send_reminders' ), 20 );
+		add_action( ELAB_Google_Calendar::RESTORE_CRON, array( 'ELAB_Google_Calendar', 'run_restores' ) );
 		add_action( 'admin_post_nopriv_' . self::OLD_ACTION, array( __CLASS__, 'handle_old_link' ) );
 		add_action( 'admin_post_' . self::OLD_ACTION, array( __CLASS__, 'handle_old_link' ) );
 	}
@@ -51,6 +52,7 @@ final class ELAB_Booking_Sync {
 
 	public static function unschedule() {
 		wp_clear_scheduled_hook( self::CRON );
+		wp_clear_scheduled_hook( ELAB_Google_Calendar::RESTORE_CRON );
 	}
 
 	/** What is pending for this booking in Google: '', 'create' or 'delete'. */
