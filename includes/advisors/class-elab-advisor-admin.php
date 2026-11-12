@@ -310,6 +310,9 @@ final class ELAB_Advisor_Admin {
 		<table class="form-table" role="presentation"><tbody>
 			<tr><th scope="row"><?php esc_html_e( 'Connection', 'elaltillo-bookacall' ); ?></th><td>
 				<p class="elab-google-line"><span class="elab-check elab-check--<?php echo esc_attr( $google_badge[0] ); ?>"><?php echo esc_html( $google_badge[1] ); ?></span> <?php echo esc_html( $google_text ); ?></p>
+				<?php if ( ELAB_Google_Calendar::calendar_id( $post->ID ) && in_array( $google_state, array( 'connected', 'toobroad' ), true ) ) : // Tells this site's calendar apart from same-named ones in Google. ?>
+					<p class="description"><?php echo esc_html( sprintf( __( 'Calendar ID in Google: %s (Google Calendar → Settings → the calendar → Integrate calendar).', 'elaltillo-bookacall' ), ELAB_Google_Calendar::calendar_id( $post->ID ) ) ); ?></p>
+				<?php endif; ?>
 				<p class="elab-google-actions">
 				<?php if ( 'setup' === $google_state ) : ?>
 					<a class="button" href="<?php echo esc_url( ELAB_Google_Settings_Admin::url( 'google' ) ); ?>"><?php esc_html_e( 'Set up Google Calendar', 'elaltillo-bookacall' ); ?></a>

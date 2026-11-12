@@ -2774,3 +2774,6 @@ msgstr[1] "Las reservas y sus documentos se eliminan definitivamente %d meses de
 
 msgid "Booking records and their documents are kept until we delete them. You can ask us to access, export, correct or delete them at any time."
 msgstr "Las reservas y sus documentos se conservan hasta que los eliminemos. Puedes pedirnos en cualquier momento acceder a ellos, exportarlos, corregirlos o eliminarlos."
+
+msgid "Calendar ID in Google: %s (Google Calendar → Settings → the calendar → Integrate calendar)."
+msgstr "ID del calendario en Google: %s (Google Calendar → Configuración → el calendario → Integrar el calendario)."
