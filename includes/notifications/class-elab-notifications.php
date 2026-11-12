@@ -75,6 +75,12 @@ final class ELAB_Notifications {
 		add_filter( 'locale', $force, PHP_INT_MAX );
 		add_filter( 'determine_locale', $force, PHP_INT_MAX );
 		self::reload_strings();
+		// Load this plugin's own file for that language directly, without relying on
+		// WordPress finding it (a cached list of language files can miss it on some servers).
+		$file = ELAB_DIR . 'languages/elaltillo-bookacall-' . $locale . '.mo';
+		if ( is_readable( $file ) ) {
+			load_textdomain( 'elaltillo-bookacall', $file, $locale );
+		}
 		try {
 			return $callback();
 		} finally {
