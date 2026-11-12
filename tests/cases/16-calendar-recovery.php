@@ -195,4 +195,17 @@ return array(
 		T::same( 'Tu calendario «El Altillo · Citas» se creó de nuevo', $mail['subject'], 'Spanish subject' );
 		T::contains( 'Se volvió a poner en él 1 llamada', $mail['message'], 'Spanish body' );
 	},
+
+	'“Test Google now” repairs a calendar Google no longer has, and says why a test fails' => function () {
+		$advisor = T::connect( T::advisor( array( '_elab_email' => 'advisor@example.test' ) ) );
+		T::$calendar_gone = true;
+		$result = ELAB_System_Status::run_google_test();
+		T::same( 1, $result['passed'], 'Answers after the calendar is created again' );
+		T::same( 'test-cal-1@group.calendar.google.com', ELAB_Google_Calendar::calendar_id( $advisor ), 'New calendar in use' );
+		T::$google_down = true;
+		$result = ELAB_System_Status::run_google_test();
+		T::contains( 'HTTP 503', $result['advisors'][ $advisor ], 'Google’s answer is shown' );
+		T::same( 1, count( T::$calendar_posts ), 'An outage never creates a calendar' );
+	},
 );
+

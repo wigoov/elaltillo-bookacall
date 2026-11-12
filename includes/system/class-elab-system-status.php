@@ -193,23 +193,35 @@ final class ELAB_System_Status {
 		return $error->get_error_message() . ( '' !== $detail ? ' (' . $detail . ')' : '' );
 	}
 
-	public function test_google() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You cannot run this test.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
-		}
-		check_admin_referer( self::GOOGLE_TEST );
+	/**
+	 * Check every linked advisor's calendar now. A calendar Google no longer has (deleted, or
+	 * made by an older Google app) is created again on the spot, with its upcoming calls.
+	 */
+	public static function run_google_test() {
 		$result = array( 'time' => time(), 'passed' => 0, 'failed' => 0, 'advisors' => array() );
 		foreach ( get_posts( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_status' => 'publish', 'numberposts' => -1, 'fields' => 'ids' ) ) as $advisor_id ) {
 			if ( ! ELAB_Google_Calendar::linked( $advisor_id ) ) {
 				continue;
 			}
 			$check = ELAB_Google_Calendar::connected( $advisor_id ) ? ELAB_Google_Calendar::check( $advisor_id ) : new WP_Error( 'google_not_ready', __( 'Needs to reconnect Google Calendar.', 'elaltillo-bookacall' ) );
+			if ( is_wp_error( $check ) && in_array( (int) ( $check->get_error_data()['http'] ?? 0 ), array( 404, 410 ), true ) && ! is_wp_error( ELAB_Google_Calendar::recover_calendar( $advisor_id ) ) ) {
+				$check = ELAB_Google_Calendar::check( $advisor_id );
+			}
 			$ok = ! is_wp_error( $check );
 			$result['advisors'][ $advisor_id ] = $ok ? true : self::google_error( $check );
 			$result[ $ok ? 'passed' : 'failed' ]++;
 		}
 		ELAB_Booking_Sync::run();
 		set_transient( self::TRANSIENT_GOOGLE, $result, HOUR_IN_SECONDS );
+		return $result;
+	}
+
+	public function test_google() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You cannot run this test.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
+		}
+		check_admin_referer( self::GOOGLE_TEST );
+		self::run_google_test();
 		$to_settings = isset( $_POST['elab_return'] ) && 'settings' === $_POST['elab_return']; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Checked above.
 		wp_safe_redirect( $to_settings ? ELAB_Google_Settings_Admin::url( 'google', array( 'elab_status' => 'google_tested' ) ) : self::url( array( 'elab_status' => 'google_tested' ) ) );
 		exit;
