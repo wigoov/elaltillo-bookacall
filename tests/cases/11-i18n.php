@@ -128,4 +128,22 @@ return array(
 		( new ELAB_Advisor_Admin() )->save( $advisor );
 		T::same( 'en_US', get_post_meta( $advisor, ELAB_Notifications::META_ADVISOR_LOCALE, true ), 'Unknown language ignored' );
 	},
+
+	'A multilingual plugin forcing the page language cannot override the reader’s language' => function () {
+		// TranslatePress filters both at 99999 with the language of the page being viewed.
+		$page = static function () { return 'en_US'; };
+		add_filter( 'locale', $page, 99999 );
+		add_filter( 'determine_locale', $page, 99999 );
+		try {
+			$inside = ELAB_Notifications::in_locale( 'es_CO', static function () {
+				return __( 'Your call is booked', 'elaltillo-bookacall' );
+			} );
+			$after = __( 'Your call is booked', 'elaltillo-bookacall' );
+		} finally {
+			remove_filter( 'locale', $page, 99999 );
+			remove_filter( 'determine_locale', $page, 99999 );
+		}
+		T::same( 'Tu llamada está agendada', $inside, 'Written in the reader’s language' );
+		T::same( 'Your call is booked', $after, 'The page language is back afterwards' );
+	},
 );

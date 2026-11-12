@@ -62,14 +62,34 @@ final class ELAB_Notifications {
 
 	/** Run $callback with WordPress switched to $locale, then switch back. */
 	public static function in_locale( $locale, callable $callback ) {
-		$switched = $locale && $locale !== determine_locale() && switch_to_locale( $locale );
+		if ( ! $locale || $locale === determine_locale() ) {
+			return $callback();
+		}
+		$switched = switch_to_locale( $locale );
+		// Multilingual plugins (TranslatePress filters "locale" and "determine_locale" at 99999)
+		// would keep forcing the page's language over the switch. While this email or page is
+		// written, its reader's language wins, and the plugin's strings are reloaded in it.
+		$force = static function () use ( $locale ) {
+			return $locale;
+		};
+		add_filter( 'locale', $force, PHP_INT_MAX );
+		add_filter( 'determine_locale', $force, PHP_INT_MAX );
+		self::reload_strings();
 		try {
 			return $callback();
 		} finally {
+			remove_filter( 'locale', $force, PHP_INT_MAX );
+			remove_filter( 'determine_locale', $force, PHP_INT_MAX );
 			if ( $switched ) {
 				restore_previous_locale();
 			}
+			self::reload_strings();
 		}
+	}
+
+	/** Drop the plugin's loaded strings so the next one loads in the current language. */
+	private static function reload_strings() {
+		unload_textdomain( 'elaltillo-bookacall', true );
 	}
 
 	/* ---------- Shared pieces ---------- */
