@@ -78,9 +78,11 @@ export function initFiles(root, t, config = {}, locale = 'en') {
 	};
 
 	async function previewPdf(file, thumb, meta, warning) {
+		let task = null;
 		try {
 			const lib = await loadPdf();
-			const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()), useWasm: false, enableXfa: false }).promise;
+			task = lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()), useWasm: false, enableXfa: false });
+			const pdf = await task.promise;
 			const page = await pdf.getPage(1);
 			const ratio = window.devicePixelRatio || 1;
 			const viewport = page.getViewport({ scale: (thumb.clientWidth || 44) * ratio / page.getViewport({ scale: 1 }).width });
@@ -93,10 +95,15 @@ export function initFiles(root, t, config = {}, locale = 'en') {
 			thumb.classList.replace('bg-accent', 'bg-white');
 			thumb.classList.replace('items-center', 'items-start');
 			meta.textContent += ` · ${pdf.numPages === 1 ? t('fileOnePage') : t('filePages', pdf.numPages)}`;
-			pdf.destroy();
 		} catch (problem) {
 			// Encrypted or damaged: the advisor would not be able to open it either.
 			warning.hidden = false;
+		}
+		// Free the worker; a failure here says nothing about the file.
+		try {
+			await task?.destroy();
+		} catch (problem) {
+			// Nothing to do.
 		}
 	}
 
