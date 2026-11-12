@@ -225,7 +225,16 @@ function createCalendar(root, config) {
 
 	async function api(path, options = {}) {
 		// Anonymous on purpose: no cookies and no nonce, so cached pages never hold stale auth.
-		const response = await fetch(`${config.api}${path}`, { credentials: 'omit', ...options });
+		let response;
+		try {
+			response = await fetch(`${config.api}${path}`, { credentials: 'omit', ...options });
+		} catch (error) {
+			// Network failure: no browser text ("Failed to fetch") reaches the visitor. An empty
+			// message lets each caller show its own translated one, with its retry button.
+			const failure = new Error('');
+			failure.status = 0;
+			throw failure;
+		}
 		let data = null;
 		try {
 			data = await response.json();
