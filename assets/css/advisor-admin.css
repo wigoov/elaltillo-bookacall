@@ -5,7 +5,7 @@
 #elab-advisor-settings .form-table { margin: 0 0 28px; }
 #elab-advisor-settings .form-table th { width: 160px; padding-left: 0; }
 #elab-advisor-settings .form-table td { padding-right: 0; }
-#elab-advisor-settings .form-table input, #elab-advisor-settings .form-table select { border-radius: 5px; min-height: 36px; }
+#elab-advisor-settings .form-table input:not([type="checkbox"]):not([type="radio"]), #elab-advisor-settings .form-table select { border-radius: 5px; min-height: 36px; }
 #elab-advisor-settings #elab-timezone-search { margin-bottom: 7px; }
 #elab-advisor-settings h3 { margin: 8px 0; font-size: 18px; }
 #elab-advisor-settings [data-elab-weekly-hours] { margin-top: 18px; border: 1px solid #dcdcde; border-radius: 6px; border-spacing: 0; background: #fff; }
@@ -159,4 +159,5 @@
 #elab-advisor-settings .elab-remove-range:hover { background: #fcf0f1; color: #b32d2e; }
 #elab-advisor-settings .elab-remove-range:focus-visible { outline: 2px solid #2271b1; outline-offset: 1px; box-shadow: none; }
 #elab-advisor-settings .elab-language-choice { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 4px 0 0; }
-#elab-advisor-settings .elab-language-choice label { display: inline-flex; align-items: center; gap: 6px; }
+#elab-advisor-settings .elab-language-choice label { display: inline-flex; align-items: center; gap: 8px; margin: 0 !important; line-height: 1.4; cursor: pointer; }
+#elab-advisor-settings .elab-language-choice input[type="checkbox"] { flex: none; width: 16px; height: 16px; min-height: 0; margin: 0; }
