@@ -2997,3 +2997,11 @@ msgstr "Nuevo asesor (%s)"
 
 msgid "New advisor"
 msgstr "Nuevo asesor"
+
+#, php-format
+msgid "The Google email changed, so the connection with %1$s was removed. A connection link was sent to %2$s; until they connect, the advisor is hidden from the booking calendar. Calls already booked stay in the previous account’s calendar."
+msgstr "El correo de Google cambió, así que se quitó la conexión con %1$s. Se envió un enlace de conexión a %2$s; hasta que se conecte, el asesor no aparece en el calendario de reservas. Las llamadas ya reservadas siguen en el calendario de la cuenta anterior."
+
+#, php-format
+msgid "The Google email changed, so the connection with %1$s was removed. Send %2$s a connection link: until they connect, the advisor is hidden from the booking calendar."
+msgstr "El correo de Google cambió, así que se quitó la conexión con %1$s. Envía un enlace de conexión a %2$s: hasta que se conecte, el asesor no aparece en el calendario de reservas."

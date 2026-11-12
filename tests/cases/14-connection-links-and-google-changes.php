@@ -240,4 +240,33 @@ return array(
 		( new ELAB_Advisor_Admin() )->save( $advisor );
 		T::same( array(), T::mails_to( 'quieta@example.test' ), 'No email' );
 	},
+
+	'Changing a connected advisor’s Google email removes the old connection and emails the new address' => function () {
+		$advisor = T::connect( T::advisor( array( '_elab_email' => 'antes@example.test' ) ) );
+		$_POST = array( 'elab_nonce' => wp_create_nonce( ELAB_Advisor_Admin::NONCE_ACTION ), 'elab_email' => 'despues@example.test', 'elab_timezone' => 'America/Bogota', 'elab_day_active' => array( 1 => '1' ), 'elab_availability' => array( 1 => array( array( 'start' => '09:00', 'end' => '12:00' ) ) ), 'elab_send_invite' => '1' );
+		( new ELAB_Advisor_Admin() )->save( $advisor );
+		T::check( ! ELAB_Google_Calendar::linked( $advisor ), 'Old connection removed' );
+		T::same( 1, count( T::requests( '#oauth2\.googleapis\.com/revoke#' ) ), 'Withdrawn at Google' );
+		T::check( ! ELAB_Availability::is_bookable( $advisor ), 'Hidden until they connect' );
+		$mail = T::mails_to( 'despues@example.test' );
+		T::same( 1, count( $mail ), 'One link to the new address, even with the save-and-send button pressed' );
+		T::contains( 'elab_google_invite', $mail[0]['message'], 'The connection link' );
+		T::same( array(), T::mails_to( 'antes@example.test' ), 'Nothing to the old address' );
+		$notes = get_transient( 'elab_advisor_saved_' . get_current_user_id() . '_' . $advisor );
+		T::contains( 'A connection link was sent to despues@example.test', implode( ' ', (array) $notes ), 'The screen says what happened' );
+		remove_all_filters( 'redirect_post_location' );
+	},
+
+	'The same email in other letters, or an advisor never connected, changes nothing' => function () {
+		$connected = T::connect( T::advisor( array( '_elab_email' => 'misma@example.test' ) ) );
+		$base = array( 'elab_nonce' => wp_create_nonce( ELAB_Advisor_Admin::NONCE_ACTION ), 'elab_timezone' => 'America/Bogota', 'elab_day_active' => array( 1 => '1' ), 'elab_availability' => array( 1 => array( array( 'start' => '09:00', 'end' => '12:00' ) ) ) );
+		$_POST = $base + array( 'elab_email' => 'MISMA@example.test' );
+		( new ELAB_Advisor_Admin() )->save( $connected );
+		T::check( ELAB_Google_Calendar::linked( $connected ), 'Same account: connection kept' );
+		$fresh = T::advisor( array( '_elab_email' => 'uno@example.test' ) );
+		$_POST = $base + array( 'elab_email' => 'dos@example.test' );
+		( new ELAB_Advisor_Admin() )->save( $fresh );
+		T::same( array(), T::$mail, 'Nothing sent' );
+		T::same( array(), T::requests( '#revoke#' ), 'Nothing revoked' );
+	},
 );

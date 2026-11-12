@@ -357,6 +357,7 @@ final class ELAB_Advisor_Admin {
 			$notes[] = __( 'The advisor email was not a valid address and was cleared.', 'elaltillo-bookacall' );
 		}
 		update_post_meta( $post_id, '_elab_email', $email );
+		$this->reconnect_after_email_change( $post_id, (string) $previous['email'], $email, $notes );
 
 		if ( current_user_can( 'manage_options' ) && isset( $_POST['elab_user_id'] ) ) {
 			$user_id = absint( $_POST['elab_user_id'] );
@@ -490,15 +491,37 @@ final class ELAB_Advisor_Admin {
 
 	/** After the advisor is saved with its email, send the link and say so on the reloaded screen. */
 	private function send_invite_after_save( $post_id ) {
-		static $sent_for = array();
-		if ( ! self::invite_requested() || isset( $sent_for[ $post_id ] ) || wp_is_post_revision( $post_id ) || ELAB_Google_Calendar::connected( $post_id ) ) {
+		if ( ! self::invite_requested() || isset( self::$invited[ $post_id ] ) || wp_is_post_revision( $post_id ) || ELAB_Google_Calendar::connected( $post_id ) ) {
 			return;
 		}
-		$sent_for[ $post_id ] = true;
+		self::$invited[ $post_id ] = true;
 		$result = ELAB_Notifications::advisor_email( $post_id ) && ELAB_Notifications::connect_invite( $post_id ) ? 'invite_sent' : 'invite_failed';
 		add_filter( 'redirect_post_location', static function ( $location ) use ( $result ) {
 			return add_query_arg( 'elab_google', $result, $location ) . '#elab-google-connection';
 		} );
+	}
+
+	/** Advisors already emailed a connection link in this request (never twice). */
+	private static $invited = array();
+
+	/**
+	 * The Google email changed on an advisor with a connection: that connection belongs to the
+	 * previous account, so it is withdrawn at Google and the advisor is sent a connection link
+	 * at the new address. Until they connect, they are hidden from the booking calendar.
+	 */
+	private function reconnect_after_email_change( $post_id, $before, $after, array &$notes ) {
+		if ( '' === $before || '' === $after || 0 === strcasecmp( $before, $after ) || ! ELAB_Google_Calendar::linked( $post_id ) ) {
+			return;
+		}
+		ELAB_Google_Calendar::forget( $post_id, true );
+		$sent = false;
+		if ( ELAB_Google_Calendar::configured() && ! isset( self::$invited[ $post_id ] ) ) {
+			self::$invited[ $post_id ] = true;
+			$sent = ELAB_Notifications::connect_invite( $post_id );
+		}
+		$notes[] = $sent
+			? sprintf( __( 'The Google email changed, so the connection with %1$s was removed. A connection link was sent to %2$s; until they connect, the advisor is hidden from the booking calendar. Calls already booked stay in the previous account’s calendar.', 'elaltillo-bookacall' ), $before, $after )
+			: sprintf( __( 'The Google email changed, so the connection with %1$s was removed. Send %2$s a connection link: until they connect, the advisor is hidden from the booking calendar.', 'elaltillo-bookacall' ), $before, $after );
 	}
 
 	private function sanitize_availability( $availability ) {
