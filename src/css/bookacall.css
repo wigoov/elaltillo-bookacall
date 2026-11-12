@@ -39,3 +39,6 @@
 @media (prefers-reduced-motion: reduce) {
   [data-elab-booking] * { transition: none !important; animation: none !important; }
 }
+
+/* The theme gives paragraphs and blocks a display, which would undo the hidden attribute. */
+[hidden] { display: none !important; }
