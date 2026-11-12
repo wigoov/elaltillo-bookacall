@@ -75,7 +75,7 @@ final class ELAB_Booking_Admin {
 			}
 			echo '</div>';
 		} elseif ( ELAB_Booking_Sync::DELETE === $sync ) {
-			echo '<p class="notice notice-warning inline">' . esc_html__( 'Cancelled here. Google did not answer yet, so the event is removed from the advisor’s calendar as soon as it does.', 'elaltillo-bookacall' ) . '</p>';
+			echo '<p class="notice notice-warning inline">' . esc_html( ELAB_Google_Calendar::connected( $advisor_id ) ? __( 'Cancelled here. Google did not answer yet, so the event is removed from the advisor’s calendar as soon as it does.', 'elaltillo-bookacall' ) : __( 'Cancelled here. The advisor’s Google Calendar is not connected, so the event is removed from their calendar when they reconnect.', 'elaltillo-bookacall' ) ) . '</p>';
 		} elseif ( get_post_meta( $post->ID, ELAB_Booking_Sync::META_MANUAL, true ) ) {
 			echo '<p class="notice notice-warning inline">' . esc_html( ELAB_Booking_Sync::by_advisor( $post->ID ) ? __( 'The advisor added this call to their calendar by hand, so the site cannot remove it: the advisor should delete that event. The visitor was emailed.', 'elaltillo-bookacall' ) : __( 'This call was created in the advisor’s main Google Calendar before the dedicated calendar existed. The site can no longer change it: the advisor should delete that event by hand. The visitor was emailed.', 'elaltillo-bookacall' ) ) . '</p>';
 		} elseif ( ELAB_Booking_Sync::by_advisor( $post->ID ) ) {

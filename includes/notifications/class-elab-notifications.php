@@ -201,7 +201,9 @@ final class ELAB_Notifications {
 				? __( 'You added this call to your calendar yourself, so the site cannot remove it. Please delete that event in your calendar.', 'elaltillo-bookacall' )
 				: __( 'This call was created in your main Google Calendar before the dedicated calendar existed. Please delete that event there by hand.', 'elaltillo-bookacall' );
 		} elseif ( 'cancelled' === $status && ELAB_Booking_Sync::DELETE === ELAB_Booking_Sync::state( $booking_id ) ) {
-			$notice = __( 'Google did not answer, so the event will be removed from your calendar automatically as soon as it does.', 'elaltillo-bookacall' );
+			$notice = ELAB_Google_Calendar::connected( $advisor_id )
+				? __( 'Google did not answer, so the event will be removed from your calendar automatically as soon as it does.', 'elaltillo-bookacall' )
+				: __( 'Your Google Calendar is not connected, so the event stays in your calendar until you reconnect; the site then removes it automatically.', 'elaltillo-bookacall' );
 		}
 		$body[] = __( 'The sector, message and attachments are in the private booking record, visible only to site administrators.', 'elaltillo-bookacall' );
 		$subject = $broken ? __( 'Action needed: new call waiting for Google Calendar', 'elaltillo-bookacall' ) : $title;

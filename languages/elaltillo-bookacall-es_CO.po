@@ -2763,3 +2763,9 @@ msgstr "Esta opción ya no está disponible"
 
 msgid "Calls waiting for Google are added to your calendar automatically as soon as you reconnect Google Calendar. Open the most recent email about this call to reconnect."
 msgstr "Las llamadas que esperan a Google se agregan a tu calendario automáticamente en cuanto vuelves a conectar Google Calendar. Abre el correo más reciente sobre esta llamada para reconectar."
+
+msgid "Cancelled here. The advisor’s Google Calendar is not connected, so the event is removed from their calendar when they reconnect."
+msgstr "Cancelada aquí. El Google Calendar del asesor no está conectado, así que el evento se borra de su calendario cuando vuelva a conectarse."
+
+msgid "Your Google Calendar is not connected, so the event stays in your calendar until you reconnect; the site then removes it automatically."
+msgstr "Tu Google Calendar no está conectado, así que el evento sigue en tu calendario hasta que vuelvas a conectarte; entonces el sitio lo borra automáticamente."
