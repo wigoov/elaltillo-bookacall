@@ -100,10 +100,16 @@ final class ELAB_Booking_Admin {
 		}
 		echo '<dt>' . esc_html__( 'Attachments', 'elaltillo-bookacall' ) . '</dt><dd>';
 		foreach ( $files as $file ) {
-			$url = wp_nonce_url( add_query_arg( array( 'action' => 'elab_download', 'booking' => $booking_id, 'file' => $file['stored'] ), admin_url( 'admin-post.php' ) ), 'elab_download_' . $booking_id . '_' . $file['stored'] );
-			printf( '<a href="%s">%s</a><br>', esc_url( $url ), esc_html( $file['name'] ) );
+			$extension = strtolower( pathinfo( (string) $file['stored'], PATHINFO_EXTENSION ) );
+			if ( isset( ELAB_Private_Attachments::allowed_types()[ $extension ] ) ) {
+				// Opens the safe viewer in a new tab: the file is shown, never downloaded or run.
+				printf( '<a class="button button-small" href="%s" target="_blank" rel="noopener noreferrer">%s</a> %s<br>', esc_url( ELAB_Document_Viewer::url( $booking_id, $file['stored'] ) ), esc_html__( 'View', 'elaltillo-bookacall' ), esc_html( $file['name'] ) );
+			} else {
+				// Sent before only viewable formats were accepted (.doc, .xls): kept, but not opened.
+				printf( '%s <span class="description">%s</span><br>', esc_html( $file['name'] ), esc_html__( '(older format: no safe preview)', 'elaltillo-bookacall' ) );
+			}
 		}
-		echo '</dd>';
+		echo '<p class="description">' . esc_html__( 'Attachments open in a safe viewer: they are not downloaded and nothing in them runs.', 'elaltillo-bookacall' ) . '</p></dd>';
 	}
 
 	private function render_status_control( $booking_id ) {

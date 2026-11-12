@@ -25,6 +25,8 @@ require_once __DIR__ . '/bookings/class-elab-booking-service.php';
 require_once __DIR__ . '/bookings/class-elab-booking-manage.php';
 require_once __DIR__ . '/bookings/class-elab-rest-controller.php';
 require_once __DIR__ . '/files/class-elab-private-attachments.php';
+require_once __DIR__ . '/files/class-elab-office-preview.php';
+require_once __DIR__ . '/files/class-elab-document-viewer.php';
 require_once __DIR__ . '/frontend/class-elab-booking-form.php';
 require_once __DIR__ . '/privacy/class-elab-privacy.php';
 require_once __DIR__ . '/security/class-elab-security.php';
@@ -64,6 +66,7 @@ final class ELAB_Plugin {
 		new ELAB_REST_Controller();
 		new ELAB_Booking_Manage();
 		new ELAB_Booking_Form();
+		new ELAB_Document_Viewer();
 		new ELAB_Privacy();
 		new ELAB_Security();
 		new ELAB_System_Status();

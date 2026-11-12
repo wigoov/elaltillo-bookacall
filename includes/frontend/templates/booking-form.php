@@ -141,8 +141,8 @@ $elab_step_dot = 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full
 			<label class="<?php echo esc_attr( $elab_label ); ?>"><span><?php esc_html_e( 'Your project', 'elaltillo-bookacall' ); ?> <?php echo $elab_optional; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?></span> <textarea name="message" rows="4" maxlength="5000" placeholder="<?php esc_attr_e( 'What would you like to talk about?', 'elaltillo-bookacall' ); ?>" class="<?php echo esc_attr( $elab_field ); ?> resize-y"></textarea></label>
 			<label class="grid cursor-pointer gap-1 rounded-xl border border-dashed border-secondary/30 px-4 py-4 transition-[border-color,box-shadow] duration-200 hover:border-secondary focus-within:border-secondary focus-within:shadow-[0_0_0_4px_#FFFD88]">
 				<span class="font-secondary text-xs uppercase tracking-wider text-secondary/70"><?php esc_html_e( 'Attach files', 'elaltillo-bookacall' ); ?> <?php echo $elab_optional; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?></span>
-				<span data-elab-files class="font-primary text-sm text-secondary/70"><?php esc_html_e( 'PDF, Word or Excel · up to 3 files, 10 MB each', 'elaltillo-bookacall' ); ?></span>
-				<input type="file" name="attachments[]" accept=".pdf,.doc,.docx,.xls,.xlsx" multiple class="sr-only">
+				<span data-elab-files class="font-primary text-sm text-secondary/70"><?php esc_html_e( 'PDF, Word, Excel or PowerPoint · up to 3 files, 10 MB each', 'elaltillo-bookacall' ); ?></span>
+				<input type="file" name="attachments[]" accept=".pdf,.docx,.xlsx,.pptx" multiple class="sr-only">
 			</label>
 			<label class="flex cursor-pointer items-start gap-3 font-secondary text-xs leading-relaxed text-secondary/70">
 				<input type="checkbox" name="consent" value="1" required class="peer sr-only">

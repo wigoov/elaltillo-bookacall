@@ -2883,3 +2883,64 @@ msgstr "No necesitas una cuenta en el sitio. Este enlace es personal: no lo reen
 
 msgid "Your call has a new time"
 msgstr "Tu llamada tiene una nueva hora"
+
+#, php-format
+msgid "%d pages"
+msgstr "%d páginas"
+
+msgid "(older format: no safe preview)"
+msgstr "(formato antiguo: sin vista segura)"
+
+msgid "Attachments open in a safe viewer: they are not downloaded and nothing in them runs."
+msgstr "Los adjuntos se abren en un visor seguro: no se descargan y no se ejecuta nada de su contenido."
+
+msgid "Files with macros are not accepted. Save the document without macros (or as PDF) and attach it again."
+msgstr "No se aceptan archivos con macros. Guarda el documento sin macros (o como PDF) y vuelve a adjuntarlo."
+
+msgid "Invalid link."
+msgstr "Enlace no válido."
+
+msgid "Loading the document…"
+msgstr "Cargando el documento…"
+
+msgid "Only PDF, Word (.docx), Excel (.xlsx) and PowerPoint (.pptx) files are allowed. Save older .doc, .xls or .ppt files in the new format or as PDF."
+msgstr "Solo se permiten archivos PDF, Word (.docx), Excel (.xlsx) y PowerPoint (.pptx). Guarda los archivos .doc, .xls o .ppt antiguos en el formato nuevo o como PDF."
+
+#, php-format
+msgid "Only the first %1$d rows and %2$d columns are shown."
+msgstr "Solo se muestran las primeras %1$d filas y %2$d columnas."
+
+msgid "PDF, Word, Excel or PowerPoint · up to 3 files, 10 MB each"
+msgstr "PDF, Word, Excel o PowerPoint · hasta 3 archivos de 10 MB cada uno"
+
+#, php-format
+msgid "Page %d"
+msgstr "Página %d"
+
+msgid "Safe view: the file is not downloaded and nothing in it runs. Office documents are shown simplified (text, tables and pictures)."
+msgstr "Vista segura: el archivo no se descarga y no se ejecuta nada de su contenido. Los documentos de Office se muestran simplificados (texto, tablas e imágenes)."
+
+#, php-format
+msgid "Slide %d"
+msgstr "Diapositiva %d"
+
+msgid "This PDF could not be shown. It may be damaged or protected with a password."
+msgstr "No se pudo mostrar este PDF. Puede estar dañado o protegido con contraseña."
+
+msgid "This attachment does not belong to this booking."
+msgstr "Este adjunto no pertenece a esta reserva."
+
+msgid "This file could not be read as a Word, Excel or PowerPoint document."
+msgstr "No se pudo leer este archivo como documento de Word, Excel o PowerPoint."
+
+msgid "This server cannot read Office documents (the PHP zip extension is missing)."
+msgstr "Este servidor no puede leer documentos de Office (falta la extensión zip de PHP)."
+
+msgid "This sheet is empty."
+msgstr "Esta hoja está vacía."
+
+msgid "View"
+msgstr "Ver"
+
+msgid "You are not allowed to view booking attachments."
+msgstr "No tienes permiso para ver los adjuntos de las reservas."

@@ -1,5 +1,8 @@
 <?php
-/** Private attachment storage and authorized download handling. */
+/**
+ * Private attachment storage. Files are kept outside the web root and are never handed out
+ * as downloads: administrators read them in ELAB_Document_Viewer.
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -84,7 +87,6 @@ final class ELAB_Private_Attachments {
 	}
 
 	public function __construct() {
-		add_action( 'admin_post_elab_download', array( $this, 'download' ) );
 		add_action( 'before_delete_post', array( $this, 'delete_booking_files' ) );
 	}
 
@@ -105,7 +107,7 @@ final class ELAB_Private_Attachments {
 		if ( $count > 3 ) {
 			return new WP_Error( 'too_many_files', __( 'You can attach up to 3 files.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
 		}
-		$allowed = array( 'pdf' => 'application/pdf', 'doc' => 'application/msword', 'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'xls' => 'application/vnd.ms-excel', 'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' );
+		$allowed = self::allowed_types();
 		$dir = self::safe_dir();
 		if ( ! $dir ) {
 			return new WP_Error( 'upload_failed', __( 'Private attachment storage is unavailable. Ask the site administrator to configure a directory outside the web root.', 'elaltillo-bookacall' ), array( 'status' => 503 ) );
@@ -127,7 +129,13 @@ final class ELAB_Private_Attachments {
 			$detected = wp_check_filetype_and_ext( $tmp, $name, $allowed );
 			if ( ! isset( $allowed[ $extension ] ) || empty( $detected['type'] ) || $detected['type'] !== $allowed[ $extension ] ) {
 				$this->remove_files( $dir, $files );
-				return new WP_Error( 'invalid_file_type', __( 'Only PDF, Word and Excel files are allowed.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
+				return new WP_Error( 'invalid_file_type', __( 'Only PDF, Word (.docx), Excel (.xlsx) and PowerPoint (.pptx) files are allowed. Save older .doc, .xls or .ppt files in the new format or as PDF.', 'elaltillo-bookacall' ), array( 'status' => 400 ) );
+			}
+			// Office files are checked inside: a real document of that type, no macros, no zip bomb.
+			$inside = 'pdf' === $extension ? true : ELAB_Office_Preview::inspect( $tmp, $extension );
+			if ( true !== $inside ) {
+				$this->remove_files( $dir, $files );
+				return $inside;
 			}
 			$scan = self::scan( $tmp, $name );
 			if ( true !== $scan ) {
@@ -157,30 +165,39 @@ final class ELAB_Private_Attachments {
 		$this->remove_files( self::storage_dir(), $files );
 	}
 
-	public function download() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You are not allowed to download booking attachments.', 'elaltillo-bookacall' ), '', array( 'response' => 403 ) );
+	/** File types visitors may attach: only those the safe viewer can show. */
+	public static function allowed_types() {
+		return array(
+			'pdf'  => 'application/pdf',
+			'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+		);
+	}
+
+	/**
+	 * One stored attachment of one booking, resolved inside the private directory only.
+	 *
+	 * @return array{name:string,path:string}|WP_Error
+	 */
+	public static function find( $booking_id, $file ) {
+		$files = $booking_id ? get_post_meta( $booking_id, '_elab_files', true ) : array();
+		$match = null;
+		foreach ( is_array( $files ) ? $files : array() as $item ) {
+			if ( is_string( $file ) && '' !== $file && isset( $item['stored'] ) && hash_equals( (string) $item['stored'], $file ) ) {
+				$match = $item;
+			}
 		}
-		$file = isset( $_GET['file'] ) ? sanitize_file_name( wp_unslash( $_GET['file'] ) ) : '';
-		$booking_id = isset( $_GET['booking'] ) ? absint( $_GET['booking'] ) : 0;
-		$nonce = isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '';
-		$booking_files = $booking_id ? get_post_meta( $booking_id, '_elab_files', true ) : array();
-		$belongs_to_booking = is_array( $booking_files ) && (bool) array_filter( $booking_files, static function ( $item ) use ( $file ) { return isset( $item['stored'] ) && hash_equals( $item['stored'], $file ); } );
-		if ( ! $file || ! $belongs_to_booking || ! wp_verify_nonce( $nonce, 'elab_download_' . $booking_id . '_' . $file ) ) {
-			wp_die( esc_html__( 'Invalid download link.', 'elaltillo-bookacall' ), '', array( 'response' => 400 ) );
+		$extension = strtolower( pathinfo( (string) $file, PATHINFO_EXTENSION ) );
+		if ( ! $match || ! isset( self::allowed_types()[ $extension ] ) ) {
+			return new WP_Error( 'attachment_unknown', __( 'This attachment does not belong to this booking.', 'elaltillo-bookacall' ), array( 'status' => 404 ) );
 		}
 		$base = realpath( self::storage_dir() );
 		$path = $base ? realpath( trailingslashit( $base ) . $file ) : false;
 		if ( ! $base || ! $path || 0 !== strpos( $path, trailingslashit( $base ) ) || ! is_file( $path ) ) {
-			wp_die( esc_html__( 'Attachment not found.', 'elaltillo-bookacall' ), '', array( 'response' => 404 ) );
+			return new WP_Error( 'attachment_missing', __( 'Attachment not found.', 'elaltillo-bookacall' ), array( 'status' => 404 ) );
 		}
-		nocache_headers();
-		header( 'X-Content-Type-Options: nosniff' );
-		header( 'Content-Type: application/octet-stream' );
-		header( 'Content-Disposition: attachment; filename="' . basename( $file ) . '"' );
-		header( 'Content-Length: ' . filesize( $path ) );
-		readfile( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_readfile
-		exit;
+		return array( 'name' => (string) ( $match['name'] ?? basename( $path ) ), 'path' => $path );
 	}
 
 	public function delete_booking_files( $post_id ) {

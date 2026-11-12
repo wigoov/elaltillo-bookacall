@@ -1,0 +1,2 @@
+pdfjs-dist 6.4.299 (Apache-2.0), files build/pdf.min.mjs and build/pdf.worker.min.mjs, renamed to .js.
+Integrity sha512-AVl138zALtfaAPvADulE0PZThbYzCBS79nL4pOSL/6Sm/4AH5A21BD9VHt97OlCuzJuCpmeZtAtkinisF4Vb1g==
