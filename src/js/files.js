@@ -77,7 +77,7 @@ export function initFiles(root, t, config = {}, locale = 'en') {
 		error.hidden = !errors.length;
 	};
 
-	async function previewPdf(file, thumb, meta, warning) {
+	async function previewPdf(file, thumb, meta, warning, ready) {
 		let task = null;
 		try {
 			const lib = await loadPdf();
@@ -98,6 +98,7 @@ export function initFiles(root, t, config = {}, locale = 'en') {
 		} catch (problem) {
 			// Encrypted or damaged: the advisor would not be able to open it either.
 			warning.hidden = false;
+			ready.hidden = true;
 		}
 		// Free the worker; a failure here says nothing about the file.
 		try {
@@ -144,7 +145,7 @@ export function initFiles(root, t, config = {}, locale = 'en') {
 			input.focus();
 		});
 		item.append(thumb, info, remove);
-		if (extension === 'pdf' && config.pdfjs) previewPdf(file, thumb, meta, warning);
+		if (extension === 'pdf' && config.pdfjs) previewPdf(file, thumb, meta, warning, ready);
 		return item;
 	};
 

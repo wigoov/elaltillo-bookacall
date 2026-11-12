@@ -327,12 +327,15 @@ final class ELAB_Office_Preview {
 				$shared[] = $text;
 			}
 		}
+		$dates = self::excel_date_styles( $zip );
+		// Dates count from 1899-12-30, or from 1904-01-01 in workbooks made with that setting.
+		$epoch = in_array( strtolower( (string) $book->evaluate( 'string(/s:workbook/s:workbookPr/@date1904)' ) ), array( '1', 'true' ), true ) ? 24107 : 25569;
 		$out = '';
 		foreach ( $book->query( '/s:workbook/s:sheets/s:sheet' ) as $sheet ) {
 			$name = $sheet->getAttribute( 'name' );
 			$part = $rels[ $sheet->getAttributeNS( self::NS['r'], 'id' ) ] ?? '';
 			$data = $part ? self::xml( $zip, $part ) : null;
-			$out .= '<section class="sheet"><h2>' . self::text( $name ) . '</h2>' . ( $data ? self::excel_sheet( $data, $shared ) : '' ) . '</section>';
+			$out .= '<section class="sheet"><h2>' . self::text( $name ) . '</h2>' . ( $data ? self::excel_sheet( $data, $shared, $dates, $epoch ) : '' ) . '</section>';
 		}
 		return '<article class="book">' . $out . '</article>';
 	}
@@ -354,7 +357,48 @@ final class ELAB_Office_Preview {
 		return $name;
 	}
 
-	private static function excel_sheet( DOMXPath $xpath, array $shared ) {
+	/**
+	 * Cell styles (by index) that show a number as a date or time, from xl/styles.xml.
+	 *
+	 * @return array<int, string> Style index => 'date', 'datetime' or 'time'.
+	 */
+	private static function excel_date_styles( ZipArchive $zip ) {
+		$xpath = self::xml( $zip, 'xl/styles.xml' );
+		if ( ! $xpath ) {
+			return array();
+		}
+		// Excel's built-in date and time formats.
+		$kinds = array( 14 => 'date', 15 => 'date', 16 => 'date', 17 => 'date', 18 => 'time', 19 => 'time', 20 => 'time', 21 => 'time', 22 => 'datetime', 45 => 'time', 46 => 'time', 47 => 'time' );
+		foreach ( $xpath->query( '/s:styleSheet/s:numFmts/s:numFmt' ) as $format ) {
+			// Ignore quoted text, colours and the like, then look for date and time letters.
+			$code = strtolower( preg_replace( '/"[^"]*"|\\\\.|\[[^\]]*\]/', '', $format->getAttribute( 'formatCode' ) ) );
+			$date = (bool) preg_match( '/[dy]|m{3,}/', $code ) || ( false !== strpos( $code, 'm' ) && false === strpos( $code, 'h' ) && false === strpos( $code, 's' ) && preg_match( '/[dy]/', $code ) );
+			$time = (bool) preg_match( '/h|s/', $code );
+			if ( $date || $time ) {
+				$kinds[ (int) $format->getAttribute( 'numFmtId' ) ] = $date && $time ? 'datetime' : ( $date ? 'date' : 'time' );
+			}
+		}
+		$styles = array();
+		foreach ( $xpath->query( '/s:styleSheet/s:cellXfs/s:xf' ) as $index => $style ) {
+			$id = (int) $style->getAttribute( 'numFmtId' );
+			if ( isset( $kinds[ $id ] ) ) {
+				$styles[ $index ] = $kinds[ $id ];
+			}
+		}
+		return $styles;
+	}
+
+	/** A date serial as 2026-11-24, 2026-11-24 15:30 or 15:30. */
+	private static function excel_date( $value, $kind, $epoch ) {
+		if ( ! is_numeric( $value ) ) {
+			return $value;
+		}
+		$seconds = (int) round( ( (float) $value - $epoch ) * DAY_IN_SECONDS );
+		$format = array( 'date' => 'Y-m-d', 'datetime' => 'Y-m-d H:i', 'time' => 'H:i' )[ $kind ];
+		return gmdate( $format, 'time' === $kind ? (int) round( fmod( (float) $value, 1 ) * DAY_IN_SECONDS ) : $seconds );
+	}
+
+	private static function excel_sheet( DOMXPath $xpath, array $shared, array $dates = array(), $epoch = 25569 ) {
 		$grid = array();
 		$width = 0;
 		$cut = false;
@@ -380,6 +424,8 @@ final class ELAB_Office_Preview {
 					$value = $xpath->evaluate( 'string(s:is)', $cell );
 				} elseif ( 'b' === $type ) {
 					$value = '1' === $value ? 'TRUE' : 'FALSE';
+				} elseif ( '' !== $value && isset( $dates[ (int) $cell->getAttribute( 's' ) ] ) ) {
+					$value = self::excel_date( $value, $dates[ (int) $cell->getAttribute( 's' ) ], $epoch );
 				}
 				if ( '' !== $value ) {
 					$cells[ $column ] = $value;

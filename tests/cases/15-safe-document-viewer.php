@@ -236,4 +236,29 @@ return array(
 		T::contains( 'action=elab_view', $html, 'Record links the viewer' );
 		T::lacks( 'elab_download', $html, 'No download link' );
 	},
+
+	'Excel dates and times are shown as dates, not as serial numbers' => function () use ( $office, $types ) {
+		$styles = '<?xml version="1.0"?><styleSheet ' . ELAB_TEST_S . '><numFmts count="2"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/><numFmt numFmtId="165" formatCode="#,##0 &quot;días&quot;"/></numFmts>'
+			. '<cellXfs count="5"><xf numFmtId="0"/><xf numFmtId="14"/><xf numFmtId="164"/><xf numFmtId="22"/><xf numFmtId="165"/></cellXfs></styleSheet>';
+		$sheet = '<?xml version="1.0"?><worksheet ' . ELAB_TEST_S . '><sheetData><row r="1">'
+			. '<c r="A1" s="1"><v>46350</v></c><c r="B1" s="2"><v>46350</v></c><c r="C1" s="3"><v>46350.6458333333</v></c><c r="D1" s="4"><v>12</v></c><c r="E1" s="0"><v>46350</v></c>'
+			. '</row></sheetData></worksheet>';
+		$build = static function ( $workbook_pr ) use ( $office, $types, $styles, $sheet ) {
+			return $office( 'xlsx', array(
+				'[Content_Types].xml' => $types,
+				'xl/workbook.xml' => '<?xml version="1.0"?><workbook ' . ELAB_TEST_S . '>' . $workbook_pr . '<sheets><sheet name="Fechas" sheetId="1" r:id="rId1"/></sheets></workbook>',
+				'xl/_rels/workbook.xml.rels' => '<?xml version="1.0"?><Relationships ' . ELAB_TEST_REL . '><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>',
+				'xl/styles.xml' => $styles,
+				'xl/worksheets/sheet1.xml' => $sheet,
+			) );
+		};
+		$path = $build( '' );
+		$html = ELAB_Office_Preview::to_html( $path, 'xlsx' );
+		unlink( $path );
+		T::contains( '<td>2026-11-24</td><td>2026-11-24</td><td>2026-11-24 15:30</td><td>12</td><td>46350</td>', $html, 'Built-in and custom date formats, date and time; numbers with text and plain numbers untouched' );
+		$path = $build( '<workbookPr date1904="1"/>' );
+		$html = ELAB_Office_Preview::to_html( $path, 'xlsx' );
+		unlink( $path );
+		T::contains( '<td>2030-11-25</td>', $html, '1904 date system' );
+	},
 );
