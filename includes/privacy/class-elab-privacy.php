@@ -155,13 +155,19 @@ final class ELAB_Privacy {
 	}
 
 	public function policy_text() {
-		if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) {
-			return;
+		if ( function_exists( 'wp_add_privacy_policy_content' ) ) {
+			wp_add_privacy_policy_content( __( 'El Altillo Book a Call', 'elaltillo-bookacall' ), wp_kses_post( self::policy_html() ) );
 		}
-		$text = '<p>' . esc_html__( 'When you book a call we store your name, email address, time zone, chosen meeting language, the call time and advisor, and anything you add: sector, message and documents. Documents are kept in private storage that only site administrators can download.', 'elaltillo-bookacall' ) . '</p>'
-			. '<p>' . esc_html__( 'The advisor receives your name, email and call time. When the advisor uses Google Calendar, a private event with your email as the attendee is created in their calendar and Google sends you the invitation.', 'elaltillo-bookacall' ) . '</p>'
-			. '<p>' . esc_html__( 'Booking records and their documents are deleted automatically after the retention period set by the site, and you can ask us to export or erase them at any time.', 'elaltillo-bookacall' ) . '</p>';
-		wp_add_privacy_policy_content( __( 'El Altillo Book a Call', 'elaltillo-bookacall' ), wp_kses_post( $text ) );
+	}
+
+	/** Suggested privacy policy wording, matching what the plugin does and its retention period. */
+	public static function policy_html() {
+		$months = self::retention_months();
+		$text = '<p>' . esc_html__( 'When you book a call we store your name and email address, your time zone and meeting language, the date, time and advisor of the call, the time you accepted the privacy policy and anything you add: sector, message, up to 3 documents and up to 3 guest email addresses.', 'elaltillo-bookacall' ) . '</p>'
+			. '<p>' . esc_html__( 'The advisor receives your name, email and call time by email. The full booking, including the message and documents, can only be viewed by site administrators and by that advisor after signing in with their own Google account. Documents are kept in private storage outside the public website, are never offered as downloads and open only in a protected viewer.', 'elaltillo-bookacall' ) . '</p>'
+			. '<p>' . esc_html__( 'A private event is created in the advisor’s Google Calendar with you and your guests as attendees; Google sends the invitation and a Google Meet link. The sector, message and documents are never added to the event. Cloudflare Turnstile checks each booking, and short-lived request counters use a one-way code of your IP address.', 'elaltillo-bookacall' ) . '</p>'
+			. '<p>' . esc_html( $months ? sprintf( _n( 'Booking records and their documents are permanently deleted %d month after the date of the call. You can ask us to access, export, correct or delete them at any time.', 'Booking records and their documents are permanently deleted %d months after the date of the call. You can ask us to access, export, correct or delete them at any time.', $months, 'elaltillo-bookacall' ), $months ) : __( 'Booking records and their documents are kept until we delete them. You can ask us to access, export, correct or delete them at any time.', 'elaltillo-bookacall' ) ) . '</p>';
+		return $text;
 	}
 
 	public function render_settings() {

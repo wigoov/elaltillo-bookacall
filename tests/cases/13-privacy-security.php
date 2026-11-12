@@ -143,5 +143,13 @@ return array(
 		T::contains( 'Virus scan of attachments', $html, 'Row shown' );
 		T::contains( 'ELAB_CLAMD_SOCKET', $html, 'Explains how to turn it on' );
 	},
+
+	'The suggested privacy policy text matches what the site does, with its retention period' => function () {
+		update_option( 'elab_retention_months', 12 );
+		$captured = ELAB_Privacy::policy_html();
+		T::contains( '12 months after the date of the call', $captured, 'Retention period stated' );
+		T::contains( 'own Google account', $captured, 'Advisor portal access explained' );
+		T::lacks( 'can download', $captured, 'No mention of downloads' );
+	},
 );
 

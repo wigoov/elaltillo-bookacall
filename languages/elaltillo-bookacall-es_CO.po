@@ -2757,3 +2757,20 @@ msgstr "ClamAV está configurado pero no responde, así que los adjuntos se rech
 
 msgid "Optional. Attachments are not scanned for viruses: they are limited to real PDF and Office files without macros and open only in the safe viewer, where nothing in them runs. To scan them, run ClamAV (clamd) on the server and define ELAB_CLAMD_SOCKET in wp-config.php. Shared hosting usually cannot run it; a VPS can."
 msgstr "Opcional. Los adjuntos no se analizan con antivirus: se limitan a PDF y archivos de Office reales sin macros y solo se abren en el visor seguro, donde nada de su contenido se ejecuta. Para analizarlos, instala ClamAV (clamd) en el servidor y define ELAB_CLAMD_SOCKET en wp-config.php. El hosting compartido no suele permitirlo; un VPS sí."
+
+msgid "When you book a call we store your name and email address, your time zone and meeting language, the date, time and advisor of the call, the time you accepted the privacy policy and anything you add: sector, message, up to 3 documents and up to 3 guest email addresses."
+msgstr "Cuando reservas una llamada guardamos tu nombre y correo, tu zona horaria y el idioma de la reunión, la fecha, la hora y el asesor de la llamada, el momento en que aceptaste la política de privacidad y lo que añadas: sector, mensaje, hasta 3 documentos y hasta 3 correos de invitados."
+
+msgid "The advisor receives your name, email and call time by email. The full booking, including the message and documents, can only be viewed by site administrators and by that advisor after signing in with their own Google account. Documents are kept in private storage outside the public website, are never offered as downloads and open only in a protected viewer."
+msgstr "El asesor recibe por correo tu nombre, tu correo y la hora de la llamada. La reserva completa, con el mensaje y los documentos, solo la pueden ver los administradores del sitio y ese asesor tras entrar con su propia cuenta de Google. Los documentos se guardan en un almacenamiento privado fuera del sitio público, nunca se ofrecen como descarga y solo se abren en un visor protegido."
+
+msgid "A private event is created in the advisor’s Google Calendar with you and your guests as attendees; Google sends the invitation and a Google Meet link. The sector, message and documents are never added to the event. Cloudflare Turnstile checks each booking, and short-lived request counters use a one-way code of your IP address."
+msgstr "Se crea un evento privado en el Google Calendar del asesor con tus invitados y contigo como asistentes; Google envía la invitación y un enlace de Google Meet. El sector, el mensaje y los documentos nunca se añaden al evento. Cloudflare Turnstile revisa cada reserva, y los contadores temporales de solicitudes usan un código irreversible de tu dirección IP."
+
+msgid "Booking records and their documents are permanently deleted %d month after the date of the call. You can ask us to access, export, correct or delete them at any time."
+msgid_plural "Booking records and their documents are permanently deleted %d months after the date of the call. You can ask us to access, export, correct or delete them at any time."
+msgstr[0] "Las reservas y sus documentos se eliminan definitivamente %d mes después de la fecha de la llamada. Puedes pedirnos en cualquier momento acceder a ellos, exportarlos, corregirlos o eliminarlos."
+msgstr[1] "Las reservas y sus documentos se eliminan definitivamente %d meses después de la fecha de la llamada. Puedes pedirnos en cualquier momento acceder a ellos, exportarlos, corregirlos o eliminarlos."
+
+msgid "Booking records and their documents are kept until we delete them. You can ask us to access, export, correct or delete them at any time."
+msgstr "Las reservas y sus documentos se conservan hasta que los eliminemos. Puedes pedirnos en cualquier momento acceder a ellos, exportarlos, corregirlos o eliminarlos."
