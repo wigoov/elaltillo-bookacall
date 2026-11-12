@@ -129,3 +129,23 @@ document.querySelectorAll('[data-elab-blackouts]').forEach((editor) => {
 		row.querySelector('input[type="date"]').focus();
 	});
 });
+
+/* Connection link: shown once the Google email field has an address; saves the advisor, then emails it. */
+const inviteButton = document.querySelector('[data-elab-send-invite]');
+if (inviteButton) {
+	const email = document.querySelector('#elab-email');
+	const flag = document.querySelector('[data-elab-send-invite-flag]');
+	const looksLikeEmail = () => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim());
+	const sync = () => { inviteButton.hidden = !looksLikeEmail(); };
+	email.addEventListener('input', sync);
+	sync();
+	inviteButton.addEventListener('click', () => {
+		if (!looksLikeEmail()) return;
+		flag.value = '1';
+		// The server names an unnamed advisor; hide the title placeholder so the field is not left looking empty.
+		document.querySelector('#title-prompt-text')?.classList.add('screen-reader-text');
+		inviteButton.disabled = true;
+		(document.querySelector('#publish') || document.querySelector('#save-post'))?.click();
+	});
+}
+

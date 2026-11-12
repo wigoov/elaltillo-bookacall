@@ -89,7 +89,7 @@ return array(
 		T::configure_google();
 		$advisor = T::advisor( array( '_elab_email' => 'advisor@example.test' ) );
 		$html = T::render( static function () use ( $advisor ) { ( new ELAB_Advisor_Admin() )->render( get_post( $advisor ) ); } );
-		T::contains( 'Email a connection link', $html, 'Button shown while not connected' );
+		T::contains( 'data-elab-send-invite', $html, 'Save-and-send button present while not connected' );
 		$_GET['advisor'] = (string) $advisor;
 		$_REQUEST['_wpnonce'] = wp_create_nonce( 'elab_google_send_invite_' . $advisor );
 		$result = $stop( static function () { ( new ELAB_Google_Calendar() )->send_invite(); } );
@@ -204,5 +204,40 @@ return array(
 		$html = T::render( static function () use ( $booking ) { ( new ELAB_Booking_Admin() )->render( get_post( $booking ) ); } );
 		T::contains( 'Accepted by the visitor', $html, 'Shown on the record' );
 		T::same( array(), T::$mail, 'No email' );
+	},
+
+	'Save and email: an unnamed advisor gets a generic name, is saved and receives the link' => function () {
+		T::configure_google();
+		// What WordPress creates when "Add advisor" opens; the form then sends an empty title.
+		$advisor = wp_insert_post( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_status' => 'auto-draft', 'post_title' => 'Auto Draft' ) );
+		T::track( $advisor );
+		$_POST = array(
+			'elab_nonce'        => wp_create_nonce( ELAB_Advisor_Admin::NONCE_ACTION ),
+			'elab_send_invite'  => '1',
+			'elab_email'        => 'nueva@example.test',
+			'elab_timezone'     => 'America/Bogota',
+			'elab_day_active'   => array( 1 => '1' ),
+			'elab_availability' => array( 1 => array( array( 'start' => '09:00', 'end' => '12:00' ) ) ),
+		);
+		$admin = new ELAB_Advisor_Admin();
+		$named = $admin->name_before_invite( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_title' => '' ), array() );
+		T::same( 'New advisor (nueva@example.test)', $named['post_title'], 'Generic name with the email' );
+		T::same( 'Kept', $admin->name_before_invite( array( 'post_type' => ELAB_Post_Types::ADVISOR, 'post_title' => 'Kept' ), array() )['post_title'], 'A real name is never replaced' );
+		$admin->save( $advisor );
+		$admin->save( $advisor ); // WordPress may fire save_post twice: one email only.
+		T::same( 'nueva@example.test', get_post_meta( $advisor, '_elab_email', true ), 'Email saved first' );
+		$mail = T::mails_to( 'nueva@example.test' );
+		T::same( 1, count( $mail ), 'One connection link sent' );
+		T::contains( 'elab_google_invite', $mail[0]['message'], 'The link' );
+		T::contains( 'elab_google=invite_sent', apply_filters( 'redirect_post_location', admin_url( 'post.php?post=' . $advisor . '&action=edit' ), $advisor ), 'The reloaded screen says it was sent' );
+		remove_all_filters( 'redirect_post_location' );
+	},
+
+	'Without the button, saving an advisor sends nothing' => function () {
+		T::configure_google();
+		$advisor = T::advisor( array( '_elab_email' => 'quieta@example.test' ) );
+		$_POST = array( 'elab_nonce' => wp_create_nonce( ELAB_Advisor_Admin::NONCE_ACTION ), 'elab_email' => 'quieta@example.test', 'elab_timezone' => 'America/Bogota', 'elab_day_active' => array( 1 => '1' ), 'elab_availability' => array( 1 => array( array( 'start' => '09:00', 'end' => '12:00' ) ) ) );
+		( new ELAB_Advisor_Admin() )->save( $advisor );
+		T::same( array(), T::mails_to( 'quieta@example.test' ), 'No email' );
 	},
 );

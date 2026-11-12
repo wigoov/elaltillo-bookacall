@@ -2981,3 +2981,19 @@ msgstr "Abrir el asesor"
 
 msgid "From the advisor screen you can send them a new connection link."
 msgstr "Desde la ficha del asesor puedes enviarle un nuevo enlace de conexión."
+
+msgid "Invite other people to this call?"
+msgstr "¿Quieres invitar a otras personas a esta llamada?"
+
+msgid "Guest email"
+msgstr "Correo del invitado"
+
+msgid "Save and email a connection link"
+msgstr "Guardar y enviar enlace de conexión"
+
+#, php-format
+msgid "New advisor (%s)"
+msgstr "Nuevo asesor (%s)"
+
+msgid "New advisor"
+msgstr "Nuevo asesor"

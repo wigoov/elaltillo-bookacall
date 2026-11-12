@@ -11,6 +11,7 @@ final class ELAB_Advisor_Admin {
 	public function __construct() {
 		add_action( 'add_meta_boxes', array( $this, 'register_meta_box' ) );
 		add_action( 'save_post_' . ELAB_Post_Types::ADVISOR, array( $this, 'save' ) );
+		add_filter( 'wp_insert_post_data', array( $this, 'name_before_invite' ), 10, 2 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_filter( 'manage_' . ELAB_Post_Types::ADVISOR . '_posts_columns', array( $this, 'columns' ) );
 		add_action( 'manage_' . ELAB_Post_Types::ADVISOR . '_posts_custom_column', array( $this, 'render_column' ), 10, 2 );
@@ -316,8 +317,10 @@ final class ELAB_Advisor_Admin {
 					<a class="button button-primary" href="<?php echo esc_url( $connect ); ?>"><?php esc_html_e( 'Reconnect Google Calendar', 'elaltillo-bookacall' ); ?></a>
 					<a class="button" href="<?php echo esc_url( $disconnect ); ?>"><?php esc_html_e( 'Disconnect', 'elaltillo-bookacall' ); ?></a>
 				<?php endif; ?>
-				<?php if ( ! in_array( $google_state, array( 'setup', 'connected' ), true ) && current_user_can( 'manage_options' ) && ELAB_Notifications::advisor_email( $post->ID ) ) : ?>
-					<a class="button" href="<?php echo esc_url( wp_nonce_url( add_query_arg( array( 'action' => 'elab_google_send_invite', 'advisor' => $post->ID ), admin_url( 'admin-post.php' ) ), 'elab_google_send_invite_' . $post->ID ) ); ?>"><?php esc_html_e( 'Email a connection link', 'elaltillo-bookacall' ); ?></a>
+				<?php if ( ! in_array( $google_state, array( 'setup', 'connected' ), true ) && current_user_can( 'manage_options' ) ) : ?>
+					<?php // Shown as soon as the Google email field has an address; saves the advisor, then emails the link. ?>
+					<button type="button" class="button" data-elab-send-invite hidden><?php esc_html_e( 'Save and email a connection link', 'elaltillo-bookacall' ); ?></button>
+					<input type="hidden" name="elab_send_invite" value="" data-elab-send-invite-flag>
 				<?php endif; ?>
 				</p>
 				<?php $elab_invite_result = isset( $_GET['elab_google'] ) ? sanitize_key( wp_unslash( $_GET['elab_google'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only. ?>
@@ -466,6 +469,36 @@ final class ELAB_Advisor_Admin {
 		if ( 'publish' === get_post_status( $post_id ) && ELAB_Google_Calendar::connected( $post_id ) && ( $previous['email'] !== $email || $previous['timezone'] !== $timezone || $previous['availability'] !== $encoded_availability || $previous['blackouts'] !== $clean_blackouts || $previous['rules'] !== $rules ) ) {
 			ELAB_Notifications::queue_schedule_summary( $post_id );
 		}
+		$this->send_invite_after_save( $post_id );
+	}
+
+	/** True when this request is the advisor form asking to save and email the connection link. */
+	private static function invite_requested() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Only read here; save() and name_before_invite() check the nonce.
+		return ! empty( $_POST['elab_send_invite'] ) && current_user_can( 'manage_options' ) && ELAB_Google_Calendar::configured();
+	}
+
+	/** An unnamed advisor saved to send the link gets a generic name with the email, so it can be found. */
+	public function name_before_invite( $data, $postarr ) {
+		if ( ELAB_Post_Types::ADVISOR !== ( $data['post_type'] ?? '' ) || '' !== trim( (string) ( $data['post_title'] ?? '' ) ) || ! self::invite_requested() || ! isset( $_POST['elab_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['elab_nonce'] ) ), self::NONCE_ACTION ) ) {
+			return $data;
+		}
+		$email = isset( $_POST['elab_email'] ) ? sanitize_email( wp_unslash( $_POST['elab_email'] ) ) : '';
+		$data['post_title'] = $email ? sprintf( __( 'New advisor (%s)', 'elaltillo-bookacall' ), $email ) : __( 'New advisor', 'elaltillo-bookacall' );
+		return $data;
+	}
+
+	/** After the advisor is saved with its email, send the link and say so on the reloaded screen. */
+	private function send_invite_after_save( $post_id ) {
+		static $sent_for = array();
+		if ( ! self::invite_requested() || isset( $sent_for[ $post_id ] ) || wp_is_post_revision( $post_id ) || ELAB_Google_Calendar::connected( $post_id ) ) {
+			return;
+		}
+		$sent_for[ $post_id ] = true;
+		$result = ELAB_Notifications::advisor_email( $post_id ) && ELAB_Notifications::connect_invite( $post_id ) ? 'invite_sent' : 'invite_failed';
+		add_filter( 'redirect_post_location', static function ( $location ) use ( $result ) {
+			return add_query_arg( 'elab_google', $result, $location ) . '#elab-google-connection';
+		} );
 	}
 
 	private function sanitize_availability( $availability ) {

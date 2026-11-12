@@ -137,4 +137,15 @@ return array(
 		T::lacks( 'data-elab-languages', $html, 'No chooser' );
 		T::contains( 'data-elab-language-value value="en"', $html, 'English preset' );
 	},
+
+	'Guests stay behind a switch until the visitor wants to invite someone' => function () {
+		T::turnstile_on();
+		T::advisor();
+		$html = T::render( static function () { echo do_shortcode( '[elaltillo_bookacall]' ); } );
+		T::contains( 'role="switch" data-elab-guests-toggle', $html, 'Switch' );
+		T::contains( 'Invite other people to this call?', $html, 'Asked as a question' );
+		T::check( (bool) preg_match( '/data-elab-guest-panel\s+hidden/', $html ), 'The email field is hidden until switched on' );
+		$script = (string) file_get_contents( ELAB_DIR . 'src/js/guests.js' );
+		T::contains( 'toggle && !toggle.checked ? true', $script, 'Switched off: nothing is sent' );
+	},
 );

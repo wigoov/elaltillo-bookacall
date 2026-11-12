@@ -30,6 +30,8 @@ export function initGuests(root, t) {
 	const list = box.querySelector('[data-elab-guest-list]');
 	const hidden = box.querySelector('[data-elab-guests-value]');
 	const hint = box.querySelector('[data-elab-guest-hint]');
+	const toggle = box.querySelector('[data-elab-guests-toggle]');
+	const panel = box.querySelector('[data-elab-guest-panel]');
 	const hintText = hint.textContent;
 	const visitor = root.querySelector('input[name="email"]');
 	let guests = [];
@@ -93,15 +95,33 @@ export function initGuests(root, t) {
 		}
 	});
 	input.addEventListener('input', () => say(''));
+	// Guests stay out of the way until the visitor says they want to invite someone. Turning
+	// the switch off drops anyone added, so nothing hidden is ever sent.
+	const open = (on) => {
+		toggle.checked = on;
+		panel.hidden = !on;
+		if (!on) {
+			guests = [];
+			input.value = '';
+			render();
+			say('');
+		}
+	};
+	toggle?.addEventListener('change', () => {
+		open(toggle.checked);
+		if (toggle.checked) input.focus();
+	});
+	if (toggle) open(false);
 	sync();
 	return {
 		// Called on submit: a typed but not yet added address is added (or blocks with a message).
-		commit: () => commit(true),
+		commit: () => (toggle && !toggle.checked ? true : commit(true)),
 		reset() {
 			guests = [];
 			input.value = '';
 			render();
 			say('');
+			if (toggle) open(false);
 		},
 	};
 }
